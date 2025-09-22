@@ -1,0 +1,361 @@
+#include "level/Level.hpp"
+#include "level/Tile.hpp"
+#include <iostream>
+#include <algorithm>
+
+Level::Level(int width, int height, int depth) 
+    : width(width), height(height), depth(depth), random() {
+    
+    blocks.resize(width * height * depth);
+    lightDepths.resize(width * height);
+    
+    randValue = random.nextInt();
+    unprocessed = 0;
+    
+    generateMap();
+    
+    // Вычисляем освещение
+    calcLightDepths(0, 0, width, height);
+    
+    std::cout << "Level created: " << width << "x" << height << "x" << depth << std::endl;
+}
+
+void Level::generateMap() {
+    std::fill(blocks.begin(), blocks.end(), 0); // Заполняем воздухом
+    
+    int groundLevel = depth * 2 / 3; // 2/3 от высоты мира
+    
+    for (int x = 0; x < width; ++x) {
+        for (int z = 0; z < height; ++z) {
+            for (int y = 0; y < depth; ++y) {
+                int index = (y * height + z) * width + x;
+                
+                if (y < groundLevel - 1) {
+                    // Камень внизу
+                    blocks[index] = 1; // Tile::rock->id
+                } else if (y == groundLevel - 1) {
+                    // Один слой травы на поверхности
+                    blocks[index] = 2; // Tile::grass->id
+                }
+                // Остальное - воздух (0)
+            }
+        }
+    }
+    
+    std::cout << "Generated simple world with ground level at " << groundLevel << std::endl;
+}
+
+void Level::setData(int w, int d, int h, const std::vector<uint8_t>& newBlocks) {
+    width = w;
+    height = h;
+    depth = d;
+    blocks = newBlocks;
+    lightDepths.resize(w * h);
+    calcLightDepths(0, 0, w, h);
+    
+    for (LevelListener* listener : levelListeners) {
+        listener->allChanged();
+    }
+}
+
+void Level::calcLightDepths(int x0, int z0, int x1, int z1) {
+    for (int x = x0; x < x0 + x1; ++x) {
+        for (int z = z0; z < z0 + z1; ++z) {
+            if (x >= width || z >= height) continue;
+            
+            int oldDepth = lightDepths[x + z * width];
+            
+            int y = depth - 1;
+            while (y > 0 && !isLightBlocker(x, y, z)) {
+                --y;
+            }
+            
+            lightDepths[x + z * width] = y + 1;
+            
+            if (oldDepth != y) {
+                int yl0 = std::min(oldDepth, y);
+                int yl1 = std::max(oldDepth, y);
+                
+                for (LevelListener* listener : levelListeners) {
+                    listener->lightColumnChanged(x, z, yl0, yl1);
+                }
+            }
+        }
+    }
+}
+
+void Level::tick() {
+    unprocessed += width * height * depth;
+    int ticks = unprocessed / TILE_UPDATE_INTERVAL;
+    unprocessed -= ticks * TILE_UPDATE_INTERVAL;
+    
+    // Тикаем жидкости
+    tickLiquids();
+    
+    // Случайные тики тайлов
+    for (int i = 0; i < ticks; ++i) {
+        randValue = randValue * multiplier + addend;
+        int x = (randValue >> 16) & (width - 1);
+        randValue = randValue * multiplier + addend;
+        int y = (randValue >> 16) & (depth - 1);
+        randValue = randValue * multiplier + addend;
+        int z = (randValue >> 16) & (height - 1);
+        
+        int id = getTile(x, y, z);
+        if (id != 0) {
+            Tile* tile = Tile::tiles[id];
+            if (tile) {
+                tile->tick(this, x, y, z, random);
+            }
+        }
+    }
+}
+
+bool Level::isTile(int x, int y, int z) {
+    if (x < 0 || y < 0 || z < 0 || x >= width || y >= depth || z >= height) {
+        return false;
+    }
+    int index = (y * height + z) * width + x;
+    return blocks[index] != 0;
+}
+
+bool Level::isSolidTile(int x, int y, int z) {
+    Tile* tile = Tile::tiles[getTile(x, y, z)];
+    return tile != nullptr && tile->isSolid();
+}
+
+bool Level::isLightBlocker(int x, int y, int z) {
+    Tile* tile = Tile::tiles[getTile(x, y, z)];
+    return tile != nullptr && tile->blocksLight();
+}
+
+float Level::getBrightness(int x, int y, int z) {
+    float dark = 0.0f;
+    float light = 1.0f;
+    
+    if (x < 0 || y < 0 || z < 0 || x >= width || y >= depth || z >= height) {
+        return light;
+    }
+    
+    if (y < lightDepths[x + z * width]) {
+        return dark;
+    }
+    
+    return light;
+}
+
+bool Level::isLit(int x, int y, int z) {
+    if (x >= 0 && y >= 0 && z >= 0 && x < width && y < depth && z < height) {
+        return y >= lightDepths[x + z * width];
+    }
+    return true;
+}
+
+int Level::getTile(int x, int y, int z) {
+    if (x < 0 || y < 0 || z < 0 || x >= width || y >= depth || z >= height) {
+        return 0;
+    }
+    int index = (y * height + z) * width + x;
+    return blocks[index];
+}
+
+bool Level::setTile(int x, int y, int z, int type) {
+    if (x >= 0 && y >= 0 && z >= 0 && x < width && y < depth && z < height) {
+        int index = (y * height + z) * width + x;
+        int oldType = blocks[index];
+        
+        if (type == oldType) {
+            return false;
+        }
+        
+        // Обрабатываем жидкости
+        if (isActiveLiquidTile(oldType)) {
+            removeLiquidPosition(x, y, z);
+        }
+        if (isActiveLiquidTile(type)) {
+            addLiquidPosition(x, y, z);
+        }
+        
+        blocks[index] = static_cast<uint8_t>(type);
+        
+        // Уведомляем соседей
+        neighborChanged(x - 1, y, z, type);
+        neighborChanged(x + 1, y, z, type);
+        neighborChanged(x, y - 1, z, type);
+        neighborChanged(x, y + 1, z, type);
+        neighborChanged(x, y, z - 1, type);
+        neighborChanged(x, y, z + 1, type);
+        
+        calcLightDepths(x, z, 1, 1);
+        
+        // Уведомляем слушателей
+        for (LevelListener* listener : levelListeners) {
+            listener->tileChanged(x, y, z);
+        }
+        
+        return true;
+    }
+    return false;
+}
+
+bool Level::setTileNoUpdate(int x, int y, int z, int type) {
+    if (x >= 0 && y >= 0 && z >= 0 && x < width && y < depth && z < height) {
+        int index = (y * height + z) * width + x;
+        if (type == blocks[index]) {
+            return false;
+        }
+        blocks[index] = static_cast<uint8_t>(type);
+        return true;
+    }
+    return false;
+}
+
+std::vector<AABB> Level::getCubes(const AABB& boundingBox) {
+    std::vector<AABB> boxes;
+    
+    int x0 = static_cast<int>(std::floor(boundingBox.x0)) - 1;
+    int x1 = static_cast<int>(std::ceil(boundingBox.x1)) + 1;
+    int y0 = static_cast<int>(std::floor(boundingBox.y0)) - 1;
+    int y1 = static_cast<int>(std::ceil(boundingBox.y1)) + 1;
+    int z0 = static_cast<int>(std::floor(boundingBox.z0)) - 1;
+    int z1 = static_cast<int>(std::ceil(boundingBox.z1)) + 1;
+    
+    for (int x = x0; x < x1; ++x) {
+        for (int y = y0; y < y1; ++y) {
+            for (int z = z0; z < z1; ++z) {
+                if (x >= 0 && y >= 0 && z >= 0 && x < width && y < depth && z < height) {
+                    Tile* tile = Tile::tiles[getTile(x, y, z)];
+                    if (tile != nullptr) {
+                        AABB* aabb = tile->getAABB(x, y, z);
+                        if (aabb != nullptr) {
+                            boxes.push_back(*aabb);
+                            delete aabb; // Освобождаем память
+                        }
+                    }
+                } else if (x < 0 || y < 0 || z < 0 || x >= width || z >= height) {
+                    // Неразрушимые границы мира
+                    AABB* aabb = Tile::unbreakable->getAABB(x, y, z);
+                    if (aabb != nullptr) {
+                        boxes.push_back(*aabb);
+                        delete aabb;
+                    }
+                }
+            }
+        }
+    }
+    
+    return boxes;
+}
+
+bool Level::containsAnyLiquid(const AABB& box) {
+    int x0 = std::max(0, static_cast<int>(std::floor(box.x0)));
+    int x1 = std::min(width, static_cast<int>(std::floor(box.x1 + 1.0f)));
+    int y0 = std::max(0, static_cast<int>(std::floor(box.y0)));
+    int y1 = std::min(depth, static_cast<int>(std::floor(box.y1 + 1.0f)));
+    int z0 = std::max(0, static_cast<int>(std::floor(box.z0)));
+    int z1 = std::min(height, static_cast<int>(std::floor(box.z1 + 1.0f)));
+    
+    for (int x = x0; x < x1; ++x) {
+        for (int y = y0; y < y1; ++y) {
+            for (int z = z0; z < z1; ++z) {
+                Tile* tile = Tile::tiles[getTile(x, y, z)];
+                if (tile != nullptr && tile->getLiquidType() > 0) {
+                    return true;
+                }
+            }
+        }
+    }
+    
+    return false;
+}
+
+bool Level::containsLiquid(const AABB& box, int liquidId) {
+    int x0 = std::max(0, static_cast<int>(std::floor(box.x0)));
+    int x1 = std::min(width, static_cast<int>(std::floor(box.x1 + 1.0f)));
+    int y0 = std::max(0, static_cast<int>(std::floor(box.y0)));
+    int y1 = std::min(depth, static_cast<int>(std::floor(box.y1 + 1.0f)));
+    int z0 = std::max(0, static_cast<int>(std::floor(box.z0)));
+    int z1 = std::min(height, static_cast<int>(std::floor(box.z1 + 1.0f)));
+    
+    for (int x = x0; x < x1; ++x) {
+        for (int y = y0; y < y1; ++y) {
+            for (int z = z0; z < z1; ++z) {
+                Tile* tile = Tile::tiles[getTile(x, y, z)];
+                if (tile != nullptr && tile->getLiquidType() == liquidId) {
+                    return true;
+                }
+            }
+        }
+    }
+    
+    return false;
+}
+
+void Level::addListener(LevelListener* listener) {
+    levelListeners.push_back(listener);
+}
+
+void Level::removeListener(LevelListener* listener) {
+    auto it = std::find(levelListeners.begin(), levelListeners.end(), listener);
+    if (it != levelListeners.end()) {
+        levelListeners.erase(it);
+    }
+}
+
+void Level::neighborChanged(int x, int y, int z, int type) {
+    if (x >= 0 && y >= 0 && z >= 0 && x < width && y < depth && z < height) {
+        Tile* tile = Tile::tiles[getTile(x, y, z)];
+        if (tile != nullptr) {
+            tile->neighborChanged(this, x, y, z, type);
+        }
+    }
+}
+
+void Level::tickLiquids() {
+    std::vector<int> positionsToUpdate(liquidPositions.begin(), liquidPositions.end());
+    
+    for (int positionCode : positionsToUpdate) {
+        int x, y, z;
+        decodePosition(positionCode, x, y, z);
+        
+        int tileId = getTile(x, y, z);
+        Tile* tile = Tile::tiles[tileId];
+        
+        if (tile != nullptr) {
+            if (tile->isCalmLiquid()) {
+                removeLiquidPosition(x, y, z);
+                continue;
+            }
+            tile->tick(this, x, y, z, random);
+        }
+    }
+}
+
+bool Level::isLiquidTile(int tileId) {
+    // Нужно будет определить ID жидкостей в Tile
+    return tileId == 3 || tileId == 4 || tileId == 5 || tileId == 6; // water, calmWater, lava, calmLava
+}
+
+bool Level::isActiveLiquidTile(int tileId) {
+    // Только активные жидкости, НЕ спокойные
+    return tileId == 3 || tileId == 5; // water, lava (не calm)
+}
+
+int Level::encodePosition(int x, int y, int z) {
+    return (z << (maxBits * 2)) | (y << maxBits) | x;
+}
+
+void Level::decodePosition(int code, int& x, int& y, int& z) {
+    int mask = (1 << maxBits) - 1;
+    x = code & mask;
+    y = (code >> maxBits) & mask;
+    z = (code >> (maxBits * 2)) & mask;
+}
+
+void Level::addLiquidPosition(int x, int y, int z) {
+    liquidPositions.insert(encodePosition(x, y, z));
+}
+
+void Level::removeLiquidPosition(int x, int y, int z) {
+    liquidPositions.erase(encodePosition(x, y, z));
+}

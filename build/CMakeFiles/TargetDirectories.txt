@@ -1,0 +1,3 @@
+D:/!jsproj/CrossCraftWebPP/build/CMakeFiles/CrossCraftWebPP.dir
+D:/!jsproj/CrossCraftWebPP/build/CMakeFiles/edit_cache.dir
+D:/!jsproj/CrossCraftWebPP/build/CMakeFiles/rebuild_cache.dir

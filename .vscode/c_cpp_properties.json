@@ -1,0 +1,30 @@
+{
+    "configurations": [
+        {
+            "name": "Emscripten",
+            "includePath": [
+                "${workspaceFolder}/src",
+                "${workspaceFolder}/src/**",
+                "${workspaceFolder}/include",
+                "C:/dev/emsdk/upstream/emscripten/cache/sysroot/include",
+                "C:/dev/emsdk/upstream/emscripten/system/include"
+            ],
+            "defines": [
+                "_DEBUG",
+                "EMSCRIPTEN",
+                "__EMSCRIPTEN__"
+            ],
+            "compilerPath": "C:/dev/emsdk/upstream/emscripten/emcc.bat",
+            "cStandard": "c11", 
+            "cppStandard": "c++17",
+            "intelliSenseMode": "gcc-x64",
+            "browse": {
+                "path": [
+                    "${workspaceFolder}/src",
+                    "${workspaceFolder}/include"
+                ]
+            }
+        }
+    ],
+    "version": 4
+}

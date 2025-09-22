@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenGL 1.1 Triangle via WebAssembly</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background-color: #1a1a1a;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        h1 {
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+        
+        #canvas {
+            border: 2px solid #4CAF50;
+            background-color: black;
+        }
+        
+        #output {
+            width: 800px;
+            height: 150px;
+            background-color: #2d2d2d;
+            color: #00ff00;
+            font-family: monospace;
+            margin-top: 20px;
+            padding: 10px;
+            overflow-y: auto;
+            border: 1px solid #555;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔺 OpenGL 1.1 Triangle in Browser</h1>
+    <p>Powered by C++ + WebAssembly + Emscripten</p>
+    
+    <canvas id="canvas" width="800" height="600"></canvas>
+    <div id="output"></div>
+
+    <script type='text/javascript'>
+        // 1. Находим наш элемент canvas по его ID
+        var canvas = document.getElementById('canvas');
+
+        // 2. Создаем объект Module и явно указываем ему, какой canvas использовать
+        var Module = {
+            canvas: canvas,
+            // Также можно перенаправить вывод printf в элемент #output
+            print: (function() {
+                var element = document.getElementById('output');
+                if (element) element.innerHTML = ''; // Очищаем при старте
+                return function(text) {
+                    if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+                    console.log(text);
+                    if (element) {
+                        element.innerHTML += text + "<br>";
+                        element.scrollTop = element.scrollHeight; // Прокрутка вниз
+                    }
+                };
+            })(),
+            printErr: function(text) {
+                // Аналогично для ошибок
+                if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+                console.error(text);
+            }
+        };
+    </script>
+
+    {{{ SCRIPT }}}
+</body>
+</html>

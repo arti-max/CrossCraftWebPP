@@ -1,0 +1,77 @@
+#include <GLFW/glfw3.h>
+#include <GL/glu.h>
+#include <GL/gl.h>
+#include <emscripten.h>
+#include "render/Tessellator.hpp"
+
+extern "C" void initialize_gl4es();
+
+GLFWwindow* window;
+
+int rotation = 0;
+
+int list_id;
+bool generated = false;
+Tessellator& t = Tessellator::getInstance();
+
+void setup() {
+    list_id = glGenLists(1);
+    glNewList(list_id, GL_COMPILE);
+
+    t.begin();
+    t.color(1.0f, 0.0f, 0.0f);
+    t.vertex(-0.5f, 0.5f, 5.0f);
+    t.color(1.0f, 0.0f, 0.0f);
+    t.vertex(-0.5f, -0.5f, 5.0f);
+    t.color(1.0f, 0.0f, 0.0f);
+    t.vertex(0.5f, -0.5f, 5.0f);
+    t.color(1.0f, 0.0f, 0.0f);
+    t.vertex(0.5f, 0.5f, 5.0f);
+    t.end();
+
+    glEndList();
+}
+
+void render_frame() {
+    glClearColor(0.0f, 0.0f, 0.5f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    // glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
+    gluPerspective(70.0f, 800 / 600, 0.05f, 1024.0f);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    glRotatef(rotation, 1.0f, 1.0f, 1.0f);
+    glScalef(0.2f, 0.2f, 0.2f);
+    ++rotation;
+
+    glCallList(list_id);
+
+    glfwSwapBuffers(window);
+    glfwPollEvents();
+}
+
+int main() {
+    if (!glfwInit()) {
+        return -1;
+    }
+
+    window = glfwCreateWindow(800, 600, "Simple Triangle", NULL, NULL);
+    if (!window) {
+        glfwTerminate();
+        return -1;
+    }
+
+    glfwMakeContextCurrent(window);
+
+    initialize_gl4es();
+
+    setup();
+    emscripten_set_main_loop(render_frame, 0, 1);
+
+    glfwTerminate();
+    return 0;
+}
