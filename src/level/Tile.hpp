@@ -4,6 +4,7 @@
 #include "level/Level.hpp"
 #include "util/Random.hpp"
 #include "phys/AABB.hpp"
+#include "Player.hpp"
 
 class Tile {
 
@@ -12,7 +13,7 @@ private:
 protected:
     float minX, minY, minZ, maxX, maxY, maxZ;
     void setShape(float x0, float y0, float z0, float x1, float y1, float z1);
-    bool shouldRenderFace(Level level, int x, int y, int z, int layer, int face);
+    bool shouldRenderFace(Level* level, int x, int y, int z, int layer, int face);
     int getTexture(int face);
 public:
     Tile(int id);
@@ -35,11 +36,11 @@ public:
     int textureId;
     int id;
 
-    void render(Tessellator& t, Level level, int layer, int x, int y, int z);
+    void render(Tessellator& t, Level* level, int layer, int x, int y, int z);
     void renderFace(Tessellator& t, int x, int y, int z, int face);
     void renderBackFace(Tessellator& t, int x, int y, int z, int face);
-    void renderFaceNoTexture(); // TODO: Player
-    void onDestroy(Level level, int x, int y, int z);   // TODO: PatricleEngine
+    void renderFaceNoTexture(Player* player);
+    void onDestroy(Level* level, int x, int y, int z);   // TODO: PatricleEngine
     void tick(Level* level, int x, int y, int z, Random random);
     bool mayPick();
     bool blocksLight();

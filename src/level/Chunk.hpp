@@ -12,7 +12,7 @@
 class Chunk {
 private:
     static Tessellator& t;
-    Level& level;
+    Level* level;
     int x0, y0, z0;
     int x1, y1, z1;
     float x, y, z;
@@ -24,7 +24,7 @@ public:
     AABB boundingBox;
     bool visible = false;
 
-    Chunk(Level& level, int x0, int y0, int z0, int x1, int y1, int z1);
+    Chunk(Level* level, int x0, int y0, int z0, int x1, int y1, int z1);
     void rebuild(int layer);
     void rebuild();
     void render(int layer);

@@ -11,6 +11,10 @@
         "random": "cpp",
         "queue": "cpp",
         "chrono": "cpp",
-        "algorithm": "cpp"
+        "algorithm": "cpp",
+        "climits": "cpp",
+        "stdexcept": "cpp",
+        "set": "cpp",
+        "unordered_map": "cpp"
     }
 }

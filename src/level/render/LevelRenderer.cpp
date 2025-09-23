@@ -6,7 +6,7 @@
 LevelRenderer::LevelRenderer(Level* level, Textures* textures) 
     : level(level), textures(textures) {
     level->addListener(this);
-    surroundLists = glGenLists(2);
+    this->surroundLists = glGenLists(2);
     allChanged();
 }
 
@@ -50,22 +50,21 @@ void LevelRenderer::allChanged() {
                 if (y1 > level->depth) y1 = level->depth;
                 if (z1 > level->height) z1 = level->height;
                 
-                Chunk* chunk = new Chunk(*level, x0, y0, z0, x1, y1, z1);
+                Chunk* chunk = new Chunk(level, x0, y0, z0, x1, y1, z1);
                 chunks.push_back(chunk);
                 sortedChunks.push_back(chunk);
             }
         }
     }
     
-    glNewList(surroundLists + 0, GL_COMPILE);
+    glNewList(this->surroundLists + 0, GL_COMPILE);
     compileSurroundingGround();
     glEndList();
     
-    glNewList(surroundLists + 1, GL_COMPILE);
+    glNewList(this->surroundLists + 1, GL_COMPILE);
     compileSurroundingWater();
     glEndList();
     
-    // Помечаем все чанки как грязные
     for (Chunk* chunk : chunks) {
         chunk->reset();
     }
@@ -113,12 +112,12 @@ void LevelRenderer::render(Player* player, int layer) {
 }
 
 void LevelRenderer::renderSurroundingGround() {
-    glCallList(surroundLists + 0);
+    glBindTexture(GL_TEXTURE_2D, textures->loadTexture("rock2", GL_NEAREST));
+    glCallList(this->surroundLists + 0);
 }
 
 void LevelRenderer::compileSurroundingGround() {
     glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, textures->loadTexture("rock", GL_NEAREST));
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     
     Tessellator& t = Tessellator::getInstance();
@@ -146,7 +145,6 @@ void LevelRenderer::compileSurroundingGround() {
     }
     
     t.end();
-    glFinish();
     
     glColor3f(0.8f, 0.8f, 0.8f);
     t.begin();
@@ -164,19 +162,18 @@ void LevelRenderer::compileSurroundingGround() {
     }
     
     t.end();
-    glFinish();
     
     glDisable(GL_TEXTURE_2D);
 }
 
 void LevelRenderer::renderSurroundingWater() {
-    glCallList(surroundLists + 1);
+    glBindTexture(GL_TEXTURE_2D, textures->loadTexture("water", GL_NEAREST));
+    glCallList(this->surroundLists + 1);
 }
 
 void LevelRenderer::compileSurroundingWater() {
     glEnable(GL_TEXTURE_2D);
     glColor3f(1.0f, 1.0f, 1.0f);
-    glBindTexture(GL_TEXTURE_2D, textures->loadTexture("water", GL_NEAREST));
     
     float y = level->getGroundLevel();
     glEnable(GL_BLEND);
@@ -194,7 +191,6 @@ void LevelRenderer::compileSurroundingWater() {
         for (int zz = -s * d; zz < level->height + s * d; zz += s) {
             float yy = y - 0.1f;
             if (xx < 0 || zz < 0 || xx >= level->width || zz >= level->height) {
-                // Двухсторонние квады для воды
                 t.vertexUV(static_cast<float>(xx), yy, static_cast<float>(zz + s), 0.0f, static_cast<float>(s));
                 t.vertexUV(static_cast<float>(xx + s), yy, static_cast<float>(zz + s), static_cast<float>(s), static_cast<float>(s));
                 t.vertexUV(static_cast<float>(xx + s), yy, static_cast<float>(zz), static_cast<float>(s), 0.0f);
@@ -209,7 +205,6 @@ void LevelRenderer::compileSurroundingWater() {
     }
     
     t.end();
-    glFinish();
     
     glDisable(GL_BLEND);
     glDisable(GL_TEXTURE_2D);

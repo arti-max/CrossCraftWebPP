@@ -13,6 +13,8 @@ CrossCraft::CrossCraft(const char* canvas, int w, int h, bool fs) :
     if (canvas) {
         parent = canvas;
     }
+
+    this->textures = new Textures();
 }
 
 CrossCraft::~CrossCraft() {
@@ -24,6 +26,8 @@ void CrossCraft::destroy() {
         glfwDestroyWindow(window);
     }
     glfwTerminate();
+    Mouse::destroy();
+    Keyboard::destroy();
     printf("CrossCraft destroyed.\n");
 }
 
@@ -55,7 +59,8 @@ void CrossCraft::init() {
     }
 
     glfwMakeContextCurrent(window);
-
+    Keyboard::create();
+    Mouse::create();
     this->checkGlError("Pre startup");
     glEnable(GL_TEXTURE_2D);
     glShadeModel(GL_SMOOTH);
@@ -75,6 +80,9 @@ void CrossCraft::init() {
     this->level = new Level(256, 256, 64);
     this->levelRenderer = new LevelRenderer(this->level, this->textures);
     this->player = new Player(this->level);
+
+    Mouse::init(window);
+    Keyboard::init(window);
 
     this->checkGlError("Post startup");
 }
@@ -99,7 +107,7 @@ void CrossCraft::run() {
 }
 
 void CrossCraft::mainLoop() {
-    if (pause) {
+    if (paused) {
         return;
     }
 
@@ -134,28 +142,70 @@ void CrossCraft::emscriptenMainLoop(void* arg) {
     static_cast<CrossCraft*>(arg)->mainLoop();
 }
 
-void CrossCraft::render(float partialTicks) {
+void CrossCraft::tick() {
+    if (Keyboard::next()) {
+        this->player->setKey(Keyboard::getEventKey(), Keyboard::getEventKeyState());
+    }
+    this->player->tick();
+}
 
+void CrossCraft::render(float partialTicks) {
     glViewport(0, 0, this->width, this->height);
+    float xo = Mouse::getDX();
+    float yo = Mouse::getDY();
+    this->player->turn(xo, yo * static_cast<float>(this->yMouseAxis));
+    
     this->checkGlError("Set viewport");
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    this->setupCamera();
+    this->setupCamera(partialTicks);
+    glEnable(GL_CULL_FACE);
+    Frustum& frustum = Frustum::getFrustum();
+    this->levelRenderer->cull(frustum);
+    this->levelRenderer->updateDirtyChunks(this->player);
+    this->checkGlError("Update chunks");
+    this->setupFog(0);
+    glEnable(GL_FOG);
+    this->levelRenderer->render(this->player, 0);
+    this->checkGlError("Rendered level");
+    this->setupFog(1);
+    this->levelRenderer->render(this->player, 1);
+    this->levelRenderer->renderSurroundingGround();
+    this->checkGlError("Render surrounding Ground");
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    this->setupFog(0);
+    this->levelRenderer->renderSurroundingWater();
+    this->checkGlError("Render surrounding Water");
+    glEnable(GL_BLEND);
+    glColorMask(false, false, false, false);
+    this->levelRenderer->render(this->player, 2);
+    glColorMask(true, true, true, true);
+    this->levelRenderer->render(this->player, 2);
+    this->checkGlError("Color Mask");
+    glDisable(GL_BLEND);
+    glDisable(GL_LIGHTING);
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_FOG);
 
-    glFinish();
     glfwSwapBuffers(window);
 }
 
-void CrossCraft::setupCamera() {
+void CrossCraft::setupCamera(float partialTicks) {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(70.0, this->width/this->height, 0.05, 1024.0);
+    gluPerspective(70.0, this->width / this->height, 0.05, 1024.0);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    glTranslatef(0.0f, 0.0f, -2.0f);
+    this->moveCameraToPlayer(partialTicks);
 }
 
-void moveCameraToPlayer(float partialTicks) {
+void CrossCraft::moveCameraToPlayer(float partialTicks) {
     glTranslatef(0.0f, 0.0f, -0.3f);
+    glRotatef(this->player->xRot, 1.0f, 0.0f, 0.0f);
+    glRotatef(this->player->yRot, 0.0f, 1.0f, 0.0f);
+    float x = this->player->xo + (this->player->x - this->player->xo) * partialTicks;
+    float y = this->player->yo + (this->player->y - this->player->yo) * partialTicks;
+    float z = this->player->zo + (this->player->z - this->player->zo) * partialTicks;
+    glTranslatef(-x, -y, -z);
 }
 
 void CrossCraft::checkGlError(const char str[]) {
@@ -163,8 +213,24 @@ void CrossCraft::checkGlError(const char str[]) {
     if (errorCode != GL_NO_ERROR) {
         const GLubyte* errorString = gluErrorString(errorCode);
         printf("########## GL ERROR ##########\n");
+        printf("%s\n", str);
         printf("@ %s\n", errorString);
-        printf("%i: %s", errorCode, errorString);
+        printf("%i: %s\n", errorCode, errorString);
         glfwTerminate();
+    }
+}
+
+void CrossCraft::setupFog(int layer) {
+    if (layer == 0) {
+        glFogi(GL_FOG_MODE, GL_EXP);
+        glFogf(GL_FOG_DENSITY, 0.001f);
+        glFogfv(GL_FOG_COLOR, this->fogColor0.data());
+        glLightModelfv(GL_LIGHT_MODEL_AMBIENT, getBuffer(1.0f, 1.0f, 1.0f, 1.0f));
+    } else if (layer == 1) {
+        glFogi(GL_FOG_MODE, GL_EXP);
+        glFogf(GL_FOG_DENSITY, 0.01f);
+        glFogfv(GL_FOG_COLOR, this->fogColor1.data());
+        float br = 0.6f;
+        glLightModelfv(GL_LIGHT_MODEL_AMBIENT, getBuffer(br, br, br, 1.0f));
     }
 }

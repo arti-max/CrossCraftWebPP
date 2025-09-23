@@ -1,0 +1,116 @@
+#include "CrossCraftApplet.hpp"
+#include <iostream>
+#include <emscripten.h>
+
+static CrossCraftApplet* appletInstance = nullptr;
+
+CrossCraftApplet::CrossCraftApplet() {
+    std::cout << "CrossCraftApplet created" << std::endl;
+}
+
+CrossCraftApplet::~CrossCraftApplet() {
+    destroy();
+}
+
+void CrossCraftApplet::setParams(const std::string& user, const std::string& session, 
+                               const std::string& mapUser, int mapId, int w, int h) {
+    username = user;
+    sessionid = session;
+    loadMapUser = mapUser;
+    loadMapId = mapId;
+    width = w;
+    height = h;
+    
+    std::cout << "Applet params set: user=" << username << ", session=" << sessionid 
+              << ", size=" << width << "x" << height << std::endl;
+    
+    if (!username.empty() && !sessionid.empty()) {
+        std::cout << "User authenticated: " << username << std::endl;
+    } else {
+        std::cout << "No authentication provided" << std::endl;
+    }
+}
+
+void CrossCraftApplet::start() {
+    std::cout << "=== CrossCraftApplet::start() called ===" << std::endl;
+    
+    if (game) {
+        std::cout << "Game already running" << std::endl;
+        return;
+    }
+    
+    try {
+        std::cout << "Creating CrossCraft instance..." << std::endl;
+        game = new CrossCraft("#canvas", width, height, false);
+        std::cout << "CrossCraft instance created" << std::endl;
+        
+        std::cout << "Setting applet mode..." << std::endl;
+        game->appletMode = true;
+        std::cout << "Applet mode set" << std::endl;
+        
+        if (!username.empty()) {
+            std::cout << "Authenticated mode enabled for: " << username << std::endl;
+        }
+        
+        std::cout << "Calling game->run()..." << std::endl;
+        game->run();
+        std::cout << "game->run() completed" << std::endl;
+        
+    } catch (const std::exception& e) {
+        std::cout << "ERROR in CrossCraftApplet::start(): " << e.what() << std::endl;
+    }
+    
+    std::cout << "=== CrossCraftApplet::start() finished ===" << std::endl;
+}
+
+
+void CrossCraftApplet::pause() {
+    if (game) {
+        game->pause();
+    }
+}
+
+void CrossCraftApplet::resume() {
+    if (game) {
+        game->resume();
+    }
+}
+
+void CrossCraftApplet::destroy() {
+    if (game) {
+        game->stop();
+        delete game;
+        game = nullptr;
+        std::cout << "CrossCraft applet destroyed" << std::endl;
+    }
+}
+
+extern "C" {
+    void EMSCRIPTEN_KEEPALIVE setAppletParams(const char* username, const char* sessionid, 
+                                            const char* loadmapUser, int loadmapId, 
+                                            int width, int height) {
+        std::string user = username ? username : "";
+        std::string session = sessionid ? sessionid : "";
+        std::string mapUser = loadmapUser ? loadmapUser : "";
+        
+        std::cout << "C interface: setAppletParams called" << std::endl;
+        std::cout << "  username: " << user << std::endl;
+        std::cout << "  sessionid: " << session << std::endl;
+        std::cout << "  size: " << width << "x" << height << std::endl;
+        
+        if (!appletInstance) {
+            appletInstance = new CrossCraftApplet();
+        }
+        
+        appletInstance->setParams(user, session, mapUser, loadmapId, width, height);
+    }
+    
+    void EMSCRIPTEN_KEEPALIVE startApplet() {
+        std::cout << "C interface: startApplet called" << std::endl;
+        if (appletInstance) {
+            appletInstance->start();
+        } else {
+            std::cout << "Error: appletInstance is null!" << std::endl;
+        }
+    }
+}

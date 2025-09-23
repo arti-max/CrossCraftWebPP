@@ -23,7 +23,7 @@ private:
     int width, height;
     bool fullscreen;
     bool running = false;
-    bool pause = false;
+    bool paused = false;
     std::string parent;
 
     GLFWwindow* window;
@@ -32,9 +32,10 @@ private:
     Player* player;
     Timer* timer = new Timer(20.0f);
     LevelRenderer* levelRenderer;
-    Textures* textures;
+    Textures* textures = nullptr;
     HitResult* hitResult;
 
+    int yMouseAxis = -1;
 
     // game loop
     void init();
@@ -44,8 +45,14 @@ private:
     void destroy();
 
     // Player camera
-    void setupCamera();
+    void setupCamera(float partialTicks);
     void moveCameraToPlayer(float partialTicks);
+    void setupFog(int layer);
+    inline const float* getBuffer(float a, float b, float c, float d) {
+        static float buf[4];
+        buf[0] = a; buf[1] = b; buf[2] = c; buf[3] = d;
+        return buf;
+    }
 
     void mainLoop();
     static void emscriptenMainLoop(void* arg);
@@ -53,7 +60,12 @@ private:
 public:
     CrossCraft(const char* parent, int width, int height, bool fullscreen);
     ~CrossCraft();
+
+    bool appletMode = false;
+
     void run();
     void stop();
+    void pause();
+    void resume();
     void checkGlError(const char str[]);
 };

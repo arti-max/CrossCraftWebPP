@@ -14,6 +14,8 @@ private:
     static GLFWwindow* window;
 
 public:
+    static void create();
+    static void destroy();
     static void init(GLFWwindow* win);
     static bool next();
     static int getEventKey();

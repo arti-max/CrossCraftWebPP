@@ -1,8 +1,21 @@
 #include "Keyboard.hpp"
+#include <iostream>
 
 std::queue<KeyEvent> Keyboard::events;
 KeyEvent Keyboard::currentEvent;
 GLFWwindow* Keyboard::window = nullptr;
+
+void Keyboard::create() {
+    std::cout << "Keyboard created" << std::endl;
+}
+
+void Keyboard::destroy() {
+    window = nullptr;
+    while (!events.empty()) {
+        events.pop();
+    }
+    std::cout << "Keyboard destroyed" << std::endl;
+}
 
 void Keyboard::init(GLFWwindow* win) {
     window = win;
@@ -28,7 +41,7 @@ bool Keyboard::getEventKeyState() {
 }
 
 bool Keyboard::isKeyDown(int key) {
-    return glfwGetKey(window, key) == GLFW_PRESS;
+    return window && glfwGetKey(window, key) == GLFW_PRESS;
 }
 
 void Keyboard::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {

@@ -1,8 +1,11 @@
 #include "level/Chunk.hpp"
 
+int Chunk::rebuiltThisFrame = 0;
+int Chunk::updates = 0;
+
 Tessellator& Chunk::t = Tessellator::getInstance();
 
-Chunk::Chunk(Level& level, int x0, int y0, int z0, int x1, int y1, int z1) : 
+Chunk::Chunk(Level* level, int x0, int y0, int z0, int x1, int y1, int z1) : 
     level(level),
     boundingBox((float)x0, (float)y0, (float)z0, (float)x1, (float)y1, (float)z1) {
     this->x0 = x0;
@@ -27,7 +30,7 @@ void Chunk::rebuild(int layer) {
     for (int x = this->x0; x < this->x1; ++x) {
         for (int y = this->y0; y < this->y1; ++y) {
             for (int z = this->z0; z < this->z1; ++z) {
-                int id = this->level.getTile(x, y, z);
+                int id = this->level->getTile(x, y, z);
 
                 if (id > 0) {
                     Tile::tiles[id]->render(this->t, this->level, layer, x, y, z);

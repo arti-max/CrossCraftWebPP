@@ -42,12 +42,8 @@ void Entity::turn(float xo, float yo) {
     yRot += xo * 0.15f;
     xRot -= yo * 0.15f;
     
-    if (xRot < -90.0f) {
-        xRot = -90.0f;
-    }
-    if (xRot > 90.0f) {
-        xRot = 90.0f;
-    }
+    xRot = std::max(-90.0f, xRot);
+    xRot = std::min(90.0f, xRot);
 }
 
 void Entity::tick() {
@@ -74,29 +70,24 @@ void Entity::move(float xa, float ya, float za) {
     
     std::vector<AABB> aabbs = level->getCubes(bb.expand(xa, ya, za));
 
-    // Коллизии по Y (вертикальные)
     for (size_t i = 0; i < aabbs.size(); ++i) {
         ya = aabbs[i].clipYCollide(bb, ya);
     }
     bb.move(0.0f, ya, 0.0f);
 
-    // Коллизии по X (горизонтальные)
     for (size_t i = 0; i < aabbs.size(); ++i) {
         xa = aabbs[i].clipXCollide(bb, xa);
     }
     bb.move(xa, 0.0f, 0.0f);
 
-    // Коллизии по Z (горизонтальные)
     for (size_t i = 0; i < aabbs.size(); ++i) {
         za = aabbs[i].clipZCollide(bb, za);
     }
     bb.move(0.0f, 0.0f, za);
 
-    // Обновляем состояния коллизий
     horizontalCollision = (xaOrg != xa || zaOrg != za);
     onGround = (yaOrg != ya && yaOrg < 0.0f);
 
-    // Обнуляем скорости при коллизии
     if (xaOrg != xa) {
         xd = 0.0f;
     }
@@ -107,7 +98,6 @@ void Entity::move(float xa, float ya, float za) {
         zd = 0.0f;
     }
 
-    // Обновляем позицию из bounding box
     x = (bb.x0 + bb.x1) / 2.0f;
     y = bb.y0 + heightOffset;
     z = (bb.z0 + bb.z1) / 2.0f;

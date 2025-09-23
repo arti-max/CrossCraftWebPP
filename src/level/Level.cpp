@@ -14,30 +14,30 @@ Level::Level(int width, int height, int depth)
     
     generateMap();
     
-    // Вычисляем освещение
     calcLightDepths(0, 0, width, height);
     
     std::cout << "Level created: " << width << "x" << height << "x" << depth << std::endl;
 }
 
 void Level::generateMap() {
-    std::fill(blocks.begin(), blocks.end(), 0); // Заполняем воздухом
+    std::fill(blocks.begin(), blocks.end(), 0);
     
-    int groundLevel = depth * 2 / 3; // 2/3 от высоты мира
+    int groundLevel = depth * 2 / 3;
     
     for (int x = 0; x < width; ++x) {
         for (int z = 0; z < height; ++z) {
             for (int y = 0; y < depth; ++y) {
                 int index = (y * height + z) * width + x;
                 
-                if (y < groundLevel - 1) {
-                    // Камень внизу
-                    blocks[index] = 1; // Tile::rock->id
-                } else if (y == groundLevel - 1) {
-                    // Один слой травы на поверхности
-                    blocks[index] = 2; // Tile::grass->id
+                if (index >= 0 && index < static_cast<int>(blocks.size())) {
+                    if (y < groundLevel - 1) {
+                        blocks[index] = Tile::rock->id;
+                    } else if (y == groundLevel - 1) {
+                        blocks[index] = Tile::grass->id;
+                    }
+                } else {
+                    std::cout << "ERROR: Index out of bounds: " << index << " (size: " << blocks.size() << ")" << std::endl;
                 }
-                // Остальное - воздух (0)
             }
         }
     }
@@ -89,10 +89,8 @@ void Level::tick() {
     int ticks = unprocessed / TILE_UPDATE_INTERVAL;
     unprocessed -= ticks * TILE_UPDATE_INTERVAL;
     
-    // Тикаем жидкости
     tickLiquids();
     
-    // Случайные тики тайлов
     for (int i = 0; i < ticks; ++i) {
         randValue = randValue * multiplier + addend;
         int x = (randValue >> 16) & (width - 1);
@@ -168,7 +166,6 @@ bool Level::setTile(int x, int y, int z, int type) {
             return false;
         }
         
-        // Обрабатываем жидкости
         if (isActiveLiquidTile(oldType)) {
             removeLiquidPosition(x, y, z);
         }
@@ -178,7 +175,6 @@ bool Level::setTile(int x, int y, int z, int type) {
         
         blocks[index] = static_cast<uint8_t>(type);
         
-        // Уведомляем соседей
         neighborChanged(x - 1, y, z, type);
         neighborChanged(x + 1, y, z, type);
         neighborChanged(x, y - 1, z, type);
@@ -188,7 +184,6 @@ bool Level::setTile(int x, int y, int z, int type) {
         
         calcLightDepths(x, z, 1, 1);
         
-        // Уведомляем слушателей
         for (LevelListener* listener : levelListeners) {
             listener->tileChanged(x, y, z);
         }
@@ -229,11 +224,10 @@ std::vector<AABB> Level::getCubes(const AABB& boundingBox) {
                         AABB* aabb = tile->getAABB(x, y, z);
                         if (aabb != nullptr) {
                             boxes.push_back(*aabb);
-                            delete aabb; // Освобождаем память
+                            delete aabb;
                         }
                     }
                 } else if (x < 0 || y < 0 || z < 0 || x >= width || z >= height) {
-                    // Неразрушимые границы мира
                     AABB* aabb = Tile::unbreakable->getAABB(x, y, z);
                     if (aabb != nullptr) {
                         boxes.push_back(*aabb);
@@ -332,13 +326,15 @@ void Level::tickLiquids() {
 }
 
 bool Level::isLiquidTile(int tileId) {
-    // Нужно будет определить ID жидкостей в Tile
-    return tileId == 3 || tileId == 4 || tileId == 5 || tileId == 6; // water, calmWater, lava, calmLava
+    return 
+        tileId == Tile::water->id || 
+        tileId == Tile::calmWater->id || 
+        tileId == Tile::lava->id || 
+        tileId == Tile::calmLava->id;
 }
 
 bool Level::isActiveLiquidTile(int tileId) {
-    // Только активные жидкости, НЕ спокойные
-    return tileId == 3 || tileId == 5; // water, lava (не calm)
+    return tileId == Tile::water->id || tileId == Tile::lava->id;
 }
 
 int Level::encodePosition(int x, int y, int z) {

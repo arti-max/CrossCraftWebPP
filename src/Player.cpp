@@ -1,28 +1,28 @@
 #include "Player.hpp"
+#include <GLFW/glfw3.h>
 
 Player::Player(Level* level) : Entity(level) {
-    heightOffset = 1.62f;
+    this->heightOffset = 1.62f;
 }
 
 void Player::setKey(int key, bool state) {
     int id = -1;
     
-    if (key == 200 || key == 17) {
+    if (key == GLFW_KEY_W) {
         id = KEY_UP;
     }
-    else if (key == 208 || key == 31) {
+    if (key == GLFW_KEY_S) {
         id = KEY_DOWN;
     }
-    else if (key == 203 || key == 30) {
+    if (key == GLFW_KEY_A) {
         id = KEY_LEFT;
     }
-    else if (key == 205 || key == 32) {
+    if (key == GLFW_KEY_D) {
         id = KEY_RIGHT;
     }
-    else if (key == 57 || key == 219) {
+    if (key == GLFW_KEY_SPACE) {
         id = KEY_JUMP;
     }
-    
     if (id >= 0) {
         keys[id] = state;
     }
@@ -39,76 +39,40 @@ void Player::tick() {
     yo = y;
     zo = z;
     
-    float xa = 0.0f;
-    float ya = 0.0f;
-    
-    bool inWater = isInWater();
-    bool inLava = isInLava();
+    float forward = 0.0f;
+    float vertical = 0.0f;
     
     if (keys[KEY_UP]) {
-        --ya;
+        --forward;
     }
     if (keys[KEY_DOWN]) {
-        ++ya;
+        ++forward;
     }
     if (keys[KEY_LEFT]) {
-        --xa;
+        --vertical;
     }
     if (keys[KEY_RIGHT]) {
-        ++xa;
+        ++vertical;
     }
     
     if (keys[KEY_JUMP]) {
-        if (inWater) {
-            yd += 0.04f;
-        } else if (inLava) {
-            yd += 0.04f;
-        } else if (onGround) {
-            yd = 0.42f;
-            keys[KEY_JUMP] = false;
+        if (onGround) {
+            yd = 0.5f;
         }
     }
     
-    if (inWater) {
-        float yo = y;
-        moveRelative(xa, ya, 0.02f);
-        move(xd, yd, zd);
-        
-        xd *= 0.8f;
-        yd *= 0.8f;
-        zd *= 0.8f;
-        yd -= 0.02f;
-        
-        if (horizontalCollision && isFree(xd, yd + 0.6f - y + yo, zd)) {
-            yd = 0.3f;
-        }
-    } 
-    else if (inLava) {
-        float yo = y;
-        moveRelative(xa, ya, 0.02f);
-        move(xd, yd, zd);
-        
-        xd *= 0.5f;
-        yd *= 0.5f;
-        zd *= 0.5f;
-        yd -= 0.02f;
-        
-        if (horizontalCollision && isFree(xd, yd + 0.6f - y + yo, zd)) {
-            yd = 0.3f;
-        }
-    } 
-    else {
-        moveRelative(xa, ya, onGround ? 0.1f : 0.02f);
-        move(xd, yd, zd);
-        
-        xd *= 0.91f;
-        yd *= 0.98f;
-        zd *= 0.91f;
-        yd -= 0.08f;
-        
-        if (onGround) {
-            xd *= 0.6f;
-            zd *= 0.6f;
-        }
+    moveRelative(vertical, forward, onGround ? 0.1f : 0.02f);
+
+    yd -= 0.08f;
+
+    move(xd, yd, zd);
+    
+    xd *= 0.91f;
+    yd *= 0.98f;
+    zd *= 0.91f;
+    
+    if (onGround) {
+        xd *= 0.6f;
+        zd *= 0.6f;
     }
 }
