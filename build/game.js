@@ -27,7 +27,7 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: D:\Temp\tmpmbsbmb5h.js
+// include: D:\Temp\tmpbk4nlctk.js
 
   Module['expectedDataFileDownloads'] ??= 0;
   Module['expectedDataFileDownloads']++;
@@ -155,25 +155,25 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
     }
 
     }
-    loadPackage({"files": [{"filename": "/char.png", "start": 0, "end": 3206}, {"filename": "/dirt.png", "start": 3206, "end": 3857}, {"filename": "/rock.png", "start": 3857, "end": 4303}, {"filename": "/rock2.png", "start": 4303, "end": 4710}, {"filename": "/terrain.png", "start": 4710, "end": 14755}, {"filename": "/water.png", "start": 14755, "end": 15242}], "remote_package_size": 15242});
+    loadPackage({"files": [{"filename": "/char.png", "start": 0, "end": 3206}, {"filename": "/default.png", "start": 3206, "end": 7602}, {"filename": "/dirt.png", "start": 7602, "end": 8253}, {"filename": "/rock.png", "start": 8253, "end": 8699}, {"filename": "/rock2.png", "start": 8699, "end": 9106}, {"filename": "/terrain.png", "start": 9106, "end": 19151}, {"filename": "/water.png", "start": 19151, "end": 19638}], "remote_package_size": 19638});
 
   })();
 
-// end include: D:\Temp\tmpmbsbmb5h.js
-// include: D:\Temp\tmps362lhk8.js
+// end include: D:\Temp\tmpbk4nlctk.js
+// include: D:\Temp\tmpfca9pzdr.js
 
     // All the pre-js content up to here must remain later on, we need to run
     // it.
     if ((typeof ENVIRONMENT_IS_WASM_WORKER != 'undefined' && ENVIRONMENT_IS_WASM_WORKER) || (typeof ENVIRONMENT_IS_PTHREAD != 'undefined' && ENVIRONMENT_IS_PTHREAD) || (typeof ENVIRONMENT_IS_AUDIO_WORKLET != 'undefined' && ENVIRONMENT_IS_AUDIO_WORKLET)) Module['preRun'] = [];
     var necessaryPreJSTasks = Module['preRun'].slice();
-  // end include: D:\Temp\tmps362lhk8.js
-// include: D:\Temp\tmpw88_djwa.js
+  // end include: D:\Temp\tmpfca9pzdr.js
+// include: D:\Temp\tmpbftj47j8.js
 
     if (!Module['preRun']) throw 'Module.preRun should exist because file support used it; did a pre-js delete it?';
     necessaryPreJSTasks.forEach((task) => {
       if (Module['preRun'].indexOf(task) < 0) throw 'All preRun tasks that exist before user pre-js code should remain after; did you replace Module or modify Module.preRun?';
     });
-  // end include: D:\Temp\tmpw88_djwa.js
+  // end include: D:\Temp\tmpbftj47j8.js
 
 
 var arguments_ = [];
@@ -1026,6 +1026,13 @@ async function createWasm() {
   abort('missing function: _ZN4TileD1Ev');
   }
   __ZN4TileD1Ev.stub = true;
+
+  /** @type {function(...*):?} */
+  function __ZN4TileD2Ev(
+  ) {
+  abort('missing function: _ZN4TileD2Ev');
+  }
+  __ZN4TileD2Ev.stub = true;
 
   class ExceptionInfo {
       // excPtr - Thrown object pointer to wrap. Metadata pointer is calculated from it.
@@ -4126,6 +4133,48 @@ async function createWasm() {
       return 0;
     ;
   }
+
+  var readEmAsmArgsArray = [];
+  var readEmAsmArgs = (sigPtr, buf) => {
+      // Nobody should have mutated _readEmAsmArgsArray underneath us to be something else than an array.
+      assert(Array.isArray(readEmAsmArgsArray));
+      // The input buffer is allocated on the stack, so it must be stack-aligned.
+      assert(buf % 16 == 0);
+      readEmAsmArgsArray.length = 0;
+      var ch;
+      // Most arguments are i32s, so shift the buffer pointer so it is a plain
+      // index into HEAP32.
+      while (ch = HEAPU8[sigPtr++]) {
+        var chr = String.fromCharCode(ch);
+        var validChars = ['d', 'f', 'i', 'p'];
+        // In WASM_BIGINT mode we support passing i64 values as bigint.
+        validChars.push('j');
+        assert(validChars.includes(chr), `Invalid character ${ch}("${chr}") in readEmAsmArgs! Use only [${validChars}], and do not specify "v" for void return argument.`);
+        // Floats are always passed as doubles, so all types except for 'i'
+        // are 8 bytes and require alignment.
+        var wide = (ch != 105);
+        wide &= (ch != 112);
+        buf += wide && (buf % 8) ? 4 : 0;
+        readEmAsmArgsArray.push(
+          // Special case for pointers under wasm64 or CAN_ADDRESS_2GB mode.
+          ch == 112 ? HEAPU32[((buf)>>2)] :
+          ch == 106 ? HEAP64[((buf)>>3)] :
+          ch == 105 ?
+            HEAP32[((buf)>>2)] :
+            HEAPF64[((buf)>>3)]
+        );
+        buf += wide ? 8 : 4;
+      }
+      return readEmAsmArgsArray;
+    };
+  var runEmAsmFunction = (code, sigPtr, argbuf) => {
+      var args = readEmAsmArgs(sigPtr, argbuf);
+      assert(ASM_CONSTS.hasOwnProperty(code), `No EM_ASM constant found at address ${code}.  The loaded WebAssembly file is likely out of sync with the generated JavaScript.`);
+      return ASM_CONSTS[code](...args);
+    };
+  var _emscripten_asm_const_int = (code, sigPtr, argbuf) => {
+      return runEmAsmFunction(code, sigPtr, argbuf);
+    };
 
   
   var _emscripten_set_main_loop_timing = (mode, value) => {
@@ -9286,7 +9335,7 @@ if (Module['wasmBinary']) wasmBinary = Module['wasmBinary'];
   'inetNtop6',
   'readSockaddr',
   'writeSockaddr',
-  'readEmAsmArgs',
+  'runMainThreadEmAsm',
   'autoResumeAudioContext',
   'getDynCaller',
   'dynCall',
@@ -9428,6 +9477,8 @@ missingLibrarySymbols.forEach(missingLibrarySymbol)
   'timers',
   'warnOnce',
   'readEmAsmArgsArray',
+  'readEmAsmArgs',
+  'runEmAsmFunction',
   'jstoi_q',
   'getExecutableName',
   'handleException',
@@ -9674,6 +9725,13 @@ unexportedSymbols.forEach(unexportedRuntimeSymbol);
 function checkIncomingModuleAPI() {
   ignoredModuleProp('fetchSettings');
 }
+var ASM_CONSTS = {
+  1148344: ($0) => { var name = UTF8ToString($0); var img = document.getElementById(name); if (!img || !img.complete || img.naturalWidth === 0) { console.error('Font constructor: Image element not found or not loaded:', name); throw new Error('Font image not available: ' + name); } var w = img.width; var h = img.height; var canvas = document.createElement('canvas'); canvas.width = w; canvas.height = h; var ctx = canvas.getContext('2d'); if (!ctx) { throw new Error('Could not get 2D context for font processing.'); } ctx.drawImage(img, 0, 0); var imageData = ctx.getImageData(0, 0, w, h); var rawPixels = imageData.data; Module.fontImageWidth = w; Module.fontImageHeight = h; Module.fontPixelData = rawPixels; },  
+ 1149041: () => { return Module.fontImageWidth; },  
+ 1149075: () => { return Module.fontImageHeight; },  
+ 1149110: ($0, $1, $2) => { var pixelIndex = ($0 + $1 * $2) * 4 + 3; return Module.fontPixelData[pixelIndex]; },  
+ 1149196: () => { delete Module.fontImageWidth; delete Module.fontImageHeight; delete Module.fontPixelData; }
+};
 function js_getImageData(elementId,buffer,bufferSize,width,height) { try { const img = document.getElementById(UTF8ToString(elementId)); if (!img) { console.error('Image element not found:', UTF8ToString(elementId)); return 0; } if (!img.complete || img.naturalWidth === 0) { console.error('Image not loaded:', UTF8ToString(elementId)); return 0; } const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); canvas.width = img.width; canvas.height = img.height; ctx.drawImage(img, 0, 0); const imageData = ctx.getImageData(0, 0, img.width, img.height); const data = imageData.data; if (data.length > bufferSize) { console.error('Buffer too small for image:', UTF8ToString(elementId), 'need:', data.length, 'have:', bufferSize); return 0; } setValue(width, img.width, 'i32'); setValue(height, img.height, 'i32'); for (let i = 0; i < data.length; i++) { setValue(buffer + i, data[i], 'i8'); } console.log('Successfully loaded image:', UTF8ToString(elementId), 'size:', img.width, 'x', img.height); return 1; } catch (e) { console.error('Error in js_getImageData:', e); return 0; } }
 function js_requestPointerLock(selector) { const element = document.querySelector(UTF8ToString(selector)); if (element && element.requestPointerLock) { element.requestPointerLock(); console.log('Requesting pointer lock for:', UTF8ToString(selector)); } else { console.error('Cannot request pointer lock for:', UTF8ToString(selector)); } }
 function js_exitPointerLock() { if (document.exitPointerLock) { document.exitPointerLock(); console.log('Exiting pointer lock'); } }
@@ -9715,6 +9773,8 @@ var wasmImports = {
   /** @export */
   _ZN4TileD1Ev: __ZN4TileD1Ev,
   /** @export */
+  _ZN4TileD2Ev: __ZN4TileD2Ev,
+  /** @export */
   __cxa_throw: ___cxa_throw,
   /** @export */
   __syscall_fcntl64: ___syscall_fcntl64,
@@ -9730,6 +9790,8 @@ var wasmImports = {
   _tzset_js: __tzset_js,
   /** @export */
   clock_time_get: _clock_time_get,
+  /** @export */
+  emscripten_asm_const_int: _emscripten_asm_const_int,
   /** @export */
   emscripten_cancel_main_loop: _emscripten_cancel_main_loop,
   /** @export */

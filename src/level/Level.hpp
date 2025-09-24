@@ -14,7 +14,7 @@ private:
     static const int addend = 1013904223;
     
     std::vector<LevelListener*> levelListeners;
-    Random random;
+    Random* random;
     std::set<int> liquidPositions;
     static const int maxBits = 10;
     int randValue;
@@ -38,6 +38,7 @@ public:
 
     Level(int width, int height, int depth);
     ~Level() = default;
+    void generateCaves();
     void setData(int w, int d, int h, const std::vector<uint8_t>& blocks);
     float getGroundLevel() const { return 32.0f; }
     void tick();

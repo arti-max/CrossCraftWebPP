@@ -15,6 +15,7 @@
         "climits": "cpp",
         "stdexcept": "cpp",
         "set": "cpp",
-        "unordered_map": "cpp"
+        "unordered_map": "cpp",
+        "new": "cpp"
     }
 }

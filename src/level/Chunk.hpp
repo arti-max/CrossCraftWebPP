@@ -5,7 +5,7 @@
 #include "render/Tessellator.hpp"
 #include "level/Level.hpp"
 #include "phys/AABB.hpp"
-#include "level/Tile.hpp"
+#include "level/tile/Tile.hpp"
 #include "Player.hpp"
 #include <GL/gl.h>
 

@@ -12,6 +12,7 @@
     <link rel="preload" as="image" href="rock2.png">
     <link rel="preload" as="image" href="dirt.png">
     <link rel="preload" as="image" href="water.png">
+    <link rel="preload" as="image" href="default.png">
     
     <style>
         body, html {
@@ -112,8 +113,9 @@
     
     <div id="text">
         <h2 id="nologin-warning" style="display:none;">You won't be able to save unless you log in.</h2>
-        <h4>CrossCraft C++ WebAssembly Version</h4>
-        <p>Powered by C++ + WebAssembly + Emscripten</p>
+        <h4>About:</h4>
+        <a>CrossCraftWeb is being developed by arti.</a>
+        <hr>
     </div>
     
     <div id="controls">
@@ -130,11 +132,12 @@
         </ul>
     </div>
     
-    <div id="output"></div>
+    <div id="output" style="display:none;"></div>
 
     <!-- Скрытые текстуры для загрузки -->
     <div id="texture-atlases">
         <img id="terrain" src="terrain.png" crossorigin="anonymous" />
+        <img id="default" src="default.png" crossorigin="anonymous" />
         <img id="char" src="char.png" crossorigin="anonymous" />
         <img id="dirt" src="dirt.png" crossorigin="anonymous" />
         <img id="rock" src="rock.png" crossorigin="anonymous" />
@@ -143,12 +146,17 @@
     </div>
 
     <script type='text/javascript'>
+        const DEBUG = false;
         // Получаем URL параметры
         const urlParams = new URLSearchParams(window.location.search);
         const username = urlParams.get('username');
         const sessionid = urlParams.get('sessionid');
         const loadmapUser = urlParams.get('loadmap_user');
         const loadmapId = urlParams.get('loadmap_id');
+
+        if (DEBUG) {
+            document.getElementById('output').style.display = "block";
+        }
 
         // Показываем предупреждение о логине
         if (!username || !sessionid) {
@@ -176,7 +184,7 @@
         }
 
         // Ждем загрузки всех изображений
-        let imagesToLoad = ['terrain', 'char', 'dirt', 'rock', 'rock2', 'water'];
+        let imagesToLoad = ['terrain', 'char', 'dirt', 'rock', 'rock2', 'water', 'default'];
         let loadedCount = 0;
         
         function checkAllImagesLoaded() {

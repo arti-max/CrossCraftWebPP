@@ -4,11 +4,14 @@
 #include "level/render/LevelListener.hpp"
 #include "level/Level.hpp"
 #include "level/Chunk.hpp"
-#include "level/Tile.hpp"
+#include "level/tile/Tile.hpp"
 #include "phys/AABB.hpp"
 #include "render/Frustum.hpp"
 #include "render/Textures.hpp"
+#include "HitResult.hpp"
 #include "Player.hpp"
+#include "sort/DistanceSorter.hpp"
+#include "sort/DirtyChunkSorter.hpp"
 #include <GL/gl.h>
 
 class LevelRenderer : public LevelListener {
@@ -44,21 +47,5 @@ public:
     void lightColumnChanged(int x, int z, int y0, int y1) override;
     void toggleDrawDistance();
     void cull(Frustum& frustum);
-
-private:
-    struct DistanceSorter {
-        Player* player;
-        DistanceSorter(Player* p) : player(p) {}
-        bool operator()(Chunk* a, Chunk* b) const {
-            return a->distanceToSqr(player) < b->distanceToSqr(player);
-        }
-    };
-    
-    struct DirtyChunkSorter {
-        Player* player;
-        DirtyChunkSorter(Player* p) : player(p) {}
-        bool operator()(Chunk* a, Chunk* b) const {
-            return a->distanceToSqr(player) < b->distanceToSqr(player);
-        }
-    };
+    void renderHit(HitResult* h, Player* player);
 };

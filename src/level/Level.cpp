@@ -1,15 +1,15 @@
 #include "level/Level.hpp"
-#include "level/Tile.hpp"
+#include "level/tile/Tile.hpp"
 #include <iostream>
 #include <algorithm>
 
 Level::Level(int width, int height, int depth) 
     : width(width), height(height), depth(depth), random() {
     
-    blocks.resize(width * height * depth);
-    lightDepths.resize(width * height);
-    
-    randValue = random.nextInt();
+    blocks.resize(width * height * depth, 0);
+    lightDepths.resize(width * height, 0);
+    this->random = new Random();
+    randValue = random->nextInt();
     unprocessed = 0;
     
     generateMap();
@@ -42,7 +42,59 @@ void Level::generateMap() {
         }
     }
     
+    // generateCaves();
+
     std::cout << "Generated simple world with ground level at " << groundLevel << std::endl;
+}
+
+void Level::generateCaves() {
+    std::cout << "Generating caves..." << std::endl;
+    
+    // Generate 10000 caves 
+    for (int i = 0; i < 10000; i++) {
+        int caveSize = random->nextInt(7) + 1;
+        
+        int caveX = random->nextInt(width);
+        int caveY = random->nextInt(depth);  // depth соответствует Y в Java
+        int caveZ = random->nextInt(height); // height соответствует Z в Java
+        
+        // Grow cave
+        for (int radius = 0; radius < caveSize; radius++) {
+            for (int sphere = 0; sphere < 1000; sphere++) {
+                int offsetX = random->nextInt(radius * 2 + 1) - radius;
+                int offsetY = random->nextInt(radius * 2 + 1) - radius;  
+                int offsetZ = random->nextInt(radius * 2 + 1) - radius;
+                
+                // Sphere shape - оптимизация: избегаем std::pow для квадратов
+                int distanceSquared = offsetX * offsetX + offsetY * offsetY + offsetZ * offsetZ;
+                int radiusSquared = radius * radius;
+                
+                if (distanceSquared > radiusSquared) {
+                    continue;
+                }
+                
+                int tileX = caveX + offsetX;
+                int tileY = caveY + offsetY;
+                int tileZ = caveZ + offsetZ;
+                
+                // Calculate index from x, y and z
+                int index = (tileY * height + tileZ) * width + tileX;
+                
+                // Check if tile is out of level
+                if (index >= 0 && index < static_cast<int>(blocks.size())) {
+                    // Border of level
+                    if (tileX > 0 && tileY > 0 && tileZ > 0 &&
+                        tileX < width - 1 && tileY < depth - 1 && tileZ < height - 1) {
+                        
+                        // Fill level with air (0 = empty)
+                        blocks[index] = 0;
+                    }
+                }
+            }
+        }
+    }
+    
+    std::cout << "Cave generation completed!" << std::endl;
 }
 
 void Level::setData(int w, int d, int h, const std::vector<uint8_t>& newBlocks) {
@@ -61,20 +113,19 @@ void Level::setData(int w, int d, int h, const std::vector<uint8_t>& newBlocks) 
 void Level::calcLightDepths(int x0, int z0, int x1, int z1) {
     for (int x = x0; x < x0 + x1; ++x) {
         for (int z = z0; z < z0 + z1; ++z) {
-            if (x >= width || z >= height) continue;
             
-            int oldDepth = lightDepths[x + z * width];
+            int oldDepth = lightDepths[x + z * this->width];
             
-            int y = depth - 1;
-            while (y > 0 && !isLightBlocker(x, y, z)) {
-                --y;
+            int depth = this->depth - 1;
+            while (depth > 0 && !this->isLightBlocker(x, depth, z)) {
+                --depth;
             }
             
-            lightDepths[x + z * width] = y + 1;
+            lightDepths[x + z * width] = depth;
             
-            if (oldDepth != y) {
-                int yl0 = std::min(oldDepth, y);
-                int yl1 = std::max(oldDepth, y);
+            if (oldDepth != depth) {
+                int yl0 = std::min(oldDepth, depth);
+                int yl1 = std::max(oldDepth, depth);
                 
                 for (LevelListener* listener : levelListeners) {
                     listener->lightColumnChanged(x, z, yl0, yl1);

@@ -53,6 +53,7 @@ if(EMSCRIPTEN)
             --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/rock2.png@rock2.png \
             --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/dirt.png@dirt.png \
             --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/water.png@water.png \
+            --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/default.png@default.png \
         "
     )
     
@@ -67,6 +68,7 @@ if(EMSCRIPTEN)
         rock2.png
         dirt.png
         water.png
+        default.png
     )
     
     # Копируем текстуры в выходную директорию после сборки

@@ -33,8 +33,9 @@ void LevelRenderer::allChanged() {
     
     chunks.clear();
     sortedChunks.clear();
-    chunks.reserve(xChunks * yChunks * zChunks);
-    sortedChunks.reserve(xChunks * yChunks * zChunks);
+    int totalChunks = xChunks * yChunks * zChunks;
+    chunks.resize(totalChunks, nullptr);
+    sortedChunks.resize(totalChunks, nullptr);
     
     for (int x = 0; x < xChunks; ++x) {
         for (int y = 0; y < yChunks; ++y) {
@@ -50,9 +51,8 @@ void LevelRenderer::allChanged() {
                 if (y1 > level->depth) y1 = level->depth;
                 if (z1 > level->height) z1 = level->height;
                 
-                Chunk* chunk = new Chunk(level, x0, y0, z0, x1, y1, z1);
-                chunks.push_back(chunk);
-                sortedChunks.push_back(chunk);
+                chunks[(x + y * xChunks) * zChunks + z] = new Chunk(level, x0, y0, z0, x1, y1, z1);
+                sortedChunks[(x + y * xChunks) * zChunks + z] = this->chunks[(x + y * xChunks) * zChunks + z];
             }
         }
     }
@@ -249,6 +249,19 @@ void LevelRenderer::setDirty(int x0, int y0, int z0, int x1, int y1, int z1) {
             }
         }
     }
+}
+
+void LevelRenderer::renderHit(HitResult* h, Player* player) {
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_CURRENT_BIT);
+    glColor4f(1.0f, 1.0f, 1.0f, ((float) std::sin(emscripten_get_now() / 100.0f) * 0.2f + 0.4f) * 0.5f);
+
+    Tessellator& t = Tessellator::getInstance();
+    t.begin();
+    Tile::tiles[Tile::rock->id]->renderFaceNoTexture(player, t, h->x, h->y, h->z, h->f);
+    t.end();
+
+    glDisable(GL_BLEND);
 }
 
 void LevelRenderer::tileChanged(int x, int y, int z) {

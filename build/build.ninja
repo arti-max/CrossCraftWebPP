@@ -84,6 +84,13 @@ build CMakeFiles/CrossCraftWebPP.dir/src/Timer.cpp.o: CXX_COMPILER__CrossCraftWe
   OBJECT_DIR = CMakeFiles\CrossCraftWebPP.dir
   OBJECT_FILE_DIR = CMakeFiles\CrossCraftWebPP.dir\src
 
+build CMakeFiles/CrossCraftWebPP.dir/src/gui/Font.cpp.o: CXX_COMPILER__CrossCraftWebPP_unscanned_Debug D$:/!jsproj/CrossCraftWebPP/src/gui/Font.cpp || cmake_object_order_depends_target_CrossCraftWebPP
+  DEP_FILE = CMakeFiles\CrossCraftWebPP.dir\src\gui\Font.cpp.o.d
+  FLAGS = -g -std=gnu++17
+  INCLUDES = -ID:/!jsproj/CrossCraftWebPP/include -ID:/!jsproj/CrossCraftWebPP/src -ID:/!jsproj/CrossCraftWebPP/src/level -ID:/!jsproj/CrossCraftWebPP/src/phys -ID:/!jsproj/CrossCraftWebPP/src/render -ID:/!jsproj/CrossCraftWebPP/src/util
+  OBJECT_DIR = CMakeFiles\CrossCraftWebPP.dir
+  OBJECT_FILE_DIR = CMakeFiles\CrossCraftWebPP.dir\src\gui
+
 build CMakeFiles/CrossCraftWebPP.dir/src/level/Chunk.cpp.o: CXX_COMPILER__CrossCraftWebPP_unscanned_Debug D$:/!jsproj/CrossCraftWebPP/src/level/Chunk.cpp || cmake_object_order_depends_target_CrossCraftWebPP
   DEP_FILE = CMakeFiles\CrossCraftWebPP.dir\src\level\Chunk.cpp.o.d
   FLAGS = -g -std=gnu++17
@@ -98,12 +105,12 @@ build CMakeFiles/CrossCraftWebPP.dir/src/level/Level.cpp.o: CXX_COMPILER__CrossC
   OBJECT_DIR = CMakeFiles\CrossCraftWebPP.dir
   OBJECT_FILE_DIR = CMakeFiles\CrossCraftWebPP.dir\src\level
 
-build CMakeFiles/CrossCraftWebPP.dir/src/level/Tile.cpp.o: CXX_COMPILER__CrossCraftWebPP_unscanned_Debug D$:/!jsproj/CrossCraftWebPP/src/level/Tile.cpp || cmake_object_order_depends_target_CrossCraftWebPP
-  DEP_FILE = CMakeFiles\CrossCraftWebPP.dir\src\level\Tile.cpp.o.d
+build CMakeFiles/CrossCraftWebPP.dir/src/level/levelgen/LevelGen.cpp.o: CXX_COMPILER__CrossCraftWebPP_unscanned_Debug D$:/!jsproj/CrossCraftWebPP/src/level/levelgen/LevelGen.cpp || cmake_object_order_depends_target_CrossCraftWebPP
+  DEP_FILE = CMakeFiles\CrossCraftWebPP.dir\src\level\levelgen\LevelGen.cpp.o.d
   FLAGS = -g -std=gnu++17
   INCLUDES = -ID:/!jsproj/CrossCraftWebPP/include -ID:/!jsproj/CrossCraftWebPP/src -ID:/!jsproj/CrossCraftWebPP/src/level -ID:/!jsproj/CrossCraftWebPP/src/phys -ID:/!jsproj/CrossCraftWebPP/src/render -ID:/!jsproj/CrossCraftWebPP/src/util
   OBJECT_DIR = CMakeFiles\CrossCraftWebPP.dir
-  OBJECT_FILE_DIR = CMakeFiles\CrossCraftWebPP.dir\src\level
+  OBJECT_FILE_DIR = CMakeFiles\CrossCraftWebPP.dir\src\level\levelgen
 
 build CMakeFiles/CrossCraftWebPP.dir/src/level/render/LevelRenderer.cpp.o: CXX_COMPILER__CrossCraftWebPP_unscanned_Debug D$:/!jsproj/CrossCraftWebPP/src/level/render/LevelRenderer.cpp || cmake_object_order_depends_target_CrossCraftWebPP
   DEP_FILE = CMakeFiles\CrossCraftWebPP.dir\src\level\render\LevelRenderer.cpp.o.d
@@ -111,6 +118,27 @@ build CMakeFiles/CrossCraftWebPP.dir/src/level/render/LevelRenderer.cpp.o: CXX_C
   INCLUDES = -ID:/!jsproj/CrossCraftWebPP/include -ID:/!jsproj/CrossCraftWebPP/src -ID:/!jsproj/CrossCraftWebPP/src/level -ID:/!jsproj/CrossCraftWebPP/src/phys -ID:/!jsproj/CrossCraftWebPP/src/render -ID:/!jsproj/CrossCraftWebPP/src/util
   OBJECT_DIR = CMakeFiles\CrossCraftWebPP.dir
   OBJECT_FILE_DIR = CMakeFiles\CrossCraftWebPP.dir\src\level\render
+
+build CMakeFiles/CrossCraftWebPP.dir/src/level/tile/BushTile.cpp.o: CXX_COMPILER__CrossCraftWebPP_unscanned_Debug D$:/!jsproj/CrossCraftWebPP/src/level/tile/BushTile.cpp || cmake_object_order_depends_target_CrossCraftWebPP
+  DEP_FILE = CMakeFiles\CrossCraftWebPP.dir\src\level\tile\BushTile.cpp.o.d
+  FLAGS = -g -std=gnu++17
+  INCLUDES = -ID:/!jsproj/CrossCraftWebPP/include -ID:/!jsproj/CrossCraftWebPP/src -ID:/!jsproj/CrossCraftWebPP/src/level -ID:/!jsproj/CrossCraftWebPP/src/phys -ID:/!jsproj/CrossCraftWebPP/src/render -ID:/!jsproj/CrossCraftWebPP/src/util
+  OBJECT_DIR = CMakeFiles\CrossCraftWebPP.dir
+  OBJECT_FILE_DIR = CMakeFiles\CrossCraftWebPP.dir\src\level\tile
+
+build CMakeFiles/CrossCraftWebPP.dir/src/level/tile/GrassTile.cpp.o: CXX_COMPILER__CrossCraftWebPP_unscanned_Debug D$:/!jsproj/CrossCraftWebPP/src/level/tile/GrassTile.cpp || cmake_object_order_depends_target_CrossCraftWebPP
+  DEP_FILE = CMakeFiles\CrossCraftWebPP.dir\src\level\tile\GrassTile.cpp.o.d
+  FLAGS = -g -std=gnu++17
+  INCLUDES = -ID:/!jsproj/CrossCraftWebPP/include -ID:/!jsproj/CrossCraftWebPP/src -ID:/!jsproj/CrossCraftWebPP/src/level -ID:/!jsproj/CrossCraftWebPP/src/phys -ID:/!jsproj/CrossCraftWebPP/src/render -ID:/!jsproj/CrossCraftWebPP/src/util
+  OBJECT_DIR = CMakeFiles\CrossCraftWebPP.dir
+  OBJECT_FILE_DIR = CMakeFiles\CrossCraftWebPP.dir\src\level\tile
+
+build CMakeFiles/CrossCraftWebPP.dir/src/level/tile/Tile.cpp.o: CXX_COMPILER__CrossCraftWebPP_unscanned_Debug D$:/!jsproj/CrossCraftWebPP/src/level/tile/Tile.cpp || cmake_object_order_depends_target_CrossCraftWebPP
+  DEP_FILE = CMakeFiles\CrossCraftWebPP.dir\src\level\tile\Tile.cpp.o.d
+  FLAGS = -g -std=gnu++17
+  INCLUDES = -ID:/!jsproj/CrossCraftWebPP/include -ID:/!jsproj/CrossCraftWebPP/src -ID:/!jsproj/CrossCraftWebPP/src/level -ID:/!jsproj/CrossCraftWebPP/src/phys -ID:/!jsproj/CrossCraftWebPP/src/render -ID:/!jsproj/CrossCraftWebPP/src/util
+  OBJECT_DIR = CMakeFiles\CrossCraftWebPP.dir
+  OBJECT_FILE_DIR = CMakeFiles\CrossCraftWebPP.dir\src\level\tile
 
 build CMakeFiles/CrossCraftWebPP.dir/src/main.cpp.o: CXX_COMPILER__CrossCraftWebPP_unscanned_Debug D$:/!jsproj/CrossCraftWebPP/src/main.cpp || cmake_object_order_depends_target_CrossCraftWebPP
   DEP_FILE = CMakeFiles\CrossCraftWebPP.dir\src\main.cpp.o.d
@@ -169,12 +197,12 @@ build CMakeFiles/CrossCraftWebPP.dir/src/util/Mouse.cpp.o: CXX_COMPILER__CrossCr
 #############################################
 # Link the executable game.html
 
-build game.html: CXX_EXECUTABLE_LINKER__CrossCraftWebPP_Debug CMakeFiles/CrossCraftWebPP.dir/src/CrossCraft.cpp.o CMakeFiles/CrossCraftWebPP.dir/src/CrossCraftApplet.cpp.o CMakeFiles/CrossCraftWebPP.dir/src/Entity.cpp.o CMakeFiles/CrossCraftWebPP.dir/src/Player.cpp.o CMakeFiles/CrossCraftWebPP.dir/src/Timer.cpp.o CMakeFiles/CrossCraftWebPP.dir/src/level/Chunk.cpp.o CMakeFiles/CrossCraftWebPP.dir/src/level/Level.cpp.o CMakeFiles/CrossCraftWebPP.dir/src/level/Tile.cpp.o CMakeFiles/CrossCraftWebPP.dir/src/level/render/LevelRenderer.cpp.o CMakeFiles/CrossCraftWebPP.dir/src/main.cpp.o CMakeFiles/CrossCraftWebPP.dir/src/phys/AABB.cpp.o CMakeFiles/CrossCraftWebPP.dir/src/render/Frustum.cpp.o CMakeFiles/CrossCraftWebPP.dir/src/render/Tessellator.cpp.o CMakeFiles/CrossCraftWebPP.dir/src/render/Textures.cpp.o CMakeFiles/CrossCraftWebPP.dir/src/util/Keyboard.cpp.o CMakeFiles/CrossCraftWebPP.dir/src/util/Mouse.cpp.o | D$:/!jsproj/CrossCraftWebPP/lib/libGLU.a D$:/!jsproj/CrossCraftWebPP/lib/libGL.a || copy_textures
+build game.html: CXX_EXECUTABLE_LINKER__CrossCraftWebPP_Debug CMakeFiles/CrossCraftWebPP.dir/src/CrossCraft.cpp.o CMakeFiles/CrossCraftWebPP.dir/src/CrossCraftApplet.cpp.o CMakeFiles/CrossCraftWebPP.dir/src/Entity.cpp.o CMakeFiles/CrossCraftWebPP.dir/src/Player.cpp.o CMakeFiles/CrossCraftWebPP.dir/src/Timer.cpp.o CMakeFiles/CrossCraftWebPP.dir/src/gui/Font.cpp.o CMakeFiles/CrossCraftWebPP.dir/src/level/Chunk.cpp.o CMakeFiles/CrossCraftWebPP.dir/src/level/Level.cpp.o CMakeFiles/CrossCraftWebPP.dir/src/level/levelgen/LevelGen.cpp.o CMakeFiles/CrossCraftWebPP.dir/src/level/render/LevelRenderer.cpp.o CMakeFiles/CrossCraftWebPP.dir/src/level/tile/BushTile.cpp.o CMakeFiles/CrossCraftWebPP.dir/src/level/tile/GrassTile.cpp.o CMakeFiles/CrossCraftWebPP.dir/src/level/tile/Tile.cpp.o CMakeFiles/CrossCraftWebPP.dir/src/main.cpp.o CMakeFiles/CrossCraftWebPP.dir/src/phys/AABB.cpp.o CMakeFiles/CrossCraftWebPP.dir/src/render/Frustum.cpp.o CMakeFiles/CrossCraftWebPP.dir/src/render/Tessellator.cpp.o CMakeFiles/CrossCraftWebPP.dir/src/render/Textures.cpp.o CMakeFiles/CrossCraftWebPP.dir/src/util/Keyboard.cpp.o CMakeFiles/CrossCraftWebPP.dir/src/util/Mouse.cpp.o | D$:/!jsproj/CrossCraftWebPP/lib/libGLU.a D$:/!jsproj/CrossCraftWebPP/lib/libGL.a || copy_textures
   FLAGS = -g
-  LINK_FLAGS = -s WASM=1             -s USE_GLFW=3             -s FULL_ES2=1             -s ALLOW_MEMORY_GROWTH=1             -s EXPORTED_FUNCTIONS=['_main','_setAppletParams','_startApplet']             -s EXPORTED_RUNTIME_METHODS=['ccall','cwrap']             -s ERROR_ON_UNDEFINED_SYMBOLS=0             -s STACK_SIZE=1048576             -s INITIAL_MEMORY=33554432             --allow-multiple-definition             --shell-file D:/!jsproj/CrossCraftWebPP/index.html             --preload-file D:/!jsproj/CrossCraftWebPP/terrain.png@terrain.png             --preload-file D:/!jsproj/CrossCraftWebPP/char.png@char.png             --preload-file D:/!jsproj/CrossCraftWebPP/rock.png@rock.png             --preload-file D:/!jsproj/CrossCraftWebPP/rock2.png@rock2.png             --preload-file D:/!jsproj/CrossCraftWebPP/dirt.png@dirt.png             --preload-file D:/!jsproj/CrossCraftWebPP/water.png@water.png
+  LINK_FLAGS = -s WASM=1             -s USE_GLFW=3             -s FULL_ES2=1             -s ALLOW_MEMORY_GROWTH=1             -s EXPORTED_FUNCTIONS=['_main','_setAppletParams','_startApplet']             -s EXPORTED_RUNTIME_METHODS=['ccall','cwrap']             -s ERROR_ON_UNDEFINED_SYMBOLS=0             -s STACK_SIZE=1048576             -s INITIAL_MEMORY=33554432             --allow-multiple-definition             --shell-file D:/!jsproj/CrossCraftWebPP/index.html             --preload-file D:/!jsproj/CrossCraftWebPP/terrain.png@terrain.png             --preload-file D:/!jsproj/CrossCraftWebPP/char.png@char.png             --preload-file D:/!jsproj/CrossCraftWebPP/rock.png@rock.png             --preload-file D:/!jsproj/CrossCraftWebPP/rock2.png@rock2.png             --preload-file D:/!jsproj/CrossCraftWebPP/dirt.png@dirt.png             --preload-file D:/!jsproj/CrossCraftWebPP/water.png@water.png             --preload-file D:/!jsproj/CrossCraftWebPP/default.png@default.png
   LINK_LIBRARIES = -lglfw  D:/!jsproj/CrossCraftWebPP/lib/libGLU.a  D:/!jsproj/CrossCraftWebPP/lib/libGL.a
   OBJECT_DIR = CMakeFiles\CrossCraftWebPP.dir
-  POST_BUILD = C:\Windows\system32\cmd.exe /C "cd /D D:\!jsproj\CrossCraftWebPP\build && D:\CMake\bin\cmake.exe -E copy_if_different D:/!jsproj/CrossCraftWebPP/terrain.png D:/!jsproj/CrossCraftWebPP/build/terrain.png && cd /D D:\!jsproj\CrossCraftWebPP\build && D:\CMake\bin\cmake.exe -E copy_if_different D:/!jsproj/CrossCraftWebPP/char.png D:/!jsproj/CrossCraftWebPP/build/char.png && cd /D D:\!jsproj\CrossCraftWebPP\build && D:\CMake\bin\cmake.exe -E copy_if_different D:/!jsproj/CrossCraftWebPP/rock.png D:/!jsproj/CrossCraftWebPP/build/rock.png && cd /D D:\!jsproj\CrossCraftWebPP\build && D:\CMake\bin\cmake.exe -E copy_if_different D:/!jsproj/CrossCraftWebPP/rock2.png D:/!jsproj/CrossCraftWebPP/build/rock2.png && cd /D D:\!jsproj\CrossCraftWebPP\build && D:\CMake\bin\cmake.exe -E copy_if_different D:/!jsproj/CrossCraftWebPP/dirt.png D:/!jsproj/CrossCraftWebPP/build/dirt.png && cd /D D:\!jsproj\CrossCraftWebPP\build && D:\CMake\bin\cmake.exe -E copy_if_different D:/!jsproj/CrossCraftWebPP/water.png D:/!jsproj/CrossCraftWebPP/build/water.png"
+  POST_BUILD = C:\Windows\system32\cmd.exe /C "cd /D D:\!jsproj\CrossCraftWebPP\build && D:\CMake\bin\cmake.exe -E copy_if_different D:/!jsproj/CrossCraftWebPP/terrain.png D:/!jsproj/CrossCraftWebPP/build/terrain.png && cd /D D:\!jsproj\CrossCraftWebPP\build && D:\CMake\bin\cmake.exe -E copy_if_different D:/!jsproj/CrossCraftWebPP/char.png D:/!jsproj/CrossCraftWebPP/build/char.png && cd /D D:\!jsproj\CrossCraftWebPP\build && D:\CMake\bin\cmake.exe -E copy_if_different D:/!jsproj/CrossCraftWebPP/rock.png D:/!jsproj/CrossCraftWebPP/build/rock.png && cd /D D:\!jsproj\CrossCraftWebPP\build && D:\CMake\bin\cmake.exe -E copy_if_different D:/!jsproj/CrossCraftWebPP/rock2.png D:/!jsproj/CrossCraftWebPP/build/rock2.png && cd /D D:\!jsproj\CrossCraftWebPP\build && D:\CMake\bin\cmake.exe -E copy_if_different D:/!jsproj/CrossCraftWebPP/dirt.png D:/!jsproj/CrossCraftWebPP/build/dirt.png && cd /D D:\!jsproj\CrossCraftWebPP\build && D:\CMake\bin\cmake.exe -E copy_if_different D:/!jsproj/CrossCraftWebPP/water.png D:/!jsproj/CrossCraftWebPP/build/water.png && cd /D D:\!jsproj\CrossCraftWebPP\build && D:\CMake\bin\cmake.exe -E copy_if_different D:/!jsproj/CrossCraftWebPP/default.png D:/!jsproj/CrossCraftWebPP/build/default.png"
   PRE_LINK = cd .
   TARGET_FILE = game.html
   TARGET_PDB = game.html.dbg
@@ -184,7 +212,7 @@ build game.html: CXX_EXECUTABLE_LINKER__CrossCraftWebPP_Debug CMakeFiles/CrossCr
 # Utility command for copy_textures
 
 build CMakeFiles/copy_textures.util: CUSTOM_COMMAND CMakeFiles/copy_textures
-  COMMAND = C:\Windows\system32\cmd.exe /C "cd /D D:\!jsproj\CrossCraftWebPP\build && D:\CMake\bin\cmake.exe -E copy_if_different D:/!jsproj/CrossCraftWebPP/terrain.png D:/!jsproj/CrossCraftWebPP/build/terrain.png && cd /D D:\!jsproj\CrossCraftWebPP\build && D:\CMake\bin\cmake.exe -E copy_if_different D:/!jsproj/CrossCraftWebPP/char.png D:/!jsproj/CrossCraftWebPP/build/char.png && cd /D D:\!jsproj\CrossCraftWebPP\build && D:\CMake\bin\cmake.exe -E copy_if_different D:/!jsproj/CrossCraftWebPP/rock.png D:/!jsproj/CrossCraftWebPP/build/rock.png && cd /D D:\!jsproj\CrossCraftWebPP\build && D:\CMake\bin\cmake.exe -E copy_if_different D:/!jsproj/CrossCraftWebPP/rock2.png D:/!jsproj/CrossCraftWebPP/build/rock2.png && cd /D D:\!jsproj\CrossCraftWebPP\build && D:\CMake\bin\cmake.exe -E copy_if_different D:/!jsproj/CrossCraftWebPP/dirt.png D:/!jsproj/CrossCraftWebPP/build/dirt.png && cd /D D:\!jsproj\CrossCraftWebPP\build && D:\CMake\bin\cmake.exe -E copy_if_different D:/!jsproj/CrossCraftWebPP/water.png D:/!jsproj/CrossCraftWebPP/build/water.png"
+  COMMAND = C:\Windows\system32\cmd.exe /C "cd /D D:\!jsproj\CrossCraftWebPP\build && D:\CMake\bin\cmake.exe -E copy_if_different D:/!jsproj/CrossCraftWebPP/terrain.png D:/!jsproj/CrossCraftWebPP/build/terrain.png && cd /D D:\!jsproj\CrossCraftWebPP\build && D:\CMake\bin\cmake.exe -E copy_if_different D:/!jsproj/CrossCraftWebPP/char.png D:/!jsproj/CrossCraftWebPP/build/char.png && cd /D D:\!jsproj\CrossCraftWebPP\build && D:\CMake\bin\cmake.exe -E copy_if_different D:/!jsproj/CrossCraftWebPP/rock.png D:/!jsproj/CrossCraftWebPP/build/rock.png && cd /D D:\!jsproj\CrossCraftWebPP\build && D:\CMake\bin\cmake.exe -E copy_if_different D:/!jsproj/CrossCraftWebPP/rock2.png D:/!jsproj/CrossCraftWebPP/build/rock2.png && cd /D D:\!jsproj\CrossCraftWebPP\build && D:\CMake\bin\cmake.exe -E copy_if_different D:/!jsproj/CrossCraftWebPP/dirt.png D:/!jsproj/CrossCraftWebPP/build/dirt.png && cd /D D:\!jsproj\CrossCraftWebPP\build && D:\CMake\bin\cmake.exe -E copy_if_different D:/!jsproj/CrossCraftWebPP/water.png D:/!jsproj/CrossCraftWebPP/build/water.png && cd /D D:\!jsproj\CrossCraftWebPP\build && D:\CMake\bin\cmake.exe -E copy_if_different D:/!jsproj/CrossCraftWebPP/default.png D:/!jsproj/CrossCraftWebPP/build/default.png"
   DESC = Running utility command for copy_textures
   restat = 1
 
@@ -218,7 +246,7 @@ build rebuild_cache: phony CMakeFiles/rebuild_cache.util
 #############################################
 # Phony custom command for CMakeFiles\copy_textures
 
-build CMakeFiles/copy_textures | ${cmake_ninja_workdir}CMakeFiles/copy_textures: phony D$:/!jsproj/CrossCraftWebPP/terrain.png D$:/!jsproj/CrossCraftWebPP/char.png D$:/!jsproj/CrossCraftWebPP/rock.png D$:/!jsproj/CrossCraftWebPP/rock2.png D$:/!jsproj/CrossCraftWebPP/dirt.png D$:/!jsproj/CrossCraftWebPP/water.png
+build CMakeFiles/copy_textures | ${cmake_ninja_workdir}CMakeFiles/copy_textures: phony D$:/!jsproj/CrossCraftWebPP/terrain.png D$:/!jsproj/CrossCraftWebPP/char.png D$:/!jsproj/CrossCraftWebPP/rock.png D$:/!jsproj/CrossCraftWebPP/rock2.png D$:/!jsproj/CrossCraftWebPP/dirt.png D$:/!jsproj/CrossCraftWebPP/water.png D$:/!jsproj/CrossCraftWebPP/default.png
 
 # =============================================================================
 # Target aliases.

@@ -30,11 +30,11 @@ public:
     virtual ~Entity() = default;
 
 protected:
-    void resetPos();
     void setSize(float w, float h);
     void setPos(float x, float y, float z);
 
 public:
+    void resetPos();
     void remove();
     void turn(float xo, float yo);
     virtual void tick();
