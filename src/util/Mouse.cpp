@@ -13,59 +13,121 @@ GLFWwindow* Mouse::window = nullptr;
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
+#include <emscripten/html5.h>
 
-// JavaScript функции через EM_JS
-EM_JS(void, js_requestPointerLock, (const char* selector), {
-    const element = document.querySelector(UTF8ToString(selector));
-    if (element && element.requestPointerLock) {
-        element.requestPointerLock();
-        console.log('Requesting pointer lock for:', UTF8ToString(selector));
+EM_BOOL Mouse::mouseDownCallback(int eventType, const EmscriptenMouseEvent *e, void *userData) {
+    
+    // Добавляем событие нажатия в очередь
+    MouseEvent event;
+    event.button = e->button;
+    event.state = true;  // Нажатие
+    event.x = e->targetX;
+    event.y = e->targetY;
+    Mouse::events.push(event);
+    
+    return EM_TRUE;
+}
+
+EM_BOOL Mouse::mouseUpCallback(int eventType, const EmscriptenMouseEvent *e, void *userData) {
+    
+    // Добавляем событие отпускания в очередь
+    MouseEvent event;
+    event.button = e->button;
+    event.state = false;  // Отпускание
+    event.x = e->targetX;
+    event.y = e->targetY;
+    Mouse::events.push(event);
+    
+    return EM_TRUE;
+}
+
+
+// Обработчики событий
+EM_BOOL Mouse::mouseClickCallback(int eventType, const EmscriptenMouseEvent *e, void *userData) {
+    return EM_TRUE;
+}
+
+EM_BOOL Mouse::mouseMoveCallback(int eventType, const EmscriptenMouseEvent *e, void *userData) {
+    if (Mouse::grabbed) {
+        // В режиме pointer lock используем movementX/Y
+        Mouse::deltaX += e->movementX;
+        Mouse::deltaY += e->movementY;
     } else {
-        console.error('Cannot request pointer lock for:', UTF8ToString(selector));
+        // Обычное движение мыши
+        double newX = e->targetX;
+        double newY = e->targetY;
+        Mouse::deltaX = newX - Mouse::mouseX;
+        Mouse::deltaY = newY - Mouse::mouseY;
+        Mouse::mouseX = newX;
+        Mouse::mouseY = newY;
     }
-});
+    return EM_TRUE;
+}
 
-EM_JS(void, js_exitPointerLock, (), {
-    if (document.exitPointerLock) {
-        document.exitPointerLock();
-        console.log('Exiting pointer lock');
+EM_BOOL Mouse::pointerlockChangeCallback(int eventType, const EmscriptenPointerlockChangeEvent *e, void *userData) {
+    bool wasGrabbed = Mouse::grabbed;
+    bool shouldBeGrabbed = e->isActive;
+    
+    
+    Mouse::grabbed = shouldBeGrabbed;
+    
+    if (shouldBeGrabbed && !wasGrabbed) {
+        Mouse::deltaX = 0.0;
+        Mouse::deltaY = 0.0;
+    } else if (!shouldBeGrabbed && wasGrabbed) {
+        
+        // ИСПРАВЛЕНО: Добавляем ESC событие для синхронизации с CrossCraft
+        // Это гарантирует что CrossCraft узнает об освобождении мыши
+        // EM_ASM({
+        //     // Отправляем событие ESC в C++  
+        //     const escEvent = new KeyboardEvent('keydown', {
+        //         key: 'Escape',
+        //         code: 'Escape',
+        //         keyCode: 27,
+        //         which: 27
+        //     });
+        //     document.dispatchEvent(escEvent);
+        // });
     }
-});
+    
+    return EM_TRUE;
+}
 
-EM_JS(int, js_isPointerLocked, (), {
-    return document.pointerLockElement ? 1 : 0;
-});
+EM_BOOL Mouse::pointerlockErrorCallback(int eventType, const void *reserved, void *userData) {
+    std::cout << "❌ Pointer lock ERROR!" << std::endl;
+    return EM_TRUE;
+}
 
 #endif
 
 void Mouse::create() {
-    std::cout << "Mouse created" << std::endl;
+    std::cout << "Mouse::create() - Setting up Emscripten callbacks" << std::endl;
     
 #ifdef __EMSCRIPTEN__
-    // Настраиваем Emscripten pointer lock callback
-    emscripten_set_pointerlockchange_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT, nullptr, false, pointerlockChangeCallback);
+    emscripten_set_mousedown_callback("#canvas", nullptr, true, mouseDownCallback);
+    std::cout << "✓ Mouse down callback registered" << std::endl;
     
-    // Обработчик движения мыши
-    emscripten_set_mousemove_callback("#canvas", nullptr, false, [](int eventType, const EmscriptenMouseEvent *e, void *userData) -> EM_BOOL {
-        if (Mouse::grabbed) {  // Только если мышь захвачена
-            Mouse::deltaX += e->movementX;
-            Mouse::deltaY += e->movementY;
-        } else {
-            // Обычное движение мыши
-            Mouse::deltaX = e->targetX - Mouse::mouseX;
-            Mouse::deltaY = e->targetY - Mouse::mouseY;
-            Mouse::mouseX = e->targetX;
-            Mouse::mouseY = e->targetY;
-        }
-        return EM_TRUE;
-    });
+    emscripten_set_mouseup_callback("#canvas", nullptr, true, mouseUpCallback);
+    std::cout << "✓ Mouse up callback registered" << std::endl;
     
-    std::cout << "Emscripten mouse callbacks set" << std::endl;
+    emscripten_set_click_callback("#canvas", nullptr, true, mouseClickCallback);
+    std::cout << "✓ Click callback registered" << std::endl;
+    
+    emscripten_set_mousemove_callback("#canvas", nullptr, true, mouseMoveCallback);
+    std::cout << "✓ Mouse move callback registered" << std::endl;
+    
+    // Pointer lock callbacks
+    emscripten_set_pointerlockchange_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT, nullptr, true, pointerlockChangeCallback);
+    std::cout << "✓ Pointer lock change callback registered" << std::endl;
+    
+    emscripten_set_pointerlockerror_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT, nullptr, true, pointerlockErrorCallback);
+    std::cout << "✓ Pointer lock error callback registered" << std::endl;
 #endif
 }
 
 void Mouse::destroy() {
     window = nullptr;
+    grabbed = false;
     while (!events.empty()) {
         events.pop();
     }
@@ -74,11 +136,7 @@ void Mouse::destroy() {
 
 void Mouse::init(GLFWwindow* win) {
     window = win;
-    glfwSetMouseButtonCallback(window, mouseButtonCallback);
-    glfwSetCursorPosCallback(window, cursorPosCallback);
-    
-    glfwGetCursorPos(window, &mouseX, &mouseY);
-    std::cout << "Mouse initialized with GLFW window" << std::endl;
+    std::cout << "Mouse initialized (GLFW callbacks disabled for web)" << std::endl;
 }
 
 bool Mouse::next() {
@@ -128,99 +186,82 @@ double Mouse::getDY() {
 }
 
 void Mouse::setCursorPosition(int x, int y) {
-    if (window) {
-        glfwSetCursorPos(window, static_cast<double>(x), static_cast<double>(y));
-        mouseX = static_cast<double>(x);
-        mouseY = static_cast<double>(y);
-        deltaX = 0.0;
-        deltaY = 0.0;
-    }
+    // Не нужно в web
 }
 
 void Mouse::setGrabbed(bool grab) {
-    std::cout << "Mouse::setGrabbed(" << grab << ")" << std::endl;
-    grabbed = grab;
     
 #ifdef __EMSCRIPTEN__
-    if (grab) {
+    if (grab && !grabbed) {
         requestPointerLock();
-    } else {
-        exitPointerLock();  
-    }
-#else
-    if (window) {
-        glfwSetInputMode(window, GLFW_CURSOR, grab ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+    } else if (!grab && grabbed) {
+        exitPointerLock();
     }
 #endif
 }
 
 bool Mouse::isGrabbed() {
-#ifdef __EMSCRIPTEN__
-    return js_isPointerLocked() != 0;
-#else
     return grabbed;
-#endif
 }
 
 void Mouse::poll() {
-    if (window) {
-        glfwGetCursorPos(window, &mouseX, &mouseY);
-    }
-}
-
-void Mouse::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
-    MouseEvent event;
-    event.button = button;
-    event.state = (action == GLFW_PRESS);
-    event.x = mouseX;
-    event.y = mouseY;
-    events.push(event);
-    
-    // АВТОМАТИЧЕСКИЙ ЗАХВАТ ПО КЛИКУ
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !isGrabbed()) {
-        std::cout << "Left click detected - requesting mouse capture" << std::endl;
-        setGrabbed(true);
-    }
-}
-
-void Mouse::cursorPosCallback(GLFWwindow* window, double x, double y) {
-#ifdef __EMSCRIPTEN__
-    // В web режиме используем movementX/Y через pointer lock
-    if (isGrabbed()) {
-        // movementX/Y обрабатываются в mousemove callback
-    } else {
-        deltaX = x - mouseX;
-        deltaY = y - mouseY;
-        mouseX = x;
-        mouseY = y;
-    }
-#else
-    deltaX = x - mouseX;
-    deltaY = y - mouseY;
-    mouseX = x;
-    mouseY = y;
-#endif
+    // Не нужно в Emscripten - события обрабатываются асинхронно
 }
 
 #ifdef __EMSCRIPTEN__
-EM_BOOL Mouse::pointerlockChangeCallback(int eventType, const EmscriptenPointerlockChangeEvent *e, void *userData) {
-    grabbed = e->isActive;
-    std::cout << "Pointer lock changed: " << (grabbed ? "LOCKED" : "UNLOCKED") << std::endl;
-    
-    if (grabbed) {
-        // Сбрасываем дельты при захвате
-        deltaX = 0.0;
-        deltaY = 0.0;
-    }
-    
-    return EM_TRUE;
-}
-
 void Mouse::requestPointerLock() {
-    js_requestPointerLock("#canvas");
+    
+    EM_ASM({
+        console.log('🎯 EM_ASM: Requesting pointer lock...');
+        const canvas = document.getElementById('canvas');
+        if (canvas) {
+            
+            // Поддержка разных браузеров и версий API
+            const requestPointerLock = canvas.requestPointerLock ||
+                                     canvas.mozRequestPointerLock ||
+                                     canvas.webkitRequestPointerLock;
+            
+            if (requestPointerLock) {
+                try {
+                    const result = requestPointerLock.call(canvas);
+                    
+                    // Новый API возвращает Promise
+                    if (result && typeof result.then === 'function') {
+                        result.then(function() {
+                            console.log('✅ Pointer lock request SUCCESS (Promise)');
+                        }).catch(function(err) {
+                            console.error('❌ Pointer lock request FAILED (Promise):', err);
+                        });
+                    } else {
+                        // Старый API не возвращает Promise
+                        console.log('✅ Pointer lock request sent (Legacy API)');
+                    }
+                } catch (error) {
+                    console.error('❌ Exception during pointer lock request:', error);
+                }
+            } else {
+                console.error('❌ Pointer lock API not available');
+            }
+        } else {
+            console.error('❌ Canvas element not found');
+        }
+    });
 }
 
 void Mouse::exitPointerLock() {
-    js_exitPointerLock();
+    
+    EM_ASM({
+        
+        const exitPointerLock = document.exitPointerLock ||
+                              document.mozExitPointerLock ||
+                              document.webkitExitPointerLock;
+        
+        if (exitPointerLock) {
+            exitPointerLock.call(document);
+            console.log('✅ Exit pointer lock called');
+        } else {
+            console.error('❌ Exit pointer lock not available');
+        }
+    });
 }
 #endif

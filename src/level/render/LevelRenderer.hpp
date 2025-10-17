@@ -47,5 +47,5 @@ public:
     void lightColumnChanged(int x, int z, int y0, int y1) override;
     void toggleDrawDistance();
     void cull(Frustum& frustum);
-    void renderHit(HitResult* h, Player* player);
+    void renderHit(HitResult* h, Player* player, int mode, int tileType);
 };

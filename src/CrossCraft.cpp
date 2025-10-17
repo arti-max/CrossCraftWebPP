@@ -28,7 +28,7 @@ void CrossCraft::destroy() {
     glfwTerminate();
     Mouse::destroy();
     Keyboard::destroy();
-    printf("CrossCraft destroyed.\n");
+    Logger::logf(PREFIX_CC, "CrossCraft destroyed.\n");
 }
 
 void CrossCraft::init() {
@@ -46,14 +46,14 @@ void CrossCraft::init() {
 
 
     if (!glfwInit()) {
-        printf("Failed to initialize GLFW\n");
+        Logger::logf(PREFIX_ERROR, "Failed to initialize GLFW\n");
     }
 
     const char* canvas = parent.empty() ? nullptr : parent.c_str();
 
     window = glfwCreateWindow(width, height, "CrossCraft", NULL, NULL);
     if (!window) {
-        printf("Failed to create GLFW window\n");
+        Logger::logf(PREFIX_ERROR, "Failed to create GLFW window\n");
         glfwTerminate();
         return;
     }
@@ -69,7 +69,7 @@ void CrossCraft::init() {
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
     glEnable(GL_ALPHA_TEST);
-    glAlphaFunc(GL_GREATER, 0.5f);
+    glAlphaFunc(GL_GREATER, 0.0f);
     glCullFace(GL_BACK);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -78,13 +78,62 @@ void CrossCraft::init() {
     this->font = new Font("default", this->textures);
     glViewport(0, 0, this->width, this->height);
     this->level = new Level(256, 256, 64);
+    bool success = false;
+
+    if (!success) {
+        this->levelGen->generateLevel(this->level, this->user->username.c_str(), 256, 256, 64);
+        success = true;
+    }
+
     this->levelRenderer = new LevelRenderer(this->level, this->textures);
     this->player = new Player(this->level);
+
+    for (int i = 0; i < 10; ++i) {
+        Zombie* zombie = new Zombie(this->level, this->textures, 128.0f, 0.0f, 128.0f);
+        zombie->resetPos();
+        this->entities.push_back(zombie);
+    }
 
     Mouse::init(window);
     Keyboard::init(window);
 
+    Keyboard::enableRepeatEvents(false);
+
     this->checkGlError("Post startup");
+}
+
+void CrossCraft::setScreen(Screen* screen) {
+    if (this->screen != nullptr) this->screen->onClose();
+    this->screen = screen;
+    if (screen != nullptr) {
+        int screenWidth = this->width * 240 / this->height;
+        int screenHeight = this->height * 240 / this->height;
+        screen->init(this, screenWidth, screenHeight);
+    }
+}
+
+void CrossCraft::grabMouse() {
+    if (!this->mouseGrabbed) {
+        Logger::logf(PREFIX_DEBUG, "CrossCraft: Grabbing mouse\n");
+        this->mouseGrabbed = true;
+        Mouse::setGrabbed(true);
+        if (!this->appletMode) {
+            Mouse::setCursorPosition(width / 2, height / 2);
+        }
+        this->setScreen(nullptr);
+        Logger::logf(PREFIX_DEBUG, "Mouse grabbed successfully\n");
+    }
+}
+
+void CrossCraft::releaseMouse() {
+    if (this->mouseGrabbed) {
+        Logger::logf(PREFIX_DEBUG, "CrossCraft: Releasing mouse\n");
+        this->player->releaseAllKeys();
+        this->mouseGrabbed = false;
+        this->setScreen((Screen*)(new PauseScreen()));
+        Mouse::setGrabbed(false);
+        Logger::logf(PREFIX_DEBUG, "Mouse released successfully\n");
+    }
 }
 
 void CrossCraft::stop() {
@@ -93,11 +142,11 @@ void CrossCraft::stop() {
 }
 
 void CrossCraft::run() {
-    printf("CrossCraft runned! %s, %i, %i\n", this->parent.c_str(), this->width, this->height);
+    Logger::logf(PREFIX_CC, "CrossCraft runned! %s, %i, %i, %s, %s\n", this->parent.c_str(), this->width, this->height, this->user->username.c_str(), this->user->sessionid.c_str());
     try {
         this->init();
     } catch (const std::exception& e) {
-        printf("Failed to start CrossCraft: %s\n", e.what());
+        Logger::logf(PREFIX_ERROR, "Failed to start CrossCraft: %s\n", e.what());
         return;
     }
 
@@ -131,7 +180,7 @@ void CrossCraft::mainLoop() {
     double now = emscripten_get_now();
     if (now >= this->lastFpsTime + 1000.0) {
         this->fpsString = std::to_string(this->frames) + " fps, " + std::to_string(Chunk::updates) + " chunk updates";
-        printf("%s\n", this->fpsString.c_str());
+        Logger::logf(PREFIX_DEBUG, "%s\n", this->fpsString.c_str());
         Chunk::updates = 0;
         this->frames = 0;
         this->lastFpsTime += 1000.0;
@@ -142,34 +191,107 @@ void CrossCraft::emscriptenMainLoop(void* arg) {
     static_cast<CrossCraft*>(arg)->mainLoop();
 }
 
+void CrossCraft::handleMouseClick() {
+    if (this->editMode == 0) {
+        if (this->hitResult != nullptr) {
+            this->level->setTile(this->hitResult->x, this->hitResult->y, this->hitResult->z, 0);
+        }
+    } else if (this->hitResult != nullptr) {
+        int x = this->hitResult->x;
+        int y = this->hitResult->y;
+        int z = this->hitResult->z;
+
+        if (this->hitResult->f == 0) y--;
+        if (this->hitResult->f == 1) y++;
+        if (this->hitResult->f == 2) z--;
+        if (this->hitResult->f == 3) z++;
+        if (this->hitResult->f == 4) x--;
+        if (this->hitResult->f == 5) x++;
+        Tile* prevTile = Tile::tiles[this->level->getTile(x, y, z)];
+        if (prevTile == Tile::empty) {
+            this->level->setTile(x, y, z, this->selectedTile);
+        }
+    }
+}
+
 void CrossCraft::tick() {
-    if (Keyboard::next()) {
-        this->player->setKey(Keyboard::getEventKey(), Keyboard::getEventKeyState());
-        if (Keyboard::getEventKeyState()) {
-            if (Keyboard::getEventKey() == GLFW_KEY_R) {
-                this->player->resetPos();
+    if (this->mouseGrabbed && !Mouse::isGrabbed()) {
+        printf("CrossCraft: Pointer lock released by browser (probably ESC)\n");
+        this->releaseMouse();
+    }
+
+    if (this->screen != nullptr) {
+        this->screen->updateEvents();
+        if (this->screen != nullptr) {
+            this->screen->tick();
+        }
+        
+        while (Mouse::next()) {}
+        while (Keyboard::next()) {}
+        
+        goto update_world;
+    }
+
+    if (this->screen == nullptr) {
+        if (Keyboard::next()) {
+            this->player->setKey();
+            if (Keyboard::getEventKeyState()) {
+                if (Keyboard::getEventKey() == GLFW_KEY_ESCAPE) {
+                    this->releaseMouse();
+                }
+                if (Keyboard::getEventKey() == GLFW_KEY_R) {
+                    this->player->resetPos();
+                }
+                if (Keyboard::getEventKey() == GLFW_KEY_1) {
+                    this->selectedTile = Tile::rock->id;
+                }
+                if (Keyboard::getEventKey() == GLFW_KEY_2) {
+                    this->selectedTile = Tile::dirt->id;
+                }
+                if (Keyboard::getEventKey() == GLFW_KEY_3) {
+                    this->selectedTile = Tile::cobblestone->id;
+                }
+                if (Keyboard::getEventKey() == GLFW_KEY_4) {
+                    this->selectedTile = Tile::wood->id;
+                }
+                if (Keyboard::getEventKey() == GLFW_KEY_6) {
+                    this->selectedTile = Tile::bush->id;
+                }
+                if (Keyboard::getEventKey() == GLFW_KEY_F) {
+                    this->levelRenderer->toggleDrawDistance();
+                }
+                if (Keyboard::getEventKey() == GLFW_KEY_Y) {
+                    this->yMouseAxis *= -1;
+                }
+                if (Keyboard::getEventKey() == GLFW_KEY_G) {
+                    this->entities.push_back(new Zombie(this->level, this->textures, this->player->x, this->player->y, this->player->z));
+                }
             }
-            if (Keyboard::getEventKey() == GLFW_KEY_1) {
-                this->selectedTile = Tile::rock->id;
-            }
-            if (Keyboard::getEventKey() == GLFW_KEY_2) {
-                this->selectedTile = Tile::dirt->id;
-            }
-            if (Keyboard::getEventKey() == GLFW_KEY_3) {
-                this->selectedTile = Tile::cobblestone->id;
-            }
-            if (Keyboard::getEventKey() == GLFW_KEY_4) {
-                this->selectedTile = Tile::wood->id;
-            }
-            if (Keyboard::getEventKey() == GLFW_KEY_6) {
-                this->selectedTile = Tile::bush->id;
-            }
-            if (Keyboard::getEventKey() == GLFW_KEY_F) {
-                this->levelRenderer->toggleDrawDistance();
+        }
+        while (Mouse::next()) {
+            if (!this->mouseGrabbed && Mouse::getEventButtonState()) {
+                this->grabMouse();
+            } else {
+                if (Mouse::getEventButton() == 0 && Mouse::getEventButtonState()) {
+                    this->handleMouseClick();
+                }
+                if (Mouse::getEventButton() == 2 && Mouse::getEventButtonState()) {
+                    this->editMode = (this->editMode + 1) % 2;
+                }
             }
         }
     }
+update_world:
     this->level->tick();
+
+    for (int i = static_cast<int>(this->entities.size()) - 1; i >= 0; --i) {
+        this->entities[i]->tick();
+        
+        if (this->entities[i]->removed) {
+            delete this->entities[i];
+            this->entities.erase(this->entities.begin() + i);
+        }
+    }
 
     this->player->tick();
 }
@@ -182,40 +304,20 @@ void CrossCraft::raycast(float partialTicks) {
     
     Ray ray = Ray::fromPlayer(this->player);
     
-    this->hitResult = ray.trace(this->level, 5.0f);
+    this->hitResult = ray.trace(this->level, 5.0f, &this->entities);
 }
 
 void CrossCraft::render(float partialTicks) {
-    glViewport(0, 0, this->width, this->height);
-    float xo = Mouse::getDX();
-    float yo = Mouse::getDY();
-    this->player->turn(xo, yo * static_cast<float>(this->yMouseAxis));
+    if (this->mouseGrabbed) {
+        glViewport(0, 0, this->width, this->height);
+        float xo = Mouse::getDX();
+        float yo = Mouse::getDY();
+        this->player->turn(xo, yo * static_cast<float>(this->yMouseAxis));
+    }
     
     this->checkGlError("Set viewport");
     this->raycast(partialTicks);
     this->checkGlError("Rasycasted");
-    while(Mouse::next()) {
-        if (Mouse::getEventButton() == 1 && Mouse::getEventButtonState() && this->hitResult != nullptr) {
-            this->level->setTile(this->hitResult->x, this->hitResult->y, this->hitResult->z, 0);
-        }
-
-        if (Mouse::getEventButton() == 0 && Mouse::getEventButtonState() && this->hitResult != nullptr) {
-            int x = this->hitResult->x;
-            int y = this->hitResult->y;
-            int z = this->hitResult->z;
-
-            if (this->hitResult->f == 0) y--;
-            if (this->hitResult->f == 1) y++;
-            if (this->hitResult->f == 2) z--;
-            if (this->hitResult->f == 3) z++;
-            if (this->hitResult->f == 4) x--;
-            if (this->hitResult->f == 5) x++;
-            Tile* prevTile = Tile::tiles[this->level->getTile(x, y, z)];
-            if (prevTile == Tile::empty) {
-                this->level->setTile(x, y, z, this->selectedTile);
-            }
-        }
-    }
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     this->setupCamera(partialTicks);
     glEnable(GL_CULL_FACE);
@@ -227,10 +329,34 @@ void CrossCraft::render(float partialTicks) {
     glEnable(GL_FOG);
     this->levelRenderer->render(this->player, 0);
     this->checkGlError("Rendered level");
+    int i;
+    Entity* zombie;
+    for (i = 0; i < this->entities.size(); ++i) {
+        zombie = this->entities[i];
+        if (zombie->isLit() && frustum.isVisible(zombie->bb)) {
+            this->entities[i]->render(partialTicks);
+        }
+    }
+    this->checkGlError("Rendered entities");
+    this->checkGlError("Rendered particles");
     this->setupFog(1);
     this->levelRenderer->render(this->player, 1);
+    for (i = 0; i < this->entities.size(); ++i) {
+        zombie = this->entities[i];
+        if (!zombie->isLit() && frustum.isVisible(zombie->bb)) {
+            this->entities[i]->render(partialTicks);
+        }
+    }
+    this->checkGlError("Render entities");
     this->levelRenderer->renderSurroundingGround();
     this->checkGlError("Render surrounding Ground");
+    if (this->hitResult != nullptr) {
+        glDisable(GL_LIGHTING);
+        glDisable(GL_ALPHA_TEST);
+        this->levelRenderer->renderHit(this->hitResult, this->player, this->editMode, this->selectedTile);
+        glEnable(GL_ALPHA_TEST);
+        glEnable(GL_LIGHTING);
+    }
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     this->setupFog(0);
     this->levelRenderer->renderSurroundingWater();
@@ -247,9 +373,11 @@ void CrossCraft::render(float partialTicks) {
     glDisable(GL_FOG);
 
     if (this->hitResult != nullptr) {
+        glDepthFunc(GL_LESS);
         glDisable(GL_ALPHA_TEST);
-        this->levelRenderer->renderHit(this->hitResult, this->player);
+        this->levelRenderer->renderHit(this->hitResult, this->player, this->editMode, this->selectedTile);
         glEnable(GL_ALPHA_TEST);
+        glDepthFunc(GL_LEQUAL);
     }
     this->drawGui(partialTicks);
     this->checkGlError("Rendered gui");
@@ -260,7 +388,7 @@ void CrossCraft::drawGui(float partialTicks) {
     int screenWidth = this->width * 240 / this->height;
     int screenHeight = this->height * 240 / this->height;
     int xMouse = Mouse::getX() * screenWidth / this->width;
-    int yMouse = screenHeight - Mouse::getY() * screenHeight / this->height - 1;
+    int yMouse = Mouse::getY() * screenHeight / this->height;
     glClear(GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -303,6 +431,9 @@ void CrossCraft::drawGui(float partialTicks) {
     t.vertex((float)(wc + 5), (float)(hc + 1), 0.0F);
     t.end();
     this->checkGlError("GUI: Draw crosshair");
+    if (this->screen != nullptr) {
+        this->screen->render(xMouse, yMouse);
+    }
 }
 
 void CrossCraft::setupCamera(float partialTicks) {
@@ -334,6 +465,7 @@ void CrossCraft::checkGlError(const char str[]) {
         printf("@ %s\n", errorString);
         printf("%i: %s\n", errorCode, errorString);
         glfwTerminate();
+        this->stop();
     }
 }
 
@@ -345,7 +477,7 @@ void CrossCraft::setupFog(int layer) {
         glLightModelfv(GL_LIGHT_MODEL_AMBIENT, getBuffer(1.0f, 1.0f, 1.0f, 1.0f));
     } else if (layer == 1) {
         glFogi(GL_FOG_MODE, GL_VIEWPORT_BIT);
-        glFogf(GL_FOG_DENSITY, 0.06f);
+        glFogf(GL_FOG_DENSITY, 0.01f);
         glFogfv(GL_FOG_COLOR, this->fogColor1.data());
         float br = 0.6f;
         glLightModelfv(GL_LIGHT_MODEL_AMBIENT, getBuffer(br, br, br, 1.0f));
@@ -354,4 +486,61 @@ void CrossCraft::setupFog(int layer) {
     glEnable(GL_COLOR_MATERIAL);
     glColorMaterial(GL_FRONT, GL_AMBIENT);
     glEnable(GL_LIGHTING);   
+}
+
+void CrossCraft::beginLevelLoading(const char title[]) {
+    this->title = title;
+    int screenWidth = this->width * 240 / this->height;
+    int screenHeight = this->height * 240 / this->height;
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0.0f, (double)screenWidth, (double)screenHeight, 0.0f, 100.0f, 300.0f);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glTranslatef(0.0f, 0.0f, -200.0f);
+}
+
+void CrossCraft::levelLoadUpdate(const char status[]) {
+    int screenWidth = this->width * 240 / this->height;
+    int screenHeight = this->height * 240 / this->height;
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    Tessellator& t = Tessellator::getInstance();
+    glEnable(GL_TEXTURE_2D);
+    int id = this->textures->loadTexture("dirt", GL_NEAREST);
+    glBindTexture(GL_TEXTURE_2D, id);
+    t.begin();
+    t.color(0.5f, 0.5f, 0.5f);
+    float s = 32.0f;
+    t.vertexUV(0.0f, (float)screenHeight, 0.0f, 0.0f, (float)screenHeight / s);
+    t.vertexUV((float)screenWidth, (float)screenHeight, 0.0f, (float)screenWidth / s, (float)screenHeight / s);
+    t.vertexUV((float)screenWidth, 0.0f, 0.0f, (float)screenWidth / s, 0.0f);
+    t.vertexUV(0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+    t.end();
+    glEnable(GL_TEXTURE_2D);
+    this->font->drawShadow(this->title, (screenWidth - this->font->width(this->title)) / 2, screenHeight / 2 - 4 - 8, 0x00FFFFFF);
+    this->font->drawShadow(status, (screenWidth - this->font->width(status)) / 2, screenHeight / 2 - 4 + 4, 0x00FFFFFF);
+    glfwSwapBuffers(window);
+
+    emscripten_sleep(100);
+}
+
+bool CrossCraft::loadLevel(const char username[], int levelid) {
+    if (!this->levelIO->loadOnline(this->level, this->serverHost, username, levelid)) {
+        return false;
+    } else {
+        if (this->player != nullptr) {
+            this->player->resetPos();
+        }
+
+        return true;
+    }
+}
+
+void CrossCraft::generateNewLevel() {
+    this->levelGen->generateLevel(this->level, this->user->username.c_str(), 256, 256, 64);
+    this->player->resetPos();
+    for (int i = static_cast<int>(this->entities.size()) - 1; i >= 0; --i) {
+        this->entities.erase(this->entities.begin() + i);
+    }
 }

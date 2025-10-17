@@ -206,47 +206,6 @@
             }
         });
 
-        // Обработчик для отслеживания состояния pointer lock
-        function handlePointerLockChange() {
-            const locked = document.pointerLockElement === canvas;
-            console.log('Pointer lock status changed:', locked);
-            
-            if (locked) {
-                console.log('Mouse captured successfully');
-                canvas.style.cursor = 'none';
-            } else {
-                console.log('Mouse capture released');
-                canvas.style.cursor = 'default';
-            }
-        }
-
-        function handlePointerLockError() {
-            console.error('Pointer lock failed!');
-        }
-
-        // Регистрируем обработчики
-        document.addEventListener('pointerlockchange', handlePointerLockChange, false);
-        document.addEventListener('mozpointerlockchange', handlePointerLockChange, false);
-        document.addEventListener('webkitpointerlockchange', handlePointerLockChange, false);
-        
-        document.addEventListener('pointerlockerror', handlePointerLockError, false);
-        document.addEventListener('mozpointerlockerror', handlePointerLockError, false);
-        document.addEventListener('webkitpointerlockerror', handlePointerLockError, false);
-
-        // Инструкция для пользователя
-        canvas.addEventListener('click', function() {
-            if (!document.pointerLockElement) {
-                console.log('Canvas clicked - C++ will request pointer lock');
-            }
-        }, false);
-
-        // ESC для выхода из pointer lock
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && document.pointerLockElement) {
-                document.exitPointerLock();
-            }
-        });
-
         // Настройка Emscripten Module
         var Module = {
             canvas: canvas,
@@ -271,29 +230,37 @@
                 console.error(text);
             },
 
-            onRuntimeInitialized: function() {
+            onRuntimeInitialized: async function() {
                 console.log('WebAssembly runtime initialized');
                 
-                // Передаем параметры через ccall для корректной обработки строк
+                console.log('Testing Asyncify...');
+                try {
+                    await Module.ccall('testAsyncify', 'void', [], [], {async: true});
+                    console.log('Asyncify test PASSED!');
+                } catch (e) {
+                    console.error('Asyncify test FAILED:', e);
+                    return;
+                }
+                
                 console.log('Calling setAppletParams with:', username, sessionid);
                 try {
                     Module.ccall('setAppletParams', 'void', 
                         ['string', 'string', 'string', 'number', 'number', 'number'],
-                        [username || "", sessionid || "", loadmapUser || "", parseInt(loadmapId) || 0, width, height]
+                        [username || "", sessionid || "", loadmapUser || "", parseInt(loadmapId) || -1, width, height]
                     );
                 } catch (e) {
                     console.error('Error calling setAppletParams:', e);
                 }
                 
-                // Запускаем апплет
-                setTimeout(() => {
-                    console.log('Starting applet...');
-                    try {
-                        Module.ccall('startApplet', 'void', [], []);
-                    } catch (e) {
-                        console.error('Error calling startApplet:', e);
-                    }
-                }, 100);
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                console.log('Starting applet...');
+                try {
+                    await Module.ccall('startApplet', 'void', [], [], {async: true});
+                    console.log('Applet started successfully');
+                } catch (e) {
+                    console.error('Error calling startApplet:', e);
+                }
             }
         };
 
@@ -307,16 +274,6 @@
                 }
             }
         }
-
-        // Обработчик ESC для освобождения мыши
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                console.log('ESC pressed - exiting pointer lock');
-                if (document.exitPointerLock) {
-                    document.exitPointerLock();
-                }
-            }
-        });
     </script>
 
     <script async type="text/javascript" src="game.js"></script>

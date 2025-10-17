@@ -12,10 +12,6 @@ Level::Level(int width, int height, int depth)
     randValue = random->nextInt();
     unprocessed = 0;
     
-    generateMap();
-    
-    calcLightDepths(0, 0, width, height);
-    
     std::cout << "Level created: " << width << "x" << height << "x" << depth << std::endl;
 }
 

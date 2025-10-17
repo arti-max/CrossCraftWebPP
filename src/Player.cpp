@@ -1,31 +1,17 @@
 #include "Player.hpp"
+#include "util/Keyboard.hpp"
 #include <GLFW/glfw3.h>
 
 Player::Player(Level* level) : Entity(level) {
     this->heightOffset = 1.62f;
 }
 
-void Player::setKey(int key, bool state) {
-    int id = -1;
-    
-    if (key == GLFW_KEY_W) {
-        id = KEY_UP;
-    }
-    if (key == GLFW_KEY_S) {
-        id = KEY_DOWN;
-    }
-    if (key == GLFW_KEY_A) {
-        id = KEY_LEFT;
-    }
-    if (key == GLFW_KEY_D) {
-        id = KEY_RIGHT;
-    }
-    if (key == GLFW_KEY_SPACE) {
-        id = KEY_JUMP;
-    }
-    if (id >= 0) {
-        keys[id] = state;
-    }
+void Player::setKey() {
+    keys[KEY_UP] = Keyboard::isKeyDown(GLFW_KEY_W);
+    keys[KEY_DOWN] = Keyboard::isKeyDown(GLFW_KEY_S);
+    keys[KEY_LEFT] = Keyboard::isKeyDown(GLFW_KEY_A);
+    keys[KEY_RIGHT] = Keyboard::isKeyDown(GLFW_KEY_D);
+    keys[KEY_JUMP] = Keyboard::isKeyDown(GLFW_KEY_SPACE);
 }
 
 void Player::releaseAllKeys() {

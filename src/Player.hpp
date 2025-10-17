@@ -15,7 +15,7 @@ private:
 public:
     Player(Level* level);
     
-    void setKey(int key, bool state);
+    void setKey();
     void releaseAllKeys();
     void tick() override;
 };

@@ -26,6 +26,7 @@ void CrossCraftApplet::setParams(const std::string& user, const std::string& ses
     
     if (!username.empty() && !sessionid.empty()) {
         std::cout << "User authenticated: " << username << std::endl;
+
     } else {
         std::cout << "No authentication provided" << std::endl;
     }
@@ -48,8 +49,14 @@ void CrossCraftApplet::start() {
         game->appletMode = true;
         std::cout << "Applet mode set" << std::endl;
         
-        if (!username.empty()) {
+        if (!username.empty() && !sessionid.empty()) {
             std::cout << "Authenticated mode enabled for: " << username << std::endl;
+            game->user = new User(username, sessionid);
+        }
+
+        if (!loadMapUser.empty() && loadMapId != -1) {
+            game->loadMapUser = loadMapUser;
+            game->loadMapId = loadMapId;
         }
         
         std::cout << "Calling game->run()..." << std::endl;
@@ -112,5 +119,11 @@ extern "C" {
         } else {
             std::cout << "Error: appletInstance is null!" << std::endl;
         }
+    }
+
+    void EMSCRIPTEN_KEEPALIVE testAsyncify() {
+        std::cout << "Before sleep" << std::endl;
+        emscripten_sleep(1000);
+        std::cout << "After sleep" << std::endl;
     }
 }

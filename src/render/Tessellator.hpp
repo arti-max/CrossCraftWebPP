@@ -31,4 +31,5 @@ public:
     void texture(float u, float v);
     void color (float r, float g, float b);
     void vertexUV(float x, float y, float z, float u, float v);
+    void _noColor();
 };

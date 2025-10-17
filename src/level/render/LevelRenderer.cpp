@@ -112,6 +112,7 @@ void LevelRenderer::render(Player* player, int layer) {
 }
 
 void LevelRenderer::renderSurroundingGround() {
+    glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, textures->loadTexture("rock2", GL_NEAREST));
     glCallList(this->surroundLists + 0);
 }
@@ -161,12 +162,24 @@ void LevelRenderer::compileSurroundingGround() {
         t.vertexUV(static_cast<float>(xx), 0.0f, static_cast<float>(level->height), 0.0f, 0.0f);
     }
     
-    t.end();
+    for (int zz = 0; zz < level->height; zz += s) {
+        t.vertexUV(0.0f, 0.0f, static_cast<float>(zz), 0.0f, 0.0f);
+        t.vertexUV(0.0f, y, static_cast<float>(zz), 0.0f, y);
+        t.vertexUV(0.0f, y, static_cast<float>(zz + s), static_cast<float>(s), y);
+        t.vertexUV(0.0f, 0.0f, static_cast<float>(zz + s), static_cast<float>(s), 0.0f);
+        
+        t.vertexUV(static_cast<float>(level->width), 0.0f, static_cast<float>(zz + s), static_cast<float>(s), 0.0f);
+        t.vertexUV(static_cast<float>(level->width), y, static_cast<float>(zz + s), static_cast<float>(s), y);
+        t.vertexUV(static_cast<float>(level->width), y, static_cast<float>(zz), 0.0f, y);
+        t.vertexUV(static_cast<float>(level->width), 0.0f, static_cast<float>(zz), 0.0f, 0.0f);
+    }
     
+    t.end();
     glDisable(GL_TEXTURE_2D);
 }
 
 void LevelRenderer::renderSurroundingWater() {
+    glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, textures->loadTexture("water", GL_NEAREST));
     glCallList(this->surroundLists + 1);
 }
@@ -251,17 +264,47 @@ void LevelRenderer::setDirty(int x0, int y0, int z0, int x1, int y1, int z1) {
     }
 }
 
-void LevelRenderer::renderHit(HitResult* h, Player* player) {
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_CURRENT_BIT);
-    glColor4f(1.0f, 1.0f, 1.0f, ((float) std::sin(emscripten_get_now() / 100.0f) * 0.2f + 0.4f) * 0.5f);
-
+void LevelRenderer::renderHit(HitResult* h, Player* player, int mode, int tileType) {
     Tessellator& t = Tessellator::getInstance();
-    t.begin();
-    Tile::tiles[Tile::rock->id]->renderFaceNoTexture(player, t, h->x, h->y, h->z, h->f);
-    t.end();
+    glEnable(GL_BLEND);
+    glEnable(GL_ALPHA_TEST);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+    glColor4f(1.0f, 1.0f, 1.0f, ((float) std::sin(emscripten_get_now() / 100.0f) * 0.2f + 0.4f) * 0.5f);
+    if (mode == 0) {
+        t.begin();
+
+        for (int i = 0; i < 6; ++i) {
+            Tile::tiles[Tile::rock->id]->renderFaceNoTexture(player, t, h->x, h->y, h->z, i);
+        }
+
+        t.end();
+    } else {
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        float br = (float)std::sin((double)emscripten_get_now() / 100.0f) * 0.2f + 0.8f;
+        glColor4f(br, br, br, (float)std::sin((double)emscripten_get_now() / 200.0f) * 0.2f + 0.5f);
+        glEnable(GL_TEXTURE_2D);
+        int id = this->textures->loadTexture("terrain", GL_NEAREST);
+        glBindTexture(GL_TEXTURE_2D, id);
+        int x = h->x;
+        int y = h->y;
+        int z = h->z;
+        if (h->f == 0) y--;
+        if (h->f == 1) y++;
+        if (h->f == 2) z--;
+        if (h->f == 3) z++;
+        if (h->f == 4) x--;
+        if (h->f == 5) x++;
+
+        t.begin();
+        t._noColor();
+        Tile::tiles[tileType]->render(t, this->level, 0, x, y, z);
+        Tile::tiles[tileType]->render(t, this->level, 1, x, y, z);
+        t.end();
+        glDisable(GL_TEXTURE_2D);
+    }
 
     glDisable(GL_BLEND);
+    glDisable(GL_ALPHA_TEST);
 }
 
 void LevelRenderer::tileChanged(int x, int y, int z) {

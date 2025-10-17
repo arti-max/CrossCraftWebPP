@@ -116,3 +116,7 @@ void Tessellator::vertexUV(float x, float y, float z, float u, float v) {
     this->texture(u, v);
     this->vertex(x, y, z);
 }
+
+void Tessellator::_noColor() {
+    this->noColor = true;
+}
