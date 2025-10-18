@@ -307,6 +307,48 @@ void LevelRenderer::renderHit(HitResult* h, Player* player, int mode, int tileTy
     glDisable(GL_ALPHA_TEST);
 }
 
+void LevelRenderer::renderHitOutline(HitResult* h, Player* player, int mode, int tileType) {
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glColor4f(0.0f, 0.0f, 0.0f, 0.4f);
+    float x = (float)h->x;
+    float y = (float)h->y;
+    float z = (float)h->z;
+    if (mode == 1) {
+        if (h->f == 0) y--;
+        if (h->f == 1) y++;
+        if (h->f == 2) z--;
+        if (h->f == 3) z++;
+        if (h->f == 4) x--;
+        if (h->f == 5) x++;
+    }
+    glBegin(GL_LINE_STRIP);
+    glVertex3f(x, y, z);
+    glVertex3f(x + 1.0F, y, z);
+    glVertex3f(x + 1.0F, y, z + 1.0F);
+    glVertex3f(x, y, z + 1.0F);
+    glVertex3f(x, y, z);
+    glEnd();
+    glBegin(3);
+    glVertex3f(x, y + 1.0F, z);
+    glVertex3f(x + 1.0F, y + 1.0F, z);
+    glVertex3f(x + 1.0F, y + 1.0F, z + 1.0F);
+    glVertex3f(x, y + 1.0F, z + 1.0F);
+    glVertex3f(x, y + 1.0F, z);
+    glEnd();
+    glBegin(1);
+    glVertex3f(x, y, z);
+    glVertex3f(x, y + 1.0F, z);
+    glVertex3f(x + 1.0F, y, z);
+    glVertex3f(x + 1.0F, y + 1.0F, z);
+    glVertex3f(x + 1.0F, y, z + 1.0F);
+    glVertex3f(x + 1.0F, y + 1.0F, z + 1.0F);
+    glVertex3f(x, y, z + 1.0F);
+    glVertex3f(x, y + 1.0F, z + 1.0F);
+    glEnd();
+    glDisable(GL_BLEND);
+}
+
 void LevelRenderer::tileChanged(int x, int y, int z) {
     setDirty(x - 1, y - 1, z - 1, x + 1, y + 1, z + 1);
 }

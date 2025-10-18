@@ -5,6 +5,7 @@
 #include "util/Random.hpp"
 #include "phys/AABB.hpp"
 #include "Player.hpp"
+#include "particle/ParticleEngine.hpp"
 
 class Tile {
 
@@ -40,7 +41,7 @@ public:
     void renderFace(Tessellator& t, int x, int y, int z, int face);
     void renderBackFace(Tessellator& t, int x, int y, int z, int face);
     void renderFaceNoTexture(Player* player, Tessellator& t, int x, int y, int z, int face);
-    void onDestroy(Level* level, int x, int y, int z);   // TODO: PatricleEngine
+    void onDestroy(Level* level, int x, int y, int z, ParticleEngine* engine);
     virtual void tick(Level* level, int x, int y, int z, Random* random);
     virtual bool mayPick();
     virtual bool blocksLight();

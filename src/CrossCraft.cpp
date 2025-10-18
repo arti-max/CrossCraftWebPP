@@ -78,6 +78,7 @@ void CrossCraft::init() {
     this->font = new Font("default", this->textures);
     glViewport(0, 0, this->width, this->height);
     this->level = new Level(256, 256, 64);
+    this->particleEngine = new ParticleEngine(this->level);
     bool success = false;
 
     if (!success) {
@@ -194,7 +195,12 @@ void CrossCraft::emscriptenMainLoop(void* arg) {
 void CrossCraft::handleMouseClick() {
     if (this->editMode == 0) {
         if (this->hitResult != nullptr) {
-            this->level->setTile(this->hitResult->x, this->hitResult->y, this->hitResult->z, 0);
+            Tile* previousTile = Tile::tiles[this->level->getTile(this->hitResult->x, this->hitResult->y, this->hitResult->z)];
+
+            bool tileChanged = this->level->setTile(this->hitResult->x, this->hitResult->y, this->hitResult->z, 0);
+            if (previousTile != nullptr && tileChanged) {
+                previousTile->onDestroy(this->level, this->hitResult->x, this->hitResult->y, this->hitResult->z, this->particleEngine);
+            }
         }
     } else if (this->hitResult != nullptr) {
         int x = this->hitResult->x;
@@ -283,6 +289,7 @@ void CrossCraft::tick() {
     }
 update_world:
     this->level->tick();
+    this->particleEngine->tick();
 
     for (int i = static_cast<int>(this->entities.size()) - 1; i >= 0; --i) {
         this->entities[i]->tick();
@@ -338,7 +345,8 @@ void CrossCraft::render(float partialTicks) {
         }
     }
     this->checkGlError("Rendered entities");
-    this->checkGlError("Rendered particles");
+    this->particleEngine->render(this->player, partialTicks, 0, this->textures);
+    this->checkGlError("Rendered particles (0)");
     this->setupFog(1);
     this->levelRenderer->render(this->player, 1);
     for (i = 0; i < this->entities.size(); ++i) {
@@ -348,12 +356,15 @@ void CrossCraft::render(float partialTicks) {
         }
     }
     this->checkGlError("Render entities");
+    this->particleEngine->render(this->player, partialTicks, 1, this->textures);
+    this->checkGlError("Rendered particles (1)");
     this->levelRenderer->renderSurroundingGround();
     this->checkGlError("Render surrounding Ground");
     if (this->hitResult != nullptr) {
         glDisable(GL_LIGHTING);
         glDisable(GL_ALPHA_TEST);
         this->levelRenderer->renderHit(this->hitResult, this->player, this->editMode, this->selectedTile);
+        this->levelRenderer->renderHitOutline(this->hitResult, this->player, this->editMode, this->selectedTile);
         glEnable(GL_ALPHA_TEST);
         glEnable(GL_LIGHTING);
     }
@@ -376,6 +387,7 @@ void CrossCraft::render(float partialTicks) {
         glDepthFunc(GL_LESS);
         glDisable(GL_ALPHA_TEST);
         this->levelRenderer->renderHit(this->hitResult, this->player, this->editMode, this->selectedTile);
+        this->levelRenderer->renderHitOutline(this->hitResult, this->player, this->editMode, this->selectedTile);
         glEnable(GL_ALPHA_TEST);
         glDepthFunc(GL_LEQUAL);
     }
@@ -537,8 +549,12 @@ bool CrossCraft::loadLevel(const char username[], int levelid) {
     }
 }
 
-void CrossCraft::generateNewLevel() {
-    this->levelGen->generateLevel(this->level, this->user->username.c_str(), 256, 256, 64);
+void CrossCraft::saveLevel(int levelId, const char levelname[]) {
+    this->levelIO->saveOnline(this->level, this->serverHost, this->user->username, this->user->sessionid, levelname, levelId);
+}
+
+void CrossCraft::generateNewLevel(int width, int height, int depth) {
+    this->levelGen->generateLevel(this->level, this->user->username.c_str(), width, height, depth);
     this->player->resetPos();
     for (int i = static_cast<int>(this->entities.size()) - 1; i >= 0; --i) {
         this->entities.erase(this->entities.begin() + i);

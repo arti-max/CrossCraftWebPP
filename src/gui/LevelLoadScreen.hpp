@@ -18,7 +18,7 @@ private:
 protected:
     std::string title = "Load level";
     void buttonClicked(Button* btn) override;
-    void loadLevel(int levelId);
+    virtual void loadLevel(int levelId);
     
 public:
     bool loadingFinished = false;

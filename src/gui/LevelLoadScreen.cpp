@@ -110,8 +110,8 @@ void LevelLoadScreen::buttonClicked(Button* btn) {
 void LevelLoadScreen::loadLevel(int levelId) {
     this->cc->loadLevel(this->cc->user->username.c_str(), levelId);
     
-    cc->setScreen(nullptr);
     cc->grabMouse();
+    cc->setScreen(nullptr);
 }
 
 void LevelLoadScreen::render(int xMouse, int yMouse) {

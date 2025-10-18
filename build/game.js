@@ -27,7 +27,7 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: D:\Temp\tmpn1s6s7bt.js
+// include: D:\Temp\tmpvhwzb35c.js
 
   Module['expectedDataFileDownloads'] ??= 0;
   Module['expectedDataFileDownloads']++;
@@ -159,21 +159,21 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
 
   })();
 
-// end include: D:\Temp\tmpn1s6s7bt.js
-// include: D:\Temp\tmp3wh92vjk.js
+// end include: D:\Temp\tmpvhwzb35c.js
+// include: D:\Temp\tmpk2dvvgc4.js
 
     // All the pre-js content up to here must remain later on, we need to run
     // it.
     if ((typeof ENVIRONMENT_IS_WASM_WORKER != 'undefined' && ENVIRONMENT_IS_WASM_WORKER) || (typeof ENVIRONMENT_IS_PTHREAD != 'undefined' && ENVIRONMENT_IS_PTHREAD) || (typeof ENVIRONMENT_IS_AUDIO_WORKLET != 'undefined' && ENVIRONMENT_IS_AUDIO_WORKLET)) Module['preRun'] = [];
     var necessaryPreJSTasks = Module['preRun'].slice();
-  // end include: D:\Temp\tmp3wh92vjk.js
-// include: D:\Temp\tmpgugz132g.js
+  // end include: D:\Temp\tmpk2dvvgc4.js
+// include: D:\Temp\tmp556a6erd.js
 
     if (!Module['preRun']) throw 'Module.preRun should exist because file support used it; did a pre-js delete it?';
     necessaryPreJSTasks.forEach((task) => {
       if (Module['preRun'].indexOf(task) < 0) throw 'All preRun tasks that exist before user pre-js code should remain after; did you replace Module or modify Module.preRun?';
     });
-  // end include: D:\Temp\tmpgugz132g.js
+  // end include: D:\Temp\tmp556a6erd.js
 
 
 var arguments_ = [];
@@ -10563,13 +10563,13 @@ function checkIncomingModuleAPI() {
   ignoredModuleProp('fetchSettings');
 }
 var ASM_CONSTS = {
-  2207368: ($0) => { var name = UTF8ToString($0); var img = document.getElementById(name); if (!img || !img.complete || img.naturalWidth === 0) { console.error('Font constructor: Image element not found or not loaded:', name); throw new Error('Font image not available: ' + name); } var w = img.width; var h = img.height; var canvas = document.createElement('canvas'); canvas.width = w; canvas.height = h; var ctx = canvas.getContext('2d'); if (!ctx) { throw new Error('Could not get 2D context for font processing.'); } ctx.drawImage(img, 0, 0); var imageData = ctx.getImageData(0, 0, w, h); var rawPixels = imageData.data; Module.fontImageWidth = w; Module.fontImageHeight = h; Module.fontPixelData = rawPixels; },  
- 2208065: () => { return Module.fontImageWidth; },  
- 2208099: () => { return Module.fontImageHeight; },  
- 2208134: ($0, $1, $2) => { var pixelIndex = ($0 + $1 * $2) * 4 + 3; return Module.fontPixelData[pixelIndex]; },  
- 2208220: () => { delete Module.fontImageWidth; delete Module.fontImageHeight; delete Module.fontPixelData; },  
- 2208314: () => { console.log('🎯 EM_ASM: Requesting pointer lock...'); const canvas = document.getElementById('canvas'); if (canvas) { const requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock || canvas.webkitRequestPointerLock; if (requestPointerLock) { try { const result = requestPointerLock.call(canvas); if (result && typeof result.then === 'function') { result.then(function() { console.log('✅ Pointer lock request SUCCESS (Promise)'); }).catch(function(err) { console.error('❌ Pointer lock request FAILED (Promise):', err); }); } else { console.log('✅ Pointer lock request sent (Legacy API)'); } } catch (error) { console.error('❌ Exception during pointer lock request:', error); } } else { console.error('❌ Pointer lock API not available'); } } else { console.error('❌ Canvas element not found'); } },  
- 2209149: () => { const exitPointerLock = document.exitPointerLock || document.mozExitPointerLock || document.webkitExitPointerLock; if (exitPointerLock) { exitPointerLock.call(document); console.log('✅ Exit pointer lock called'); } else { console.error('❌ Exit pointer lock not available'); } }
+  2211368: ($0) => { var name = UTF8ToString($0); var img = document.getElementById(name); if (!img || !img.complete || img.naturalWidth === 0) { console.error('Font constructor: Image element not found or not loaded:', name); throw new Error('Font image not available: ' + name); } var w = img.width; var h = img.height; var canvas = document.createElement('canvas'); canvas.width = w; canvas.height = h; var ctx = canvas.getContext('2d'); if (!ctx) { throw new Error('Could not get 2D context for font processing.'); } ctx.drawImage(img, 0, 0); var imageData = ctx.getImageData(0, 0, w, h); var rawPixels = imageData.data; Module.fontImageWidth = w; Module.fontImageHeight = h; Module.fontPixelData = rawPixels; },  
+ 2212065: () => { return Module.fontImageWidth; },  
+ 2212099: () => { return Module.fontImageHeight; },  
+ 2212134: ($0, $1, $2) => { var pixelIndex = ($0 + $1 * $2) * 4 + 3; return Module.fontPixelData[pixelIndex]; },  
+ 2212220: () => { delete Module.fontImageWidth; delete Module.fontImageHeight; delete Module.fontPixelData; },  
+ 2212314: () => { console.log('🎯 EM_ASM: Requesting pointer lock...'); const canvas = document.getElementById('canvas'); if (canvas) { const requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock || canvas.webkitRequestPointerLock; if (requestPointerLock) { try { const result = requestPointerLock.call(canvas); if (result && typeof result.then === 'function') { result.then(function() { console.log('✅ Pointer lock request SUCCESS (Promise)'); }).catch(function(err) { console.error('❌ Pointer lock request FAILED (Promise):', err); }); } else { console.log('✅ Pointer lock request sent (Legacy API)'); } } catch (error) { console.error('❌ Exception during pointer lock request:', error); } } else { console.error('❌ Pointer lock API not available'); } } else { console.error('❌ Canvas element not found'); } },  
+ 2213149: () => { const exitPointerLock = document.exitPointerLock || document.mozExitPointerLock || document.webkitExitPointerLock; if (exitPointerLock) { exitPointerLock.call(document); console.log('✅ Exit pointer lock called'); } else { console.error('❌ Exit pointer lock not available'); } }
 };
 function js_getImageData(elementId,buffer,bufferSize,width,height) { try { const img = document.getElementById(UTF8ToString(elementId)); if (!img) { console.error('Image element not found:', UTF8ToString(elementId)); return 0; } if (!img.complete || img.naturalWidth === 0) { console.error('Image not loaded:', UTF8ToString(elementId)); return 0; } const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); canvas.width = img.width; canvas.height = img.height; ctx.drawImage(img, 0, 0); const imageData = ctx.getImageData(0, 0, img.width, img.height); const data = imageData.data; if (data.length > bufferSize) { console.error('Buffer too small for image:', UTF8ToString(elementId), 'need:', data.length, 'have:', bufferSize); return 0; } setValue(width, img.width, 'i32'); setValue(height, img.height, 'i32'); for (let i = 0; i < data.length; i++) { setValue(buffer + i, data[i], 'i8'); } console.log('Successfully loaded image:', UTF8ToString(elementId), 'size:', img.width, 'x', img.height); return 1; } catch (e) { console.error('Error in js_getImageData:', e); return 0; } }
 

@@ -1,11 +1,14 @@
 #include "CrossCraftApplet.hpp"
 #include "gl4esinit.h"
 #include <iostream>
+#include <cstdlib>
+#include <ctime>
 
 extern "C" void initialize_gl4es();
 
 int main() {
     std::cout << "CrossCraft C++ main() called" << std::endl;
+    srand(time(NULL));
     
     try {
         std::cout << "Initializing gl4es..." << std::endl;

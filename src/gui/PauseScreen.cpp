@@ -1,6 +1,8 @@
 #include "gui/PauseScreen.hpp"
 #include "CrossCraft.hpp"
 #include "gui/LevelLoadScreen.hpp"
+#include "gui/LevelSaveScreen.hpp"
+#include "gui/LevelGenerateScreen.hpp"
 
 void PauseScreen::init() {
     this->buttons.push_back(new Button(0, this->width / 2 - 100, this->height / 3 + 0, 200, 20, "Generate new level"));
@@ -11,19 +13,19 @@ void PauseScreen::init() {
 
 void PauseScreen::buttonClicked(Button* btn) {
     if (btn->id == 0) {
-        this->cc->setScreen(nullptr);
-        this->cc->grabMouse();
-        this->cc->generateNewLevel();
-        // this->cc->setScreen(new LevelGenerateScreen(this));
+        this->cc->setScreen(new LevelGenerateScreen(this));
     }
     if (this->cc->user != nullptr) {
+        if (btn->id == 1) {
+            this->cc->setScreen(new LevelSaveScreen(this));
+        }
         if (btn->id == 2) {
             this->cc->setScreen(new LevelLoadScreen(this));
         }
     }
     if (btn->id == 3) {
-        this->cc->setScreen(nullptr);
         this->cc->grabMouse();
+        this->cc->setScreen(nullptr);
     }
 }
 

@@ -196,6 +196,27 @@ void Tile::renderFaceNoTexture(Player* player, Tessellator& t, int x, int y, int
     }
 }
 
+void Tile::onDestroy(Level* level, int x, int y, int z, ParticleEngine* engine) {
+    int spread = 4;
+
+    for (int offsetX = 0; offsetX < spread; offsetX++) {
+        for (int offsetY = 0; offsetY < spread; offsetY++) {
+            for (int offsetZ = 0; offsetZ < spread; offsetZ++) {
+                float targetX = x + (offsetX + 0.5f) / spread;
+                float targetY = y + (offsetY + 0.5f) / spread;
+                float targetZ = z + (offsetZ + 0.5f) / spread;
+
+                float motionX = targetX - x - 0.5f;
+                float motionY = targetY - y - 0.5f;
+                float motionZ = targetZ - z - 0.5f;
+
+                Particle* p = new Particle(level, targetX, targetY, targetZ, motionX, motionY, motionZ, this->textureId);
+                engine->add(p);
+            }
+        }
+    }
+}
+
 void Tile::neighborChanged(Level* level, int x, int y, int z, int type) {
     // no implementation
 }

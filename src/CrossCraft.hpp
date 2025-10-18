@@ -23,6 +23,7 @@
 #include "level/LevelLoaderListener.hpp"
 #include "level/levelgen/LevelGen.hpp"
 #include "level/LevelIO.hpp"
+#include "particle/ParticleEngine.hpp"
 
 class CrossCraft : public LevelLoaderListener {
 private:
@@ -56,6 +57,7 @@ private:
     Screen* screen = nullptr;
     LevelGen* levelGen = new LevelGen(this);
     LevelIO* levelIO = new LevelIO(this);
+    ParticleEngine* particleEngine;
 
     int yMouseAxis = -1;
 
@@ -106,8 +108,9 @@ public:
     void grabMouse();
     void releaseMouse();
 
-    void generateNewLevel();
+    void generateNewLevel(int width, int height, int depth);
     bool loadLevel(const char username[], int levelId);
+    void saveLevel(int levelId, const char levelname[]);
     void beginLevelLoading(const char str[]) override;
     void levelLoadUpdate(const char str[]) override;
 };

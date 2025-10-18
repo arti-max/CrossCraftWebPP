@@ -48,4 +48,5 @@ public:
     void toggleDrawDistance();
     void cull(Frustum& frustum);
     void renderHit(HitResult* h, Player* player, int mode, int tileType);
+    void renderHitOutline(HitResult* h, Player* player, int mode, int tileType);
 };
