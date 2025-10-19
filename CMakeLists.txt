@@ -27,6 +27,7 @@ if(EMSCRIPTEN)
     add_compile_options(-sUSE_ZLIB=1)
     target_link_libraries(CrossCraftWebPP PRIVATE 
         glfw
+        websocket.js
         "${CMAKE_CURRENT_SOURCE_DIR}/lib/libGLU.a"
         "${CMAKE_CURRENT_SOURCE_DIR}/lib/libGL.a"
     )
@@ -44,7 +45,7 @@ if(EMSCRIPTEN)
             -s USE_ZLIB=1 \
             -s FETCH=1 \
             -s ASSERTIONS=1 \
-            -s EXPORTED_FUNCTIONS=['_main','_setAppletParams','_startApplet','_testAsyncify'] \
+            -s EXPORTED_FUNCTIONS=['_main','_setAppletParams','_startApplet','_testAsyncify','_setServerParams'] \
             -s EXPORTED_RUNTIME_METHODS=['ccall','cwrap'] \
             -s ERROR_ON_UNDEFINED_SYMBOLS=0 \
             -s STACK_SIZE=2097152 \
@@ -60,7 +61,6 @@ if(EMSCRIPTEN)
             --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/default.png@default.png \
         "
     )
-    
     set_target_properties(CrossCraftWebPP PROPERTIES OUTPUT_NAME "game")
     set_target_properties(CrossCraftWebPP PROPERTIES SUFFIX ".html")
     

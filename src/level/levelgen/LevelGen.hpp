@@ -6,7 +6,6 @@
 #include <vector>
 #include <array>
 
-
 class LevelGen {
 private:
     LevelLoaderListener* levelLoaderListener = nullptr;
@@ -16,15 +15,22 @@ private:
     int depth = 0;
     Random* random = new Random();
     std::vector<uint8_t> blocks;
+    
+    std::vector<int> coords;
+    static const int COORD_BUFFER_SIZE = 1048576;
 
     void generateMap();
     int getCoordIndex(int x, int y, int z);
-    std::vector<int> unpackCoord(int id);
+    std::vector<int> unpackCoord(int index);
+    
+    void addWater();
+    void addLava();
+    int floodFillLiquid(int x, int y, int z, uint8_t source, uint8_t target);
 
 public:
     LevelGen(LevelLoaderListener* listener);
     ~LevelGen();
 
-    void generateLevel(Level* level, const char useranme[], int width, int height, int depth);
+    void generateLevel(Level* level, const char username[], int width, int height, int depth);
     void carveTunnels();
 };

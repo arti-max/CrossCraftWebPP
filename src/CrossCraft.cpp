@@ -79,12 +79,17 @@ void CrossCraft::init() {
     glViewport(0, 0, this->width, this->height);
     this->level = new Level(256, 256, 64);
     this->particleEngine = new ParticleEngine(this->level);
-    bool success = false;
 
-    if (!success) {
-        this->levelGen->generateLevel(this->level, this->user->username.c_str(), 256, 256, 64);
-        success = true;
+    if (this->loadMapUser.empty() || this->loadMapId == -1) {
+        if (this->user != nullptr) {
+            this->levelGen->generateLevel(this->level, this->user->username.c_str(), 256, 256, 64);
+        } else {
+            this->levelGen->generateLevel(this->level, "noname", 256, 256, 64);
+        }
+    } else {
+        this->loadLevel(this->loadMapUser.c_str(), this->loadMapId);
     }
+
 
     this->levelRenderer = new LevelRenderer(this->level, this->textures);
     this->player = new Player(this->level);
@@ -143,7 +148,18 @@ void CrossCraft::stop() {
 }
 
 void CrossCraft::run() {
-    Logger::logf(PREFIX_CC, "CrossCraft runned! %s, %i, %i, %s, %s\n", this->parent.c_str(), this->width, this->height, this->user->username.c_str(), this->user->sessionid.c_str());
+    if (this->user != nullptr) {
+        Logger::logf(PREFIX_CC, "CrossCraft started! canvas=%s, size=%dx%d, user=%s\n", 
+            this->parent.c_str(), 
+            this->width, 
+            this->height, 
+            this->user->username.c_str());
+    } else {
+        Logger::logf(PREFIX_CC, "CrossCraft started! canvas=%s, size=%dx%d, guest mode\n", 
+            this->parent.c_str(), 
+            this->width, 
+            this->height);
+    }
     try {
         this->init();
     } catch (const std::exception& e) {
@@ -192,6 +208,20 @@ void CrossCraft::emscriptenMainLoop(void* arg) {
     static_cast<CrossCraft*>(arg)->mainLoop();
 }
 
+bool CrossCraft::isFree(const AABB &aabb) {
+    if (this->player->bb.intersects(aabb)) {
+        return false;
+    } else {
+        for (int i = 0; i < this->entities.size(); ++i) {
+            if (this->entities[i]->bb.intersects(aabb)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+}
+
 void CrossCraft::handleMouseClick() {
     if (this->editMode == 0) {
         if (this->hitResult != nullptr) {
@@ -200,6 +230,13 @@ void CrossCraft::handleMouseClick() {
             bool tileChanged = this->level->setTile(this->hitResult->x, this->hitResult->y, this->hitResult->z, 0);
             if (previousTile != nullptr && tileChanged) {
                 previousTile->onDestroy(this->level, this->hitResult->x, this->hitResult->y, this->hitResult->z, this->particleEngine);
+
+                if (mpMode && client && client->isConnected()) {
+                    BlockChangePacket* packet = new BlockChangePacket(
+                        this->hitResult->x, this->hitResult->y, this->hitResult->z, 
+                        0, false);
+                    client->sendPacket(packet);
+                }
             }
         }
     } else if (this->hitResult != nullptr) {
@@ -213,9 +250,15 @@ void CrossCraft::handleMouseClick() {
         if (this->hitResult->f == 3) z++;
         if (this->hitResult->f == 4) x--;
         if (this->hitResult->f == 5) x++;
-        Tile* prevTile = Tile::tiles[this->level->getTile(x, y, z)];
-        if (prevTile == Tile::empty) {
+
+        AABB* aabb = Tile::tiles[this->selectedTile]->getAABB(x, y, z);
+        
+        if (aabb == nullptr || this->isFree(*aabb)) {
             this->level->setTile(x, y, z, this->selectedTile);
+        }
+        
+        if (aabb != nullptr) {
+            delete aabb;
         }
     }
 }
@@ -482,7 +525,18 @@ void CrossCraft::checkGlError(const char str[]) {
 }
 
 void CrossCraft::setupFog(int layer) {
-    if (layer == 0) {
+    Tile* currentTile = Tile::tiles[this->level->getTile((int)this->player->x, (int)(this->player->y+0.12f), (int)this->player->z)];
+    if (currentTile != nullptr && currentTile->getLiquidType() == 1) {
+        glFogi(GL_FOG_MODE, GL_EXP);
+        glFogf(GL_FOG_DENSITY, 0.1f);
+        glFogfv(GL_FOG_COLOR, getBuffer(0.02f, 0.02f, 0.2f, 1.0f));
+        glLightModelfv(GL_LIGHT_MODEL_AMBIENT, getBuffer(0.3f, 0.3f, 0.7f, 1.0f));
+    } else if (currentTile != nullptr && currentTile->getLiquidType() == 2) {
+        glFogi(GL_FOG_MODE, GL_EXP);
+        glFogf(GL_FOG_DENSITY, 2.0f);
+        glFogfv(GL_FOG_COLOR, getBuffer(0.6f, 0.1f, 0.0f, 1.0f));
+        glLightModelfv(GL_LIGHT_MODEL_AMBIENT, getBuffer(0.4f, 0.3f, 0.3f, 1.0f));
+    } else if (layer == 0) {
         glFogi(GL_FOG_MODE, GL_VIEWPORT_BIT);
         glFogf(GL_FOG_DENSITY, 0.001f);
         glFogfv(GL_FOG_COLOR, this->fogColor0.data());
@@ -554,9 +608,48 @@ void CrossCraft::saveLevel(int levelId, const char levelname[]) {
 }
 
 void CrossCraft::generateNewLevel(int width, int height, int depth) {
-    this->levelGen->generateLevel(this->level, this->user->username.c_str(), width, height, depth);
+    const char* username = (this->user != nullptr) ? this->user->username.c_str() : "noname";
+    this->levelGen->generateLevel(this->level, username, width, height, depth);
     this->player->resetPos();
     for (int i = static_cast<int>(this->entities.size()) - 1; i >= 0; --i) {
         this->entities.erase(this->entities.begin() + i);
+    }
+}
+
+void CrossCraft::connectToServer(const std::string& serverUrl) {
+    if (client == nullptr) {
+        client = new Client();
+    }
+    
+    client->setOnConnect([this]() {
+        Logger::logf(PREFIX_NETWORK, "Sending login packet...\n");
+        LoginPacket* packet = new LoginPacket(this->user->username, this->user->sessionid);
+        client->sendPacket(packet);
+        mpMode = true;
+    });
+    
+    client->setOnPacket([this](Packet* packet) {
+        handleNetworkPacket(packet);
+    });
+    
+    client->connect(serverUrl);
+}
+
+void CrossCraft::handleNetworkPacket(Packet* packet) {
+    switch (packet->getType()) {
+        case PacketType::LOGIN_RESPONSE:
+            Logger::logf(PREFIX_NETWORK, "Login successful!\n");
+            break;
+            
+        case PacketType::BLOCK_UPDATE: {
+            BlockChangePacket* blockPacket = static_cast<BlockChangePacket*>(packet);
+            this->level->setTile(blockPacket->x, blockPacket->y, blockPacket->z, blockPacket->blockType);
+            break;
+        }
+        
+        // TODO: Other packets
+        
+        default:
+            Logger::logf(PREFIX_WARNING, "Unknown packet type: %d\n", static_cast<int>(packet->getType()));
     }
 }

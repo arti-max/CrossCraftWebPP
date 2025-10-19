@@ -15,14 +15,13 @@ private:
     
     std::vector<LevelListener*> levelListeners;
     Random* random;
-    std::set<int> liquidPositions;
+    std::set<int> ticking;
     static const int maxBits = 10;
     int randValue;
     int unprocessed = 0;
     
     void calcLightDepths(int x0, int z0, int x1, int z1);
     void neighborChanged(int x, int y, int z, int type);
-    void tickLiquids();
     bool isLiquidTile(int tileId);
     bool isActiveLiquidTile(int tileId);
     int encodePosition(int x, int y, int z);
@@ -55,8 +54,9 @@ public:
     bool containsLiquid(const AABB& box, int liquidId);
     void addListener(LevelListener* listener);
     void removeListener(LevelListener* listener);
-    void addLiquidPosition(int x, int y, int z);
-    void removeLiquidPosition(int x, int y, int z);
+    void addTick(int x, int y, int z);
+    void removeTick(int x, int y, int z);
+    bool needsTick(int tileId);
 
 private:
     void generateMap();

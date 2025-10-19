@@ -1,13 +1,13 @@
 #pragma once
 #include "phys/AABB.hpp"
 #include "level/Level.hpp"
+#include "level/tile/Tile.hpp"
 #include "Player.hpp"
 #include "Entity.hpp"
 #include "HitResult.hpp"
 #include <cmath>
 #include <vector>
 #include <limits>
-
 
 class Ray {
 public:
@@ -45,7 +45,6 @@ public:
                 
                 if (distance >= 0.0f && distance < entityDistance) {
                     entityDistance = distance;
-                    // Для энтити используем специальный HitResult с типом 1
                     entityHit = new HitResult(1, 0, 0, 0, 0);
                 }
             }
@@ -140,11 +139,26 @@ private:
         
         // DDA основной цикл
         while (currentDistance < maxDistance) {
+            // Проверка выхода за границы уровня
+            if (blockX < 0 || blockX >= level->width ||
+                blockY < 0 || blockY >= level->depth ||
+                blockZ < 0 || blockZ >= level->height) {
+                break;
+            }
+            
             // Проверяем текущий блок
             int tileId = level->getTile(blockX, blockY, blockZ);
+            
+            // ОПТИМИЗАЦИЯ: проверяем только если блок не пустой
             if (tileId != 0) {
-                // Нашли твёрдый блок, определяем грань
-                return new HitResult(0, blockX, blockY, blockZ, lastFace);
+                Tile* tile = Tile::tiles[tileId];
+                
+                // НОВОЕ: проверяем mayPick()
+                if (tile != nullptr && tile->mayPick()) {
+                    // Нашли пикабельный блок
+                    return new HitResult(0, blockX, blockY, blockZ, lastFace);
+                }
+                // Если блок не пикабельный (например жидкость), продолжаем луч
             }
             
             // Переход к следующему вокселю
@@ -177,13 +191,6 @@ private:
                     blockZ += stepZ;
                     lastFace = (stepZ > 0) ? 2 : 3; // North : South
                 }
-            }
-            
-            // Проверка выхода за границы уровня
-            if (blockX < 0 || blockX >= level->width ||
-                blockY < 0 || blockY >= level->depth ||
-                blockZ < 0 || blockZ >= level->height) {
-                break;
             }
         }
         

@@ -121,8 +121,8 @@
     <div id="controls">
         <ul>
             <li><kbd>1 - 4, 6</kbd> - Changing building block type</li>
-            <li><kbd>Right click</kbd> - Destroy block</li>
-            <li><kbd>Left click</kbd> - Place block</li>
+            <li><kbd>Right click</kbd> - Change edit mode</li>
+            <li><kbd>Left click</kbd> - Place/Destroy block</li>
             <li><kbd>R</kbd> - Respawn</li>
             <li><kbd>F</kbd> - Toggle rendering distance</li>
             <li><kbd>G</kbd> - Spawn mob</li>
@@ -153,6 +153,9 @@
         const sessionid = urlParams.get('sessionid');
         const loadmapUser = urlParams.get('loadmap_user');
         const loadmapId = urlParams.get('loadmap_id');
+        const server = urlParams.get('server') || '';
+        const port = parseInt(urlParams.get('port') || '0');
+
 
         if (DEBUG) {
             document.getElementById('output').style.display = "block";
@@ -249,6 +252,10 @@
                         ['string', 'string', 'string', 'number', 'number', 'number'],
                         [username || "", sessionid || "", loadmapUser || "", parseInt(loadmapId) || -1, width, height]
                     );
+                    if (server && port > 0) {
+                        console.log('Setting multiplayer server:', server + ':' + port);
+                        Module.ccall('setServerParams', null, ['string', 'number'], [server, port]);
+                    }
                 } catch (e) {
                     console.error('Error calling setAppletParams:', e);
                 }

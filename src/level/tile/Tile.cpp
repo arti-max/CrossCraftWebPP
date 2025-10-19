@@ -1,5 +1,7 @@
 #include "level/tile/GrassTile.hpp"
 #include "level/tile/BushTile.hpp"
+#include "level/tile/LiquidTile.hpp"
+#include "level/tile/CalmLiquidTile.hpp"
 #include "level/tile/Tile.hpp"
 
 std::array<Tile*, 256> Tile::tiles = {nullptr};
@@ -12,10 +14,10 @@ static Tile cobbleTile(4, 5);
 static Tile woodTile(5, 2);
 static Bush bushTile(6);
 static Tile unbreakableTile(7, 17);
-static Tile waterTile(8, 1);
-static Tile calmWaterTile(9, 1);
-static Tile lavaTile(10, 2);
-static Tile calmLavaTile(11, 2);
+static LiquidTile waterTile(8, 1);
+static CalmLiquidTile calmWaterTile(9, 1);
+static LiquidTile lavaTile(10, 2);
+static CalmLiquidTile calmLavaTile(11, 2);
 
 const Tile* Tile::rock = &rockTile;
 const Tile* Tile::grass = &grassTile;
@@ -148,6 +150,61 @@ void Tile::renderFace(Tessellator& t, int x, int y, int z, int face) {
         t.vertexUV(x1, y0, z0, u1, v1);
         t.vertexUV(x1, y1, z0, u1, v0);
         t.vertexUV(x1, y1, z1, u0, v0);
+    }
+}
+
+void Tile::renderBackFace(Tessellator& t, int x, int y, int z, int face) {
+    const int tex = this->getTexture(face);
+
+    const float atlasSize = 16.0f;
+    const float tilePixels = 16.0f;
+    const float atlasPixels = 256.0f;
+    
+    const float col = static_cast<float>(tex % static_cast<int>(atlasSize));
+    const float row = static_cast<float>(tex / static_cast<int>(atlasSize));
+    
+    const float u0 = col * tilePixels / atlasPixels;
+    const float u1 = u0 + tilePixels / atlasPixels;
+    const float v0 = row * tilePixels / atlasPixels;
+    const float v1 = v0 + tilePixels / atlasPixels;
+
+    float x0 = static_cast<float>(x) + this->minX;
+    float x1 = static_cast<float>(x) + this->maxX;
+    float y0 = static_cast<float>(y) + this->minY;
+    float y1 = static_cast<float>(y) + this->maxY;
+    float z0 = static_cast<float>(z) + this->minZ;
+    float z1 = static_cast<float>(z) + this->maxZ;
+    
+    if (face == 0) {
+        t.vertexUV(x1, y0, z1, u1, v1);
+        t.vertexUV(x1, y0, z0, u1, v0);
+        t.vertexUV(x0, y0, z0, u0, v0);
+        t.vertexUV(x0, y0, z1, u0, v1);
+    } else if (face == 1) {
+        t.vertexUV(x0, y1, z1, u0, v1);
+        t.vertexUV(x0, y1, z0, u0, v0);
+        t.vertexUV(x1, y1, z0, u1, v0);
+        t.vertexUV(x1, y1, z1, u1, v1);
+    } else if (face == 2) {
+        t.vertexUV(x0, y0, z0, u1, v1);
+        t.vertexUV(x1, y0, z0, u0, v1);
+        t.vertexUV(x1, y1, z0, u0, v0);
+        t.vertexUV(x0, y1, z0, u1, v0);
+    } else if (face == 3) {
+        t.vertexUV(x1, y1, z1, u1, v0);
+        t.vertexUV(x1, y0, z1, u1, v1);
+        t.vertexUV(x0, y0, z1, u0, v1);
+        t.vertexUV(x0, y1, z1, u0, v0);
+    } else if (face == 4) {
+        t.vertexUV(x0, y0, z1, u1, v1);
+        t.vertexUV(x0, y0, z0, u0, v1);
+        t.vertexUV(x0, y1, z0, u0, v0);
+        t.vertexUV(x0, y1, z1, u1, v0);
+    } else if (face == 5) {
+        t.vertexUV(x1, y1, z1, u0, v0);
+        t.vertexUV(x1, y1, z0, u1, v0);
+        t.vertexUV(x1, y0, z0, u1, v1);
+        t.vertexUV(x1, y0, z1, u0, v1);
     }
 }
 

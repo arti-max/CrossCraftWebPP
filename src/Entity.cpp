@@ -58,9 +58,9 @@ bool Entity::isFree(float xa, float ya, float za) {
     
     if (aabbs.size() > 0) {
         return false;
+    } else {
+        return !level->containsAnyLiquid(box);
     }
-    
-    return !level->containsAnyLiquid(box);
 }
 
 void Entity::move(float xa, float ya, float za) {
@@ -85,7 +85,7 @@ void Entity::move(float xa, float ya, float za) {
     }
     bb.move(0.0f, 0.0f, za);
 
-    horizontalCollision = (xaOrg != xa || zaOrg != za);
+    horizontalCollision = xaOrg != xa || zaOrg != za;
     onGround = (yaOrg != ya && yaOrg < 0.0f);
 
     if (xaOrg != xa) {

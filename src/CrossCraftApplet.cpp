@@ -32,6 +32,15 @@ void CrossCraftApplet::setParams(const std::string& user, const std::string& ses
     }
 }
 
+void CrossCraftApplet::setServerParams(const std::string& server, int port) {
+    serverAddress = server;
+    serverPort = port;
+    isMultiplayer = true;
+    
+    std::cout << "Multiplayer params set: server=" << serverAddress 
+              << ", port=" << serverPort << std::endl;
+}
+
 void CrossCraftApplet::start() {
     std::cout << "=== CrossCraftApplet::start() called ===" << std::endl;
     
@@ -54,7 +63,18 @@ void CrossCraftApplet::start() {
             game->user = new User(username, sessionid);
         }
 
-        if (!loadMapUser.empty() && loadMapId != -1) {
+        if (isMultiplayer && !serverAddress.empty() && serverPort > 0) {
+            std::cout << "Multiplayer mode: connecting to " << serverAddress 
+                      << ":" << serverPort << std::endl;
+            
+            std::string wsUrl = "ws://" + serverAddress + ":" + std::to_string(serverPort);
+            std::cout << "WebSocket URL: " << wsUrl << std::endl;
+            
+            game->connectToServer(wsUrl);
+            
+        } else if (!loadMapUser.empty() && loadMapId != -1) {
+            std::cout << "Singleplayer mode: loading map from user " 
+                      << loadMapUser << ", id=" << loadMapId << std::endl;
             game->loadMapUser = loadMapUser;
             game->loadMapId = loadMapId;
         }
@@ -110,6 +130,22 @@ extern "C" {
         }
         
         appletInstance->setParams(user, session, mapUser, loadmapId, width, height);
+    }
+
+    void EMSCRIPTEN_KEEPALIVE setServerParams(const char* server, int port) {
+        std::cout << "C interface: setServerParams called" << std::endl;
+        std::cout << "  server: " << (server ? server : "null") << std::endl;
+        std::cout << "  port: " << port << std::endl;
+        
+        if (!appletInstance) {
+            appletInstance = new CrossCraftApplet();
+        }
+        
+        if (server && port > 0) {
+            appletInstance->setServerParams(server, port);
+        } else {
+            std::cout << "Warning: Invalid server parameters" << std::endl;
+        }
     }
     
     void EMSCRIPTEN_KEEPALIVE startApplet() {

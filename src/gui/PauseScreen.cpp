@@ -9,6 +9,11 @@ void PauseScreen::init() {
     this->buttons.push_back(new Button(1, this->width / 2 - 100, this->height / 3 + 32, 200, 20, "Save level..."));
     this->buttons.push_back(new Button(2, this->width / 2 - 100, this->height / 3 + 64, 200, 20, "Load level..."));
     this->buttons.push_back(new Button(3, this->width / 2 - 100, this->height / 3 + 96, 200, 20, "Back to game"));
+
+    if (this->cc->user == nullptr) {
+        this->buttons[1]->enabled = false;
+        this->buttons[2]->enabled = false;
+    }
 }
 
 void PauseScreen::buttonClicked(Button* btn) {

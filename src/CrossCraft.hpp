@@ -24,10 +24,11 @@
 #include "level/levelgen/LevelGen.hpp"
 #include "level/LevelIO.hpp"
 #include "particle/ParticleEngine.hpp"
+#include "net/Client.hpp"
 
 class CrossCraft : public LevelLoaderListener {
 private:
-    const std::string VERSION_STRING = "0.0.3a";
+    const std::string VERSION_STRING = "0.0.3a_02";
     int lastFpsTime = 0;
     int frames = 0;
     std::string fpsString;
@@ -45,6 +46,7 @@ private:
     int editMode = 0;
     int selectedTile = Tile::rock->id;
     bool mouseGrabbed = false;
+    bool mpMode = false;
 
     GLFWwindow* window;
 
@@ -58,6 +60,8 @@ private:
     LevelGen* levelGen = new LevelGen(this);
     LevelIO* levelIO = new LevelIO(this);
     ParticleEngine* particleEngine;
+    Client* client = nullptr;
+    
 
     int yMouseAxis = -1;
 
@@ -68,6 +72,7 @@ private:
     void raycast(float partialTicks);
     void destroy();
     void handleMouseClick();
+    bool isFree(const AABB &aabb);
 
     // Player camera
     void setupCamera(float partialTicks);
@@ -96,7 +101,7 @@ public:
 
     User* user = nullptr;
     int loadMapId = 0;
-    std::string loadMapUser = nullptr;
+    std::string loadMapUser = "";
     std::string serverHost = "crosscraftweb.ddns.net";
 
     void run();
@@ -113,4 +118,7 @@ public:
     void saveLevel(int levelId, const char levelname[]);
     void beginLevelLoading(const char str[]) override;
     void levelLoadUpdate(const char str[]) override;
+
+    void connectToServer(const std::string& serverUrl);
+    void handleNetworkPacket(Packet* packet);
 };

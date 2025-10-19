@@ -8,6 +8,8 @@
 #define PREFIX_CC 1
 #define PREFIX_DEBUG 2
 #define PREFIX_ERROR 3
+#define PREFIX_NETWORK 4
+#define PREFIX_WARNING 5
 
 #define TRUE 1
 #define FALSE 0
@@ -25,6 +27,10 @@ private:
                 return "[DEBUG]";
             case PREFIX_ERROR:
                 return "[ERROR]";
+            case PREFIX_NETWORK:
+                return "[NET]";
+            case PREFIX_WARNING:
+                return "[WARNING]";
             default:
                 return "[NULL]";
         }

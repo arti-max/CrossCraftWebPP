@@ -13,8 +13,8 @@ private:
 
 protected:
     float minX, minY, minZ, maxX, maxY, maxZ;
-    void setShape(float x0, float y0, float z0, float x1, float y1, float z1);
-    bool shouldRenderFace(Level* level, int x, int y, int z, int layer, int face);
+    virtual void setShape(float x0, float y0, float z0, float x1, float y1, float z1);
+    virtual bool shouldRenderFace(Level* level, int x, int y, int z, int layer, int face);
     virtual int getTexture(int face);
 public:
     Tile(int id);
@@ -38,17 +38,17 @@ public:
     int id;
 
     virtual void render(Tessellator& t, Level* level, int layer, int x, int y, int z);
-    void renderFace(Tessellator& t, int x, int y, int z, int face);
-    void renderBackFace(Tessellator& t, int x, int y, int z, int face);
-    void renderFaceNoTexture(Player* player, Tessellator& t, int x, int y, int z, int face);
-    void onDestroy(Level* level, int x, int y, int z, ParticleEngine* engine);
+    virtual void renderFace(Tessellator& t, int x, int y, int z, int face);
+    virtual void renderBackFace(Tessellator& t, int x, int y, int z, int face);
+    virtual void renderFaceNoTexture(Player* player, Tessellator& t, int x, int y, int z, int face);
+    virtual void onDestroy(Level* level, int x, int y, int z, ParticleEngine* engine);
     virtual void tick(Level* level, int x, int y, int z, Random* random);
     virtual bool mayPick();
     virtual bool blocksLight();
     virtual bool isSolid();
     virtual AABB* getTileAABB(int x, int y, int z) const;
     virtual AABB* getAABB(int x, int y, int z) const ;
-    void neighborChanged(Level* level, int x, int y, int z, int type);
+    virtual void neighborChanged(Level* level, int x, int y, int z, int type);
     virtual int getLiquidType();
     virtual bool isCalmLiquid();
 };

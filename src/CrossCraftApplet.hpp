@@ -12,12 +12,17 @@ private:
     int width = 854;
     int height = 480;
 
+    std::string serverAddress;
+    int serverPort = -1;
+    bool isMultiplayer = false;
+
 public:
     CrossCraftApplet();
     ~CrossCraftApplet();
     
     void setParams(const std::string& user, const std::string& session, 
                   const std::string& mapUser, int mapId, int w, int h);
+    void setServerParams(const std::string& server, int port);
     void start();
     void pause();
     void resume(); 
@@ -25,6 +30,7 @@ public:
     
     const std::string& getUsername() const { return username; }
     const std::string& getSessionId() const { return sessionid; }
+    bool getIsMultiplayer() const { return isMultiplayer; }
 };
 
 extern "C" {
@@ -32,4 +38,5 @@ extern "C" {
                                             const char* loadmapUser, int loadmapId, 
                                             int width, int height);
     void EMSCRIPTEN_KEEPALIVE startApplet();
+    void EMSCRIPTEN_KEEPALIVE setServerParams(const char* server, int port);
 }

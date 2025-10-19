@@ -132,19 +132,35 @@ void Level::calcLightDepths(int x0, int z0, int x1, int z1) {
 }
 
 void Level::tick() {
+    std::vector<int> positionsToUpdate(ticking.begin(), ticking.end());
+
+    for (int positionCode : positionsToUpdate) {
+        int x, y, z;
+        decodePosition(positionCode, x, y, z);
+        
+        int tileId = getTile(x, y, z);
+        Tile* tile = Tile::tiles[tileId];
+        
+        if (tile != nullptr) {
+            if (!needsTick(tileId)) {
+                removeTick(x, y, z);
+                continue;
+            }
+            
+            tile->tick(this, x, y, z, random);
+        } else {
+            removeTick(x, y, z);
+        }
+    }
+
     unprocessed += width * height * depth;
     int ticks = unprocessed / TILE_UPDATE_INTERVAL;
     unprocessed -= ticks * TILE_UPDATE_INTERVAL;
     
-    tickLiquids();
-    
     for (int i = 0; i < ticks; ++i) {
-        randValue = randValue * multiplier + addend;
-        int x = (randValue >> 16) & (width - 1);
-        randValue = randValue * multiplier + addend;
-        int y = (randValue >> 16) & (depth - 1);
-        randValue = randValue * multiplier + addend;
-        int z = (randValue >> 16) & (height - 1);
+        int x = random->nextInt(width);
+        int y = random->nextInt(depth);
+        int z = random->nextInt(height);
         
         int id = getTile(x, y, z);
         if (id != 0) {
@@ -213,11 +229,11 @@ bool Level::setTile(int x, int y, int z, int type) {
             return false;
         }
         
-        if (isActiveLiquidTile(oldType)) {
-            removeLiquidPosition(x, y, z);
+        if (needsTick(oldType)) {
+            removeTick(x, y, z);
         }
-        if (isActiveLiquidTile(type)) {
-            addLiquidPosition(x, y, z);
+        if (needsTick(type)) {
+            addTick(x, y, z);
         }
         
         blocks[index] = static_cast<uint8_t>(type);
@@ -289,12 +305,18 @@ std::vector<AABB> Level::getCubes(const AABB& boundingBox) {
 }
 
 bool Level::containsAnyLiquid(const AABB& box) {
-    int x0 = std::max(0, static_cast<int>(std::floor(box.x0)));
-    int x1 = std::min(width, static_cast<int>(std::floor(box.x1 + 1.0f)));
-    int y0 = std::max(0, static_cast<int>(std::floor(box.y0)));
-    int y1 = std::min(depth, static_cast<int>(std::floor(box.y1 + 1.0f)));
-    int z0 = std::max(0, static_cast<int>(std::floor(box.z0)));
-    int z1 = std::min(height, static_cast<int>(std::floor(box.z1 + 1.0f)));
+    int x0 = (int)std::floor(box.x0);
+    int x1 = (int)std::floor(box.x1 + 1.0f);
+    int y0 = (int)std::floor(box.y0);
+    int y1 = (int)std::floor(box.y1 + 1.0f);
+    int z0 = (int)std::floor(box.z0);
+    int z1 = (int)std::floor(box.z1 + 1.0f);
+    if (x0 < 0) x0 = 0;
+    if (y0 < 0) y0 = 0;
+    if (z0 < 0) z0 = 0;
+    if (x1 > this->width)   x1 = this->width;
+    if (y1 > this->depth)   y1 = this->depth;
+    if (z1 > this->height)  z1 = this->height;
     
     for (int x = x0; x < x1; ++x) {
         for (int y = y0; y < y1; ++y) {
@@ -311,12 +333,18 @@ bool Level::containsAnyLiquid(const AABB& box) {
 }
 
 bool Level::containsLiquid(const AABB& box, int liquidId) {
-    int x0 = std::max(0, static_cast<int>(std::floor(box.x0)));
-    int x1 = std::min(width, static_cast<int>(std::floor(box.x1 + 1.0f)));
-    int y0 = std::max(0, static_cast<int>(std::floor(box.y0)));
-    int y1 = std::min(depth, static_cast<int>(std::floor(box.y1 + 1.0f)));
-    int z0 = std::max(0, static_cast<int>(std::floor(box.z0)));
-    int z1 = std::min(height, static_cast<int>(std::floor(box.z1 + 1.0f)));
+    int x0 = (int)std::floor(box.x0);
+    int x1 = (int)std::floor(box.x1 + 1.0f);
+    int y0 = (int)std::floor(box.y0);
+    int y1 = (int)std::floor(box.y1 + 1.0f);
+    int z0 = (int)std::floor(box.z0);
+    int z1 = (int)std::floor(box.z1 + 1.0f);
+    if (x0 < 0) x0 = 0;
+    if (y0 < 0) y0 = 0;
+    if (z0 < 0) z0 = 0;
+    if (x1 > this->width)   x1 = this->width;
+    if (y1 > this->depth)   y1 = this->depth;
+    if (z1 > this->height)  z1 = this->height;
     
     for (int x = x0; x < x1; ++x) {
         for (int y = y0; y < y1; ++y) {
@@ -352,26 +380,6 @@ void Level::neighborChanged(int x, int y, int z, int type) {
     }
 }
 
-void Level::tickLiquids() {
-    std::vector<int> positionsToUpdate(liquidPositions.begin(), liquidPositions.end());
-    
-    for (int positionCode : positionsToUpdate) {
-        int x, y, z;
-        decodePosition(positionCode, x, y, z);
-        
-        int tileId = getTile(x, y, z);
-        Tile* tile = Tile::tiles[tileId];
-        
-        if (tile != nullptr) {
-            if (tile->isCalmLiquid()) {
-                removeLiquidPosition(x, y, z);
-                continue;
-            }
-            tile->tick(this, x, y, z, random);
-        }
-    }
-}
-
 bool Level::isLiquidTile(int tileId) {
     return 
         tileId == Tile::water->id || 
@@ -395,10 +403,18 @@ void Level::decodePosition(int code, int& x, int& y, int& z) {
     z = (code >> (maxBits * 2)) & mask;
 }
 
-void Level::addLiquidPosition(int x, int y, int z) {
-    liquidPositions.insert(encodePosition(x, y, z));
+void Level::addTick(int x, int y, int z) {
+    ticking.insert(encodePosition(x, y, z));
 }
 
-void Level::removeLiquidPosition(int x, int y, int z) {
-    liquidPositions.erase(encodePosition(x, y, z));
+void Level::removeTick(int x, int y, int z) {
+    ticking.erase(encodePosition(x, y, z));
+}
+
+
+bool Level::needsTick(int tileId) {
+    return 
+        tileId == Tile::water->id ||
+        tileId == Tile::lava->id
+        ;
 }
