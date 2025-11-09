@@ -31,6 +31,10 @@ void ParticleEngine::tick() {
 }
 
 void ParticleEngine::render(Player* player, float partialTicks, int layer, Textures* textures) {
+    if (particles.empty()) {
+        return;
+    }
+
     Tessellator& t = Tessellator::getInstance();
     glEnable(GL_TEXTURE_2D);
 
@@ -44,14 +48,12 @@ void ParticleEngine::render(Player* player, float partialTicks, int layer, Textu
     float cameraXWithY = -cameraZ * std::sin(toRad(player->xRot));
     float cameraZWithY = cameraX * std::sin(toRad(player->xRot));
 
-    glColor4f(0.8f, 0.8f, 0.8f, 1.0f);
-
     t.begin();
 
     for (Particle* p : particles) {
-        if (p->isLit() != (layer == 1)) {
-            p->render(t, partialTicks, cameraX, cameraY, cameraZ, cameraXWithY, cameraZWithY);
-        }
+        float brightness = p->getBrightness() * 0.8f;
+        t.color(brightness, brightness, brightness);
+        p->render(t, partialTicks, cameraX, cameraY, cameraZ, cameraXWithY, cameraZWithY);
     }
 
     t.end();

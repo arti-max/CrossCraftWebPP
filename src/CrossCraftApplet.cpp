@@ -52,36 +52,25 @@ void CrossCraftApplet::start() {
     try {
         std::cout << "Creating CrossCraft instance..." << std::endl;
         game = new CrossCraft("#canvas", width, height, false);
-        std::cout << "CrossCraft instance created" << std::endl;
-        
-        std::cout << "Setting applet mode..." << std::endl;
         game->appletMode = true;
-        std::cout << "Applet mode set" << std::endl;
         
         if (!username.empty() && !sessionid.empty()) {
-            std::cout << "Authenticated mode enabled for: " << username << std::endl;
             game->user = new User(username, sessionid);
         }
 
         if (isMultiplayer && !serverAddress.empty() && serverPort > 0) {
-            std::cout << "Multiplayer mode: connecting to " << serverAddress 
-                      << ":" << serverPort << std::endl;
-            
-            std::string wsUrl = "ws://" + serverAddress + ":" + std::to_string(serverPort);
-            std::cout << "WebSocket URL: " << wsUrl << std::endl;
-            
-            game->connectToServer(wsUrl);
+            game->mpMode = true;
+            game->serverAddress = serverAddress;
+            game->serverPort = serverPort;
             
         } else if (!loadMapUser.empty() && loadMapId != -1) {
-            std::cout << "Singleplayer mode: loading map from user " 
-                      << loadMapUser << ", id=" << loadMapId << std::endl;
+            std::cout << "Singleplayer mode: setting up map loading..." << std::endl;
             game->loadMapUser = loadMapUser;
             game->loadMapId = loadMapId;
         }
         
         std::cout << "Calling game->run()..." << std::endl;
         game->run();
-        std::cout << "game->run() completed" << std::endl;
         
     } catch (const std::exception& e) {
         std::cout << "ERROR in CrossCraftApplet::start(): " << e.what() << std::endl;

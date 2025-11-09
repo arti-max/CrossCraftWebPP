@@ -9,9 +9,9 @@ LiquidTile::LiquidTile(int id, int liquidType) : Tile::Tile(id) {
     }
 
     if (this->liquidType == 1) {
-        this->spreadSpeed = 8;
+        this->tickRate = 40;
     } else {
-        this->spreadSpeed = 2;
+        this->tickRate = 5;
     }
 
     this->tileId = id;
@@ -20,58 +20,46 @@ LiquidTile::LiquidTile(int id, int liquidType) : Tile::Tile(id) {
     this->setShape(0.0f, 0.0f - dd, 0.0f, 1.0f, 1.0f - dd, 1.0f);
 }
 
+bool LiquidTile::tryFlow(Level* level, int x, int y, int z) {
+    if (level->getTile(x, y, z) == 0) {
+        if (level->setTile(x, y, z, this->tileId)) {
+            level->addToTickNextTick(x, y, z, this->tileId);
+        }
+    }
+    return false;
+}
+
 void LiquidTile::tick(Level* level, int x, int y, int z, Random* random) {
-    this->updateWater(level, x, y, z, 0);
-}
-
-bool LiquidTile::updateWater(Level* level, int x, int y, int z, int depth) {
     bool hasChanged = false;
+    int originalY = y;
 
-    bool change;
+    bool flowedDown;
     do {
-        --y;
-        if (level->getTile(x, y, z) != 0) {
-            break;
-        }
-        change = level->setTile(x, y, z, this->tileId);
-        if (change) {
-            hasChanged = true;
-        }
-    } while (change && this->liquidType != 2);
+        y--;
+        if (level->getTile(x, y, z) != 0) break;
+        
+        flowedDown = level->setTile(x, y, z, this->tileId);
+        if (flowedDown) hasChanged = true;
+        
+    } while (flowedDown && this->liquidType != 2);
+    
+    y = originalY;
 
-    ++y;
     if (this->liquidType == 1 || !hasChanged) {
-        hasChanged |= this->checkWater(level, x - 1, y, z, depth);
-        hasChanged |= this->checkWater(level, x + 1, y, z, depth);
-        hasChanged |= this->checkWater(level, x, y, z - 1, depth);
-        hasChanged |= this->checkWater(level, x, y, z + 1, depth);
+        tryFlow(level, x - 1, y, z);
+        tryFlow(level, x + 1, y, z);
+        tryFlow(level, x, y, z - 1);
+        tryFlow(level, x, y, z + 1);
     }
-
-    if (!hasChanged) {
-        level->setTileNoUpdate(x, y, z, this->calmTileId);
-    }
-
-    return hasChanged;
 }
 
-bool LiquidTile::checkWater(Level* level, int x, int y, int z, int depth) {
-    bool hasChanged = false;
-    int type = level->getTile(x, y, z);
-    if (type == 0) {
-        bool changed = level->setTile(x, y, z, this->tileId);
-        if (changed && depth < this->spreadSpeed) {
-            hasChanged |= this->updateWater(level, x, y, z, depth+1);
-        }
-    }
 
-    return hasChanged;
-}
 
 bool LiquidTile::shouldRenderFace(Level* level, int x, int y, int z, int layer, int face) {
     if (x < 0 || y < 0 || z < 0 || x >= level->width || y >= level->depth) {
         return false;
     }
-    if (layer != 2 && this->liquidType == 1) {
+    if (layer != 1 && this->liquidType == 1) {
         return false;
     }
     
@@ -116,11 +104,13 @@ int LiquidTile::getLiquidType() {
     return this->liquidType;
 }
 
-void LiquidTile::neighborChanged(Level* level, int x, int y, int z, int type) {
-    if (this->liquidType == 1 && (type == Tile::lava->id || type == Tile::calmLava->id)) {
+void LiquidTile::neighborChanged(Level* level, int x, int y, int z, int neighborTileId) {
+    if (this->liquidType == 1 && (neighborTileId == Tile::lava->id || neighborTileId == Tile::calmLava->id)) {
         level->setTileNoUpdate(x, y, z, Tile::rock->id);
     }
-    if (this->liquidType == 2 && (type == Tile::water->id || type == Tile::calmWater->id)) {
+    if (this->liquidType == 2 && (neighborTileId == Tile::water->id || neighborTileId == Tile::calmWater->id)) {
         level->setTileNoUpdate(x, y, z, Tile::rock->id);
     }
+
+    level->addToTickNextTick(x, y, z, this->tileId);
 }

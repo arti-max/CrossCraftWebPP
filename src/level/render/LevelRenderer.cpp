@@ -3,6 +3,42 @@
 #include <iostream>
 #include <cmath>
 
+void debugGLState(const char* label) {
+    printf("===== GL STATE: %s =====\n", label);
+    
+    // Проверяем включенные состояния
+    printf("GL_TEXTURE_2D: %s\n", glIsEnabled(GL_TEXTURE_2D) ? "ON" : "OFF");
+    printf("GL_LIGHTING: %s\n", glIsEnabled(GL_LIGHTING) ? "ON" : "OFF");
+    printf("GL_COLOR_MATERIAL: %s\n", glIsEnabled(GL_COLOR_MATERIAL) ? "ON" : "OFF");
+    printf("GL_BLEND: %s\n", glIsEnabled(GL_BLEND) ? "ON" : "OFF");
+    printf("GL_ALPHA_TEST: %s\n", glIsEnabled(GL_ALPHA_TEST) ? "ON" : "OFF");
+    
+    // Проверяем client states
+    printf("GL_VERTEX_ARRAY: %s\n", glIsEnabled(GL_VERTEX_ARRAY) ? "ON" : "OFF");
+    printf("GL_TEXTURE_COORD_ARRAY: %s\n", glIsEnabled(GL_TEXTURE_COORD_ARRAY) ? "ON" : "OFF");
+    printf("GL_COLOR_ARRAY: %s\n", glIsEnabled(GL_COLOR_ARRAY) ? "ON" : "OFF");
+    printf("GL_NORMAL_ARRAY: %s\n", glIsEnabled(GL_NORMAL_ARRAY) ? "ON" : "OFF");
+    
+    // Проверяем текущую текстуру
+    GLint currentTexture;
+    glGetIntegerv(GL_TEXTURE_BINDING_2D, &currentTexture);
+    printf("Current texture: %d\n", currentTexture);
+    
+    // Проверяем текущий цвет
+    GLfloat currentColor[4];
+    glGetFloatv(GL_CURRENT_COLOR, currentColor);
+    printf("Current color: (%.2f, %.2f, %.2f, %.2f)\n", 
+           currentColor[0], currentColor[1], currentColor[2], currentColor[3]);
+    
+    // Проверяем blend функцию
+    GLint blendSrc, blendDst;
+    glGetIntegerv(GL_BLEND_SRC, &blendSrc);
+    glGetIntegerv(GL_BLEND_DST, &blendDst);
+    printf("Blend func: src=%d, dst=%d\n", blendSrc, blendDst);
+    
+    printf("=============================\n\n");
+}
+
 LevelRenderer::LevelRenderer(Level* level, Textures* textures) 
     : level(level), textures(textures) {
     level->addListener(this);
@@ -119,10 +155,11 @@ void LevelRenderer::renderSurroundingGround() {
 
 void LevelRenderer::compileSurroundingGround() {
     glEnable(GL_TEXTURE_2D);
+    glEnable(GL_FOG);
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     
     Tessellator& t = Tessellator::getInstance();
-    float y = level->getGroundLevel() - 2.0f;
+    float y = level->getGroundLevel();
     int s = 128;
     
     if (s > level->width) s = level->width;
@@ -176,6 +213,7 @@ void LevelRenderer::compileSurroundingGround() {
     
     t.end();
     glDisable(GL_TEXTURE_2D);
+    glDisable(GL_FOG);
 }
 
 void LevelRenderer::renderSurroundingWater() {
@@ -185,10 +223,11 @@ void LevelRenderer::renderSurroundingWater() {
 }
 
 void LevelRenderer::compileSurroundingWater() {
+    glEnable(GL_FOG);
     glEnable(GL_TEXTURE_2D);
     glColor3f(1.0f, 1.0f, 1.0f);
     
-    float y = level->getGroundLevel();
+    float y = level->getWaterLevel();
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
@@ -221,6 +260,7 @@ void LevelRenderer::compileSurroundingWater() {
     
     glDisable(GL_BLEND);
     glDisable(GL_TEXTURE_2D);
+    glDisable(GL_FOG);
 }
 
 void LevelRenderer::updateDirtyChunks(Player* player) {
@@ -366,4 +406,60 @@ void LevelRenderer::cull(Frustum& frustum) {
     for (Chunk* chunk : chunks) {
         chunk->visible = frustum.isVisible(chunk->boundingBox);
     }
+}
+
+void LevelRenderer::renderClouds(float partialTicks) {
+    glEnable(GL_FOG);
+    this->renderSky();
+
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, textures->loadTexture("clouds", GL_NEAREST));
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    
+    Tessellator& t = Tessellator::getInstance();
+    
+    float var3 = 0.0f;
+    float var4 = 4.8828125E-4f;
+    var3 = static_cast<float>(level->depth + 2);
+    float var1 = (static_cast<float>(cloudTicks) + partialTicks) * var4 * 0.03f;
+    
+    t.begin();
+    
+    for (int var8 = -2048; var8 < level->width + 2048; var8 += 512) {
+        for (int var6 = -2048; var6 < level->height + 2048; var6 += 512) {
+            t.vertexUV((float)var8, var3, (float)(var6 + 512), (float)var8 * var4 + var1, (float)(var6 + 512) * var4);
+            t.vertexUV((float)(var8 + 512), var3, (float)(var6 + 512), (float)(var8 + 512) * var4 + var1, (float)(var6 + 512) * var4);
+            t.vertexUV((float)(var8 + 512), var3, (float)var6, (float)(var8 + 512) * var4 + var1, (float)var6 * var4);
+            t.vertexUV((float)var8, var3, (float)var6, (float)var8 * var4 + var1, (float)var6 * var4);
+            
+            t.vertexUV((float)var8, var3, (float)var6, (float)var8 * var4 + var1, (float)var6 * var4);
+            t.vertexUV((float)(var8 + 512), var3, (float)var6, (float)(var8 + 512) * var4 + var1, (float)var6 * var4);
+            t.vertexUV((float)(var8 + 512), var3, (float)(var6 + 512), (float)(var8 + 512) * var4 + var1, (float)(var6 + 512) * var4);
+            t.vertexUV((float)var8, var3, (float)(var6 + 512), (float)var8 * var4 + var1, (float)(var6 + 512) * var4);
+        }
+    }
+
+    t.end();
+    glDisable(GL_TEXTURE_2D);
+}
+
+void LevelRenderer::renderSky() {
+    glDisable(GL_TEXTURE_2D);
+
+    glColor3f(0.5f, 0.8f, 1.0f);
+
+    float skyY = static_cast<float>(this->level->depth + 10);
+    
+    glBegin(GL_QUADS);
+
+    for (int x = -2048; x < this->level->width + 2048; x += 512) {
+        for (int z = -2048; z < this->level->height + 2048; z += 512) {
+            glVertex3f(static_cast<float>(x), skyY, static_cast<float>(z));
+            glVertex3f(static_cast<float>(x + 512), skyY, static_cast<float>(z));
+            glVertex3f(static_cast<float>(x + 512), skyY, static_cast<float>(z + 512));
+            glVertex3f(static_cast<float>(x), skyY, static_cast<float>(z + 512));
+        }
+    }
+    
+    glEnd();
 }

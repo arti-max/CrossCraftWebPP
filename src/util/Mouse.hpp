@@ -11,6 +11,7 @@ struct MouseEvent {
     bool state;
     double x;
     double y;
+    double dwheel;
 };
 
 class Mouse {
@@ -19,6 +20,7 @@ private:
     static MouseEvent currentEvent;
     static double mouseX, mouseY;
     static double deltaX, deltaY;
+    static double deltaWheel;
     static bool grabbed;
     static GLFWwindow* window;
 
@@ -31,10 +33,12 @@ public:
     static bool getEventButtonState();
     static double getEventX();
     static double getEventY();
+    static double getEventDWheel();
     static double getX();
     static double getY();
     static double getDX();
     static double getDY();
+    static double getDWheel();
     static void setCursorPosition(int x, int y);
     static void setGrabbed(bool grab);
     static bool isGrabbed();
@@ -45,6 +49,7 @@ public:
     static EM_BOOL mouseUpCallback(int eventType, const EmscriptenMouseEvent *e, void *userData);
     static EM_BOOL mouseClickCallback(int eventType, const EmscriptenMouseEvent *e, void *userData);
     static EM_BOOL mouseMoveCallback(int eventType, const EmscriptenMouseEvent *e, void *userData);
+    static EM_BOOL mouseWheelCallback(int eventType, const EmscriptenWheelEvent *e, void *userData);
     static EM_BOOL pointerlockChangeCallback(int eventType, const EmscriptenPointerlockChangeEvent *e, void *userData);
     static EM_BOOL pointerlockErrorCallback(int eventType, const void *reserved, void *userData);
     

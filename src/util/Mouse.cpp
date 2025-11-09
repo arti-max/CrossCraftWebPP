@@ -8,6 +8,7 @@ double Mouse::mouseX = 0.0;
 double Mouse::mouseY = 0.0;
 double Mouse::deltaX = 0.0;
 double Mouse::deltaY = 0.0;
+double Mouse::deltaWheel = 0.0;
 bool Mouse::grabbed = false;
 GLFWwindow* Mouse::window = nullptr;
 
@@ -23,6 +24,7 @@ EM_BOOL Mouse::mouseDownCallback(int eventType, const EmscriptenMouseEvent *e, v
     event.state = true;  // Нажатие
     event.x = e->targetX;
     event.y = e->targetY;
+    event.dwheel = 0.0;
     Mouse::events.push(event);
     
     return EM_TRUE;
@@ -36,8 +38,20 @@ EM_BOOL Mouse::mouseUpCallback(int eventType, const EmscriptenMouseEvent *e, voi
     event.state = false;  // Отпускание
     event.x = e->targetX;
     event.y = e->targetY;
+    event.dwheel = 0.0;
     Mouse::events.push(event);
     
+    return EM_TRUE;
+}
+
+EM_BOOL Mouse::mouseWheelCallback(int eventType, const EmscriptenWheelEvent *e, void *userData) {
+    MouseEvent event;
+    event.button = -1; // Не является кликом
+    event.state = false;
+    event.x = e->mouse.targetX;
+    event.y = e->mouse.targetY;
+    event.dwheel = e->deltaY; // Сохраняем значение прокрутки
+    Mouse::events.push(event); // Добавляем в общую очередь событий
     return EM_TRUE;
 }
 
@@ -115,6 +129,8 @@ void Mouse::create() {
     
     emscripten_set_mousemove_callback("#canvas", nullptr, true, mouseMoveCallback);
     std::cout << "✓ Mouse move callback registered" << std::endl;
+
+    emscripten_set_wheel_callback("#canvas", nullptr, true, mouseWheelCallback);
     
     // Pointer lock callbacks
     emscripten_set_pointerlockchange_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT, nullptr, true, pointerlockChangeCallback);
@@ -165,6 +181,10 @@ double Mouse::getEventY() {
     return currentEvent.y;
 }
 
+double Mouse::getEventDWheel() {
+    return currentEvent.dwheel;
+}
+
 double Mouse::getX() {
     return mouseX;
 }
@@ -183,6 +203,12 @@ double Mouse::getDY() {
     double dy = deltaY;
     deltaY = 0.0;
     return dy;
+}
+
+double Mouse::getDWheel() {
+    double dw = deltaWheel;
+    deltaWheel = 0.0;
+    return dw;
 }
 
 void Mouse::setCursorPosition(int x, int y) {

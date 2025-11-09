@@ -2,10 +2,17 @@
 #include <vector>
 #include <string>
 #include <set>
+#include <deque>
 #include <cmath>
 #include "util/Random.hpp"
 #include "phys/AABB.hpp"
 #include "level/render/LevelListener.hpp"
+
+class Entity;
+
+struct TickEntry {
+    int x, y, z, tileId;
+};
 
 class Level {
 private:
@@ -16,6 +23,7 @@ private:
     std::vector<LevelListener*> levelListeners;
     Random* random;
     std::set<int> ticking;
+    std::deque<TickEntry> tickNextTickList;
     static const int maxBits = 10;
     int randValue;
     int unprocessed = 0;
@@ -29,17 +37,27 @@ private:
 
 public:
     int width, height, depth;
+    int tickCount = 0;
     std::vector<uint8_t> blocks;
     std::vector<int> lightDepths;
+    std::vector<Entity*> entities;
     std::string name;
     std::string creator;
     long long creationTime = 0;
 
-    Level(int width, int height, int depth);
+    int xSpawn;
+    int ySpawn;
+    int zSpawn;
+    int rotSpawn;
+
+    bool isRemote = false;
+
+    Level();
     ~Level() = default;
     void generateCaves();
     void setData(int w, int d, int h, const std::vector<uint8_t>& blocks);
-    float getGroundLevel() const { return 32.0f; }
+    float getGroundLevel() const;
+    float getWaterLevel() const;
     void tick();
     bool isTile(int x, int y, int z);
     bool isSolidTile(int x, int y, int z);
@@ -57,6 +75,12 @@ public:
     void addTick(int x, int y, int z);
     void removeTick(int x, int y, int z);
     bool needsTick(int tileId);
+    void addToTickNextTick(int x, int y, int z, int tileId);
+    void swap(int x1, int y1, int z1, int x2, int y2, int z2);
+    void initTransient();
+    void findSpawn();
+    void setSpawnPos(int x, int y, int z, int rot);
+    int getHighestTile(int x, int z);
 
 private:
     void generateMap();

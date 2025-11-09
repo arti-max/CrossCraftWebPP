@@ -22,7 +22,6 @@ private:
     std::vector<Chunk*> sortedChunks;
     int xChunks, yChunks, zChunks;
     GLuint surroundLists;
-    int drawDistance = 0;
     float lX = 0.0f;
     float lY = 0.0f;
     float lZ = 0.0f;
@@ -30,6 +29,9 @@ private:
 public:
     static const int MAX_REBUILDS_PER_FRAME = 4;
     static const int CHUNK_SIZE = 16;
+    
+    int cloudTicks;
+    int drawDistance = 0;
 
     LevelRenderer(Level* level, Textures* textures);
     ~LevelRenderer();
@@ -49,4 +51,6 @@ public:
     void cull(Frustum& frustum);
     void renderHit(HitResult* h, Player* player, int mode, int tileType);
     void renderHitOutline(HitResult* h, Player* player, int mode, int tileType);
+    void renderClouds(float partialTicks);
+    void renderSky();
 };

@@ -2,6 +2,8 @@
 #include "net/packet/LoginPacket.hpp"
 #include "net/packet/PositionPacket.hpp"
 #include "net/packet/BlockChangePacket.hpp"
+#include "net/packet/LevelLoadPacket.hpp"
+#include "net/packet/BlockUpdatePacket.hpp"
 
 void Packet::writeByte(uint8_t value) {
     data.push_back(value);
@@ -114,6 +116,10 @@ Packet* Packet::fromBytes(const uint8_t* bytes, size_t length) {
         case PacketType::LOGIN:
             packet = new LoginPacket();
             break;
+
+        case PacketType::LEVEL_DATA:
+            packet = new LevelLoadPacket();
+            break;
         
         case PacketType::POSITION_UPDATE:
             packet = new PositionPacket();
@@ -121,6 +127,10 @@ Packet* Packet::fromBytes(const uint8_t* bytes, size_t length) {
         
         case PacketType::BLOCK_CHANGE:
             packet = new BlockChangePacket();
+            break;
+
+        case PacketType::BLOCK_UPDATE:
+            packet = new BlockUpdatePacket();
             break;
         
         default:

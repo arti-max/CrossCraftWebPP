@@ -33,11 +33,18 @@ public:
     static const Tile* calmWater;
     static const Tile* lava;
     static const Tile* calmLava;
+    static const Tile* gravel;
+    static const Tile* sand;
+    static const Tile* log;
+    static const Tile* leaves;
+    static const Tile* goldOre;
+    static const Tile* ironOre;
+    static const Tile* coalOre;
 
     int textureId;
     int id;
 
-    virtual void render(Tessellator& t, Level* level, int layer, int x, int y, int z);
+    virtual bool render(Tessellator& t, Level* level, int layer, int x, int y, int z);
     virtual void renderFace(Tessellator& t, int x, int y, int z, int face);
     virtual void renderBackFace(Tessellator& t, int x, int y, int z, int face);
     virtual void renderFaceNoTexture(Player* player, Tessellator& t, int x, int y, int z, int face);
@@ -51,4 +58,5 @@ public:
     virtual void neighborChanged(Level* level, int x, int y, int z, int type);
     virtual int getLiquidType();
     virtual bool isCalmLiquid();
+    virtual void onBlockAdded(Level* level, int x, int y, int z);
 };

@@ -31,10 +31,10 @@ public:
 
 protected:
     void setSize(float w, float h);
-    void setPos(float x, float y, float z);
 
 public:
     void resetPos();
+    void setPos(float x, float y, float z);
     void remove();
     void turn(float xo, float yo);
     virtual void tick();
@@ -44,6 +44,7 @@ public:
     bool isInLava();
     void moveRelative(float xa, float za, float speed);
     bool isLit();
+    float getBrightness();
     virtual void render(float a);
 
 private:

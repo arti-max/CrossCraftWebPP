@@ -19,7 +19,7 @@ Chunk::Chunk(Level* level, int x0, int y0, int z0, int x1, int y1, int z1) :
     this->y = (y0 + y1) / 2.0f;
     this->z = (z0 + z1) / 2.0f;
 
-    this->lists = glGenLists(3);
+    this->lists = glGenLists(2);
 }
 
 void Chunk::rebuild(int layer) {
@@ -47,7 +47,6 @@ void Chunk::rebuild() {
     this->updates++;
     this->rebuild(0);
     this->rebuild(1);
-    this->rebuild(2);
     this->dirty = false;
 }
 
@@ -66,7 +65,7 @@ void Chunk::setDirty() {
 void Chunk::reset() {
     this->dirty = true;
 
-    for (int i = 0; i < 3; ++i) {
+    for (int i = 0; i < 2; ++i) {
         glNewList(this->lists + i, GL_COMPILE);
         glEndList();
     }

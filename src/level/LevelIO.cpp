@@ -1,5 +1,6 @@
 #include "LevelIO.hpp"
 #include "CrossCraft.hpp"
+#include "Entity.hpp"
 #include <emscripten.h>
 #include <emscripten/fetch.h>
 #include <zlib.h>
@@ -44,6 +45,12 @@ void LevelIO::writeUTF(std::vector<uint8_t>& buffer, const std::string& str) {
     }
 }
 
+void LevelIO::writeFloat(std::vector<uint8_t>& buffer, float value) {
+    int32_t intValue;
+    memcpy(&intValue, &value, sizeof(float));
+    writeInt32(buffer, intValue);
+}
+
 int32_t LevelIO::readInt32(const uint8_t* data, size_t& offset) {
     int32_t value = (data[offset] << 24) | (data[offset+1] << 16) | 
                     (data[offset+2] << 8) | data[offset+3];
@@ -77,6 +84,13 @@ std::string LevelIO::readUTF(const uint8_t* data, size_t& offset) {
     std::string str(reinterpret_cast<const char*>(data + offset), length);
     offset += length;
     return str;
+}
+
+float LevelIO::readFloat(const uint8_t* data, size_t& offset) {
+    int32_t intValue = readInt32(data, offset);
+    float value;
+    memcpy(&value, &intValue, sizeof(float));
+    return value;
 }
 
 std::vector<uint8_t> LevelIO::compressGzip(const std::vector<uint8_t>& data) {
@@ -168,6 +182,8 @@ static void loadSuccessCallback(emscripten_fetch_t* fetch) {
     if (!result) {
         ctx->levelIO->cc->levelLoadUpdate("Failed to parse level data");
         emscripten_sleep(1000);
+    } else {
+        ctx->levelIO->cc->player->resetPos();
     }
     
     emscripten_fetch_close(fetch);
@@ -209,9 +225,12 @@ bool LevelIO::loadOnline(Level* level, const std::string& serverUrl, const std::
 
 bool LevelIO::load(Level* level, const uint8_t* data, size_t length) {
     cc->levelLoadUpdate("Reading..");
+    cc->levelLoadProgress(10);
     
     try {
         std::vector<uint8_t> decompressed = decompressGzip(data, length);
+        cc->levelLoadUpdate("Decompressing..");
+        cc->levelLoadProgress(30);
         
         if (decompressed.empty()) {
             std::cerr << "Failed to decompress data" << std::endl;
@@ -227,7 +246,7 @@ bool LevelIO::load(Level* level, const uint8_t* data, size_t length) {
         }
         
         int8_t version = readInt8(decompressed.data(), offset);
-        if (version > 1) {
+        if (version > 2) {
             std::cerr << "Unsupported format version: " << (int)version << std::endl;
             return false;
         }
@@ -241,16 +260,52 @@ bool LevelIO::load(Level* level, const uint8_t* data, size_t length) {
         int16_t depth = readInt16(decompressed.data(), offset);
         
         size_t blocksLength = width * height * depth;
-        std::vector<uint8_t> blocks(decompressed.begin() + offset, 
-                                    decompressed.begin() + offset + blocksLength);
+        std::vector<uint8_t> blocks(decompressed.begin() + offset, decompressed.begin() + offset + blocksLength);
+        offset += blocksLength;
         
         level->setData(width, depth, height, blocks);
         level->name = name;
         level->creator = creator;
         level->creationTime = creationTime;
+        level->entities.clear();
+
+        if (version >= 2) {
+            level->xSpawn = readInt16(decompressed.data(), offset);
+            level->ySpawn = readInt16(decompressed.data(), offset);
+            level->zSpawn = readInt16(decompressed.data(), offset);
+            level->rotSpawn = readInt16(decompressed.data(), offset);
+
+            int32_t entityCount = readInt32(decompressed.data(), offset);
+            level->entities.clear();
+
+            for (int i = 0; i < entityCount; ++i) {
+                int32_t entityTypeId = readInt32(decompressed.data(), offset);
+                
+                if (entityTypeId == 1) { // 1 = Zombie
+                    float loadedX = readFloat(decompressed.data(), offset);
+                    float loadedY = readFloat(decompressed.data(), offset);
+                    float loadedZ = readFloat(decompressed.data(), offset);
+                    float loadedXRot = readFloat(decompressed.data(), offset);
+                    float loadedYRot = readFloat(decompressed.data(), offset);
+                    
+                    Zombie* zombie = new Zombie(level, this->cc->textures, loadedX, loadedY, loadedZ);
+                    zombie->xRot = loadedXRot;
+                    zombie->yRot = loadedYRot;
+                    zombie->setPos(loadedX, loadedY, loadedZ);
+                    level->entities.push_back(zombie);
+                } else {
+                    offset += sizeof(float) * 5; 
+                }
+            }
+        }
+
+        cc->levelLoadUpdate("Finalizing..");
+        cc->levelLoadProgress(90);
+        level->initTransient();
         
         std::cout << "Level loaded: " << name << " (" << width << "x" << height << "x" << depth << ")" << std::endl;
         
+        cc->levelLoadProgress(100);
         return true;
         
     } catch (const std::exception& e) {
@@ -263,7 +318,7 @@ std::vector<uint8_t> LevelIO::serializeLevelToByteArray(Level* level) {
     std::vector<uint8_t> buffer;
     
     writeInt32(buffer, 656127880);
-    writeByte(buffer, 1);
+    writeByte(buffer, 2);
     writeUTF(buffer, level->name);
     writeUTF(buffer, level->creator);
     writeInt64(buffer, level->creationTime);
@@ -274,6 +329,23 @@ std::vector<uint8_t> LevelIO::serializeLevelToByteArray(Level* level) {
     
     buffer.insert(buffer.end(), level->blocks.begin(), level->blocks.end());
     
+    writeInt16(buffer, level->xSpawn);
+    writeInt16(buffer, level->ySpawn);
+    writeInt16(buffer, level->zSpawn);
+    writeInt16(buffer, level->rotSpawn);
+
+    writeInt32(buffer, level->entities.size());
+    for (Entity* entity : level->entities) {
+        if (dynamic_cast<Zombie*>(entity)) {
+            writeInt32(buffer, 1); // 1 = Zombie (type)
+            writeFloat(buffer, entity->x);
+            writeFloat(buffer, entity->y);
+            writeFloat(buffer, entity->z);
+            writeFloat(buffer, entity->xRot);
+            writeFloat(buffer, entity->yRot);
+        }
+    }
+
     return compressGzip(buffer);
 }
 
@@ -294,6 +366,7 @@ static void saveSuccessCallback(emscripten_fetch_t* fetch) {
         std::cout << "Server error response: " << response << std::endl;
         
         ctx->levelIO->cc->levelLoadUpdate(("Failed! Status " + std::to_string(fetch->status)).c_str());
+        ctx->levelIO->cc->levelLoadProgress(100);
         emscripten_sleep(1000);
         emscripten_fetch_close(fetch);
         delete ctx;
@@ -336,12 +409,13 @@ bool LevelIO::saveOnline(Level* level, const std::string& serverUrl, const std::
     emscripten_sleep(1);
     
     cc->levelLoadUpdate("Compressing...");
-    
+    cc->levelLoadProgress(30);
     std::vector<uint8_t> compressedData = serializeLevelToByteArray(level);
     
     std::cout << "DEBUG: Compressed data size: " << compressedData.size() << std::endl;
     
     cc->levelLoadUpdate("Connecting...");
+    cc->levelLoadProgress(60);
     emscripten_sleep(100);
     
     std::vector<uint8_t> body;

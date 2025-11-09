@@ -13,6 +13,7 @@
     <link rel="preload" as="image" href="dirt.png">
     <link rel="preload" as="image" href="water.png">
     <link rel="preload" as="image" href="default.png">
+    <link rel="preload" as="image" href="clouds.png">
     
     <style>
         body, html {
@@ -120,9 +121,11 @@
     
     <div id="controls">
         <ul>
-            <li><kbd>1 - 4, 6</kbd> - Changing building block type</li>
+            <li><kbd>1 - 9 / Wheel Scroll</kbd> - Changing building block type</li>
             <li><kbd>Right click</kbd> - Change edit mode</li>
             <li><kbd>Left click</kbd> - Place/Destroy block</li>
+            <li><kbd>Wheel Click</kbd> - Pick block</li>
+            <li><kbd>Enter</kbd> - Change respawn position</li>
             <li><kbd>R</kbd> - Respawn</li>
             <li><kbd>F</kbd> - Toggle rendering distance</li>
             <li><kbd>G</kbd> - Spawn mob</li>
@@ -143,6 +146,7 @@
         <img id="rock" src="rock.png" crossorigin="anonymous" />
         <img id="rock2" src="rock2.png" crossorigin="anonymous" />
         <img id="water" src="water.png" crossorigin="anonymous" />
+        <img id="clouds" src="clouds.png" crossorigin="anonymous" />
     </div>
 
     <script type='text/javascript'>

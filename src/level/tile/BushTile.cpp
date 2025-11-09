@@ -12,9 +12,9 @@ void Bush::tick(Level* level, int x, int y, int z, Random* random) {
     }
 }
 
-void Bush::render(Tessellator& t, Level* level, int layer, int x, int y, int z) {
+bool Bush::render(Tessellator& t, Level* level, int layer, int x, int y, int z) {
     if (level->isLit(x, y, z) ^ (layer != 1)) {
-        return;
+        return false;
     }
 
     int textureId = this->textureId;
@@ -55,6 +55,8 @@ void Bush::render(Tessellator& t, Level* level, int layer, int x, int y, int z) 
         t.vertexUV(x0, y0, z0, u0, v1);
         t.vertexUV(x1, y0, z1, u1, v1);
     }
+
+    return true;
 }
 
 AABB* Bush::getAABB(int x, int y, int z) const {

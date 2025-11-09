@@ -13,10 +13,22 @@ Entity::Entity(Level* level) : level(level), bb(0, 0, 0, 0, 0, 0) {
 }
 
 void Entity::resetPos() {
-    float x = randomFloat() * static_cast<float>(level->width - 2) + 1.0f;
-    float y = static_cast<float>(level->depth + 10);
-    float z = randomFloat() * static_cast<float>(level->height - 2) + 1.0f;
-    setPos(x, y, z);
+    float x = (float)this->level->xSpawn + 0.5f;
+    float y = (float)this->level->ySpawn;
+
+    for (float z = (float)this->level->zSpawn + 0.5f; y > 0.0f; ++y) {
+        this->setPos(x, y, z);
+        if (this->level->getCubes(this->bb).size() == 0) {
+            break;
+        }
+        if (y > this->level->depth + 10) { 
+            break;
+        }
+    }
+    
+    this->xd = this->yd = this->zd = 0.0f;
+    this->yRot = this->level->rotSpawn;
+    this->xRot = 0.0f;
 }
 
 void Entity::remove() {
@@ -32,6 +44,10 @@ void Entity::setPos(float x, float y, float z) {
     this->x = x;
     this->y = y;
     this->z = z;
+
+    this->xo = x;
+    this->yo = y;
+    this->zo = z;
     
     float w = bbWidth / 2.0f;
     float h = bbHeight / 2.0f;
@@ -142,4 +158,11 @@ void Entity::render(float a) {
 float Entity::randomFloat() {
     std::uniform_real_distribution<float> dist(0.0f, 1.0f);
     return dist(randomGenerator);
+}
+
+float Entity::getBrightness() {
+    int xTile = static_cast<int>(x);
+    int yTile = static_cast<int>(y + heightOffset / 2.0f);
+    int zTile = static_cast<int>(z);
+    return level->getBrightness(xTile, yTile, zTile);
 }

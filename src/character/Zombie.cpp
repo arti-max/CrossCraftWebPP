@@ -81,22 +81,24 @@ glEnable(GL_TEXTURE_2D);
     auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
     double time = (static_cast<double>(milliseconds) / 1000.0 * 10.0 * static_cast<double>(this->speed)) + static_cast<double>(this->timeOffs);
     
+    float brightness = this->getBrightness();
+
     float interpX = this->xo + (this->x - this->xo) * partialTicks;
     float interpY = this->yo + (this->y - this->yo) * partialTicks;
     float interpZ = this->zo + (this->z - this->zo) * partialTicks;
     
+    float scale = 0.058333334f;
+    float offsetY = -fabs(sin(time * 0.6662)) * 5.0f - 23.0f;
+    
     glTranslatef(interpX, interpY, interpZ);
     glScalef(1.0f, -1.0f, 1.0f);
-    
-    float size = 7.0f / 120.0f;
-    glScalef(size, size, size);
-    
-    float offsetY = std::abs(std::sin(time * 2.0f / 3.0f)) * 5.0f + 24.5f;
-    glTranslatef(0.0f, -offsetY, 0.0f);
+    glScalef(scale, scale, scale);
+    glTranslatef(0.0f, offsetY, 0.0f);
     
     const float radToDeg = 180.0f / M_PI;
     glRotatef(this->rot * radToDeg + 180.0f, 0.0f, 1.0f, 0.0f);
     
+    glColor3f(brightness, brightness, brightness);
     zombieModel->render(static_cast<float>(time));
     
     glPopMatrix();

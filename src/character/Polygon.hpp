@@ -27,7 +27,6 @@ public:
     }
 
     void render(Tessellator& t) {
-        t.color(1.0f, 1.0f, 1.0f);
 
         for (int i = 3; i >= 0; --i) {
             if (i < vertices.size() && vertices[i] && vertices[i]->pos) {

@@ -28,17 +28,17 @@
 
 class CrossCraft : public LevelLoaderListener {
 private:
-    const std::string VERSION_STRING = "0.0.3a_02";
+    const std::string VERSION_STRING = "0.0.4a";
     int lastFpsTime = 0;
     int frames = 0;
     std::string fpsString;
     std::string title = "";
+    std::string status = "";
 
     std::array<float, 4> fogColor0;
     std::array<float, 4> fogColor1;
     std::array<int, 16> viewportBuffer;
     std::array<int, 2000> selectBuffer;
-    std::vector<Entity*> entities;
     bool fullscreen;
     bool running = false;
     bool paused = false;
@@ -46,15 +46,13 @@ private:
     int editMode = 0;
     int selectedTile = Tile::rock->id;
     bool mouseGrabbed = false;
-    bool mpMode = false;
+    float fogDistance = 0.0f;
 
     GLFWwindow* window;
 
     Level* level;
-    Player* player;
     Timer* timer = new Timer(20.0f);
     LevelRenderer* levelRenderer;
-    Textures* textures = nullptr;
     HitResult* hitResult;
     Screen* screen = nullptr;
     LevelGen* levelGen = new LevelGen(this);
@@ -62,7 +60,8 @@ private:
     ParticleEngine* particleEngine;
     Client* client = nullptr;
     
-
+    std::vector<int> hotbarSlots;
+    int hotbarIndex = 0;
     int yMouseAxis = -1;
 
     // game loop
@@ -73,6 +72,8 @@ private:
     void destroy();
     void handleMouseClick();
     bool isFree(const AABB &aabb);
+
+    int getSelectedTile();
 
     // Player camera
     void setupCamera(float partialTicks);
@@ -93,11 +94,17 @@ public:
     int width, height;
 
     Font* font;
+    Textures* textures = nullptr;
+    Player* player;
 
     CrossCraft(const char* parent, int width, int height, bool fullscreen);
     ~CrossCraft();
 
     bool appletMode = false;
+    bool mpMode = false;
+
+    int serverPort;
+    std::string serverAddress;
 
     User* user = nullptr;
     int loadMapId = 0;
@@ -118,7 +125,9 @@ public:
     void saveLevel(int levelId, const char levelname[]);
     void beginLevelLoading(const char str[]) override;
     void levelLoadUpdate(const char str[]) override;
+    void levelLoadProgress(int progress) override;
 
     void connectToServer(const std::string& serverUrl);
     void handleNetworkPacket(Packet* packet);
+    void connectError();
 };

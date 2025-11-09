@@ -21,15 +21,17 @@ void CalmLiquidTile::neighborChanged(Level* level, int x, int y, int z, int type
     if (level->getTile(x, y, z+1) == 0) hasAirHeighbor = true;
     if (level->getTile(x, y-1, z) == 0) hasAirHeighbor = true;
 
+    if (this->liquidType == 1 && (type == Tile::lava->id || type == Tile::calmLava->id)) {
+        level->setTileNoUpdate(x, y, z, Tile::rock->id);
+        return;
+    }
+    if (this->liquidType == 2 && (type == Tile::water->id || type == Tile::calmWater->id)) {
+        level->setTileNoUpdate(x, y, z, Tile::rock->id);
+        return;
+    }
+
     if (hasAirHeighbor) {
         level->setTileNoUpdate(x, y, z, this->tileId);
-    }
-
-    if (this->liquidType == 1 && type == Tile::lava->id) {
-        level->setTileNoUpdate(x, y, z, Tile::rock->id);
-    }
-
-    if (this->liquidType == 2 && type == Tile::water->id) {
-        level->setTileNoUpdate(x, y, z, Tile::rock->id);
+        level->addToTickNextTick(x, y, z, this->tileId);
     }
 }

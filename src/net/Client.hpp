@@ -2,6 +2,8 @@
 #include "net/packet/Packet.hpp"
 #include "net/packet/LoginPacket.hpp"
 #include "net/packet/BlockChangePacket.hpp"
+#include "net/packet/LevelLoadPacket.hpp"
+#include "net/packet/BlockUpdatePacket.hpp"
 #include <emscripten/websocket.h>
 #include <functional>
 #include <queue>

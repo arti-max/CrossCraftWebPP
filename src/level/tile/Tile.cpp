@@ -2,6 +2,9 @@
 #include "level/tile/BushTile.hpp"
 #include "level/tile/LiquidTile.hpp"
 #include "level/tile/CalmLiquidTile.hpp"
+#include "level/tile/FallingTile.hpp"
+#include "level/tile/LogTile.hpp"
+#include "level/tile/TransparentTile.hpp"
 #include "level/tile/Tile.hpp"
 
 std::array<Tile*, 256> Tile::tiles = {nullptr};
@@ -18,6 +21,13 @@ static LiquidTile waterTile(8, 1);
 static CalmLiquidTile calmWaterTile(9, 1);
 static LiquidTile lavaTile(10, 2);
 static CalmLiquidTile calmLavaTile(11, 2);
+static FallingTile gravelTile(12, 19);
+static FallingTile sandTile(13, 18);
+static LogTile logTile(14);
+static TransparentTile leavesTile(15, 22);
+static Tile goldOreTile(16, 32);
+static Tile ironOreTile(17, 33);
+static Tile coalOreTile(18, 34);
 
 const Tile* Tile::rock = &rockTile;
 const Tile* Tile::grass = &grassTile;
@@ -30,6 +40,13 @@ const Tile* Tile::water = &waterTile;
 const Tile* Tile::calmWater = &calmWaterTile;
 const Tile* Tile::lava = &lavaTile;
 const Tile* Tile::calmLava = &calmLavaTile;
+const Tile* Tile::gravel = &gravelTile;
+const Tile* Tile::sand = &sandTile;
+const Tile* Tile::log = &logTile;
+const Tile* Tile::leaves = &leavesTile;
+const Tile* Tile::goldOre = &goldOreTile;
+const Tile* Tile::ironOre = &ironOreTile;
+const Tile* Tile::coalOre = &coalOreTile;
 
 Tile::Tile(int id) {
     tiles[id] = this;
@@ -43,15 +60,10 @@ Tile::Tile(int id, int texture) : Tile(id) {
 }
 
 bool Tile::shouldRenderFace(Level* level, int x, int y, int z, int layer, int face) {
-    bool layerOk = true;
-    if (layer == 2) {
+    if (layer == 1) {
         return false;
     } else {
-        if (layer >= 0) {
-            layerOk = (level->isLit(x, y, z)) ^ (layer == 1);
-        }
-
-        return !level->isSolidTile(x, y, z) && layerOk;
+        return !level->isSolidTile(x, y, z);
     }
 }
 
@@ -68,35 +80,50 @@ void Tile::setShape(float x0, float y0, float z0, float x1, float y1, float z1) 
     this->maxZ = z1;
 }
 
-void Tile::render(Tessellator& t, Level* level, int layer, int x, int y, int z) {
-    float c1 = 1.0;
-    float c2 = 0.6;
-    float c3 = 0.8;
+bool Tile::render(Tessellator& t, Level* level, int layer, int x, int y, int z) {
+    bool rendered = false;
+    float c1 = 1.0f;
+    float c2 = 0.8f;
+    float c3 = 0.6f;
 
     if (this->shouldRenderFace(level, x, y - 1, z, layer, 0)) {
-        t.color(c1, c1, c1);
+        float brightness = level->getBrightness(x, y - 1, z);
+        t.color(brightness * c1, brightness * c1, brightness * c1);
         this->renderFace(t, x, y, z, 0);
+        rendered = true;
     }
     if (this->shouldRenderFace(level, x, y + 1, z, layer, 1)) {
-        t.color(c1, c1, c1);
+        float brightness = level->getBrightness(x, y + 1, z);
+        t.color(brightness * c1, brightness * c1, brightness * c1);
         this->renderFace(t, x, y, z, 1);
+        rendered = true;
     }
     if (this->shouldRenderFace(level, x, y, z - 1, layer, 2)) {
-        t.color(c2, c2, c2);
+        float brightness = level->getBrightness(x, y, z - 1);
+        t.color(brightness * c2, brightness * c2, brightness * c2);
         this->renderFace(t, x, y, z, 2);
+        rendered = true;
     }
     if (this->shouldRenderFace(level, x, y, z + 1, layer, 3)) {
-        t.color(c2, c2, c2);
+        float brightness = level->getBrightness(x, y, z + 1);
+        t.color(brightness * c2, brightness * c2, brightness * c2);
         this->renderFace(t, x, y, z, 3);
+        rendered = true;
     }
     if (this->shouldRenderFace(level, x - 1, y, z, layer, 4)) {
-        t.color(c3, c3, c3);
+        float brightness = level->getBrightness(x - 1, y, z);
+        t.color(brightness * c3, brightness * c3, brightness * c3);
         this->renderFace(t, x , y, z, 4);
+        rendered = true;
     }
     if (this->shouldRenderFace(level, x + 1, y, z, layer, 5)) {
-        t.color(c3, c3, c3);
+        float brightness = level->getBrightness(x + 1, y, z);
+        t.color(brightness * c3, brightness * c3, brightness * c3);
         this->renderFace(t, x, y, z, 5);
+        rendered = true;
     }
+
+    return rendered;
 }
 
 void Tile::renderFace(Tessellator& t, int x, int y, int z, int face) {
@@ -308,4 +335,8 @@ int Tile::getLiquidType() {
 
 bool Tile::isCalmLiquid() {
     return false;
+}
+
+void Tile::onBlockAdded(Level* level, int x, int y, int z) {
+    // No implementation
 }

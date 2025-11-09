@@ -1,36 +1,40 @@
 #pragma once
+
 #include "level/LevelLoaderListener.hpp"
-#include "level/levelgen/PerlinNoiseFilter.hpp"
-#include "util/Random.hpp"
 #include "level/Level.hpp"
+#include "level/levelgen/synth/Noise.hpp"
+#include "util/Random.hpp"
 #include <vector>
-#include <array>
+#include <cstdint>
+#include <memory>
 
 class LevelGen {
 private:
-    LevelLoaderListener* levelLoaderListener = nullptr;
+    LevelLoaderListener* listener;
+    Random random;
 
     int width = 0;
     int height = 0;
     int depth = 0;
-    Random* random = new Random();
     std::vector<uint8_t> blocks;
-    
-    std::vector<int> coords;
-    static const int COORD_BUFFER_SIZE = 1048576;
+    std::vector<int> heightmap;
 
-    void generateMap();
-    int getCoordIndex(int x, int y, int z);
-    std::vector<int> unpackCoord(int index);
+    void raise(std::vector<int>& map);
+    void erode(std::vector<int>& map);
+    void soil(std::vector<int>& map);
+    void carve();
+    void addOres(int tileId, int count, int abundance);
+    void addWaterAndLava();
+    void addFlowersAndMushrooms(const std::vector<int>& map);
+    void addTrees(const std::vector<int>& map);
+    void growSurface(const std::vector<int>& map);
     
-    void addWater();
-    void addLava();
-    int floodFillLiquid(int x, int y, int z, uint8_t source, uint8_t target);
+    void floodFill(int x, int y, int z, uint8_t targetBlock);
+    void addVeins(int tileId, int abundance);
 
 public:
-    LevelGen(LevelLoaderListener* listener);
+    explicit LevelGen(LevelLoaderListener* listener);
     ~LevelGen();
 
-    void generateLevel(Level* level, const char username[], int width, int height, int depth);
-    void carveTunnels();
+    void generateLevel(Level* level, const char* username, int w, int h, int d);
 };
