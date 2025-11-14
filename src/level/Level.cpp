@@ -278,6 +278,14 @@ bool Level::setTile(int x, int y, int z, int type) {
     if (x < 0 || y < 0 || z < 0 || x >= width || y >= depth || z >= height) {
         return false;
     }
+
+if (type == 0) {
+        if (x == 0 || z == 0 || x == width - 1 || z == height - 1) {
+            if (y >= this->getGroundLevel() && y < this->getWaterLevel()) {
+                type = Tile::water->id;
+            }
+        }
+    }
     
     int index = (y * height + z) * width + x;
     int oldType = blocks[index];
@@ -308,7 +316,6 @@ bool Level::setTile(int x, int y, int z, int type) {
     return true;
 }
 
-
 bool Level::setTileNoUpdate(int x, int y, int z, int type) {
     if (x >= 0 && y >= 0 && z >= 0 && x < width && y < depth && z < height) {
         int index = (y * height + z) * width + x;
@@ -322,36 +329,41 @@ bool Level::setTileNoUpdate(int x, int y, int z, int type) {
 }
 
 void Level::swap(int x1, int y1, int z1, int x2, int y2, int z2) {
-    int tile1 = getTile(x1, y1, z1);
-    int tile2 = getTile(x2, y2, z2);
+    if (!this->isRemote) {
+        int tile1 = getTile(x1, y1, z1);
+        int tile2 = getTile(x2, y2, z2);
 
-    setTileNoUpdate(x1, y1, z1, tile2);
-    setTileNoUpdate(x2, y2, z2, tile1);
+        setTileNoUpdate(x1, y1, z1, tile2);
+        setTileNoUpdate(x2, y2, z2, tile1);
 
-    neighborChanged(x1 - 1, y1, z1, tile2);
-    neighborChanged(x1 + 1, y1, z1, tile2);
-    neighborChanged(x1, y1 - 1, z1, tile2);
-    neighborChanged(x1, y1 + 1, z1, tile2);
-    neighborChanged(x1, y1, z1 - 1, tile2);
-    neighborChanged(x1, y1, z1 + 1, tile2);
+        neighborChanged(x1 - 1, y1, z1, tile2);
+        neighborChanged(x1 + 1, y1, z1, tile2);
+        neighborChanged(x1, y1 - 1, z1, tile2);
+        neighborChanged(x1, y1 + 1, z1, tile2);
+        neighborChanged(x1, y1, z1 - 1, tile2);
+        neighborChanged(x1, y1, z1 + 1, tile2);
 
-    neighborChanged(x2 - 1, y2, z2, tile1);
-    neighborChanged(x2 + 1, y2, z2, tile1);
-    neighborChanged(x2, y2 - 1, z2, tile1);
-    neighborChanged(x2, y2 + 1, z2, tile1);
-    neighborChanged(x2, y2, z2 - 1, tile1);
-    neighborChanged(x2, y2, z2 + 1, tile1);
+        neighborChanged(x2 - 1, y2, z2, tile1);
+        neighborChanged(x2 + 1, y2, z2, tile1);
+        neighborChanged(x2, y2 - 1, z2, tile1);
+        neighborChanged(x2, y2 + 1, z2, tile1);
+        neighborChanged(x2, y2, z2 - 1, tile1);
+        neighborChanged(x2, y2, z2 + 1, tile1);
+    }
 }
 
 std::vector<AABB> Level::getCubes(const AABB& boundingBox) {
     std::vector<AABB> boxes;
     
-    int x0 = static_cast<int>(std::floor(boundingBox.x0)) - 1;
-    int x1 = static_cast<int>(std::ceil(boundingBox.x1)) + 1;
-    int y0 = static_cast<int>(std::floor(boundingBox.y0)) - 1;
-    int y1 = static_cast<int>(std::ceil(boundingBox.y1)) + 1;
-    int z0 = static_cast<int>(std::floor(boundingBox.z0)) - 1;
-    int z1 = static_cast<int>(std::ceil(boundingBox.z1)) + 1;
+    int x0 = (int)(boundingBox.x0);
+    int x1 = (int)(boundingBox.x1) + 1;
+    int y0 = (int)(boundingBox.y0);
+    int y1 = (int)(boundingBox.y1) + 1;
+    int z0 = (int)(boundingBox.z0);
+    int z1 = (int)(boundingBox.z1) + 1;
+    if (boundingBox.x0 < 0.0f) --x0;
+    if (boundingBox.y0 < 0.0f) --y0;
+    if (boundingBox.z0 < 0.0f) --z0;
     
     for (int x = x0; x < x1; ++x) {
         for (int y = y0; y < y1; ++y) {
@@ -380,12 +392,15 @@ std::vector<AABB> Level::getCubes(const AABB& boundingBox) {
 }
 
 bool Level::containsAnyLiquid(const AABB& box) {
-    int x0 = (int)std::floor(box.x0);
-    int x1 = (int)std::floor(box.x1 + 1.0f);
-    int y0 = (int)std::floor(box.y0);
-    int y1 = (int)std::floor(box.y1 + 1.0f);
-    int z0 = (int)std::floor(box.z0);
-    int z1 = (int)std::floor(box.z1 + 1.0f);
+    int x0 = (int)(box.x0);
+    int x1 = (int)(box.x1 + 1.0f);
+    int y0 = (int)(box.y0);
+    int y1 = (int)(box.y1 + 1.0f);
+    int z0 = (int)(box.z0);
+    int z1 = (int)(box.z1 + 1.0f);
+    if (box.x0 < 0.0f) --x0;
+    if (box.y0 < 0.0f) --y0;
+    if (box.z0 < 0.0f) --z0;
     if (x0 < 0) x0 = 0;
     if (y0 < 0) y0 = 0;
     if (z0 < 0) z0 = 0;
@@ -414,6 +429,9 @@ bool Level::containsLiquid(const AABB& box, int liquidId) {
     int y1 = (int)std::floor(box.y1 + 1.0f);
     int z0 = (int)std::floor(box.z0);
     int z1 = (int)std::floor(box.z1 + 1.0f);
+    if (box.x0 < 0.0f) --x0;
+    if (box.y0 < 0.0f) --y0;
+    if (box.z0 < 0.0f) --z0;
     if (x0 < 0) x0 = 0;
     if (y0 < 0) y0 = 0;
     if (z0 < 0) z0 = 0;

@@ -136,6 +136,7 @@ void LevelGen::soil(std::vector<int>& map) {
 }
 
 void LevelGen::growSurface(const std::vector<int>& map) {
+    listener->levelLoadUpdate("Growing..");
     OctaveNoise sandNoise(random, 8);
     OctaveNoise gravelNoise(random, 8);
     int waterLevel = depth / 2;
@@ -147,23 +148,22 @@ void LevelGen::growSurface(const std::vector<int>& map) {
             bool placeGravel = gravelNoise.compute(x, z) > 12.0;
             
             int surfaceY = map[x + z * width];
-
             if (surfaceY < 0 || surfaceY >= depth - 1) continue;
-            
-            int index = (surfaceY * height + z) * width + x;
-            int indexAbove = ((surfaceY + 1) * height + z) * width + x;
-            
-            if (blocks[indexAbove] == 0) {
-                uint8_t surfaceID = Tile::grass->id;
 
-                if (surfaceY <= waterLevel && placeGravel) {
-                    surfaceID = Tile::gravel->id; 
-                }
-                if (surfaceY <= waterLevel && placeSand) {
+            int surfaceIndex = (surfaceY * height + z) * width + x;
+            int blockAboveIndex = ((surfaceY + 1) * height + z) * width + x;
+            int blockAboveId = blocks[blockAboveIndex];
+
+            if ((blockAboveId == Tile::water->id || blockAboveId == Tile::calmWater->id) && surfaceY <= waterLevel - 1 && placeGravel) {
+                blocks[surfaceIndex] = Tile::gravel->id;
+            }
+
+            if (blockAboveId == 0) {
+                uint8_t surfaceID = Tile::grass->id;
+                if (surfaceY <= waterLevel - 1 && placeSand) {
                     surfaceID = Tile::sand->id;
                 }
-                
-                blocks[index] = surfaceID;
+                blocks[surfaceIndex] = surfaceID;
             }
         }
     }
@@ -221,7 +221,7 @@ void LevelGen::carve() {
     listener->levelLoadProgress(25);
     addVeins(Tile::coalOre->id, 90);
     listener->levelLoadProgress(50);
-    addVeins(Tile::ironOre->id, 70);
+    addVeins(Tile::ironOre->id, 75);
     listener->levelLoadProgress(75);
     addVeins(Tile::goldOre->id, 50);
     listener->levelLoadProgress(100);
@@ -291,14 +291,23 @@ void LevelGen::floodFill(int x, int y, int z, uint8_t targetBlock) {
 }
 
 void LevelGen::addTrees(const std::vector<int>& map) {
-    int numTreePatches = width * height / 2000;
+    int numTreePatches = width * height / 4000;
+
+    if (numTreePatches <= 1) {
+        if (numTreePatches == 1) {
+            listener->levelLoadProgress(50);
+        }
+    }
 
     for (int i = 0; i < numTreePatches; ++i) {
-        listener->levelLoadProgress(i * 100 / (numTreePatches - 1));
+        if (numTreePatches > 1) {
+            listener->levelLoadProgress(i * 100 / (numTreePatches - 1));
+        }
+
         int patchX = random.nextInt(width);
         int patchZ = random.nextInt(height);
 
-        for (int j = 0; j < 5; ++j) {
+        for (int j = 0; j < 20; ++j) {
             int treeX = patchX;
             int treeZ = patchZ;
 
@@ -306,58 +315,71 @@ void LevelGen::addTrees(const std::vector<int>& map) {
                 treeX += random.nextInt(6) - random.nextInt(6);
                 treeZ += random.nextInt(6) - random.nextInt(6);
 
-                if (treeX > 1 && treeZ > 1 && treeX < width - 1 && treeZ < height - 1) {
-                    
-                    int bareTrunkHeight = 2 + random.nextInt(2);
-                    int leafyTrunkHeight = 2;
-                    int totalTrunkHeight = bareTrunkHeight + leafyTrunkHeight;
+                if (treeX >= 0 && treeZ >= 0 && treeX < width && treeZ < height) {
                     int treeY = map[treeX + treeZ * width] + 1;
+                    int treeHeight = random.nextInt(3) + 4;
 
-                    int groundIndex = ((treeY - 1) * height + treeZ) * width + treeX;
-                    if (treeY > 0 && treeY + totalTrunkHeight + 1 < depth && blocks[groundIndex] == Tile::grass->id) {
-                        
-                        bool canPlace = true;
-                        for(int yOff = 0; yOff < totalTrunkHeight + 1; ++yOff) {
-                            if (blocks[((treeY + yOff) * height + treeZ) * width + treeX] != 0) {
-                                canPlace = false;
-                                break;
+                    bool canPlace = true;
+
+                    if (treeY < 1 || treeY + treeHeight + 1 >= depth) {
+                        canPlace = false;
+                    }
+
+                    if (canPlace) {
+                        for (int y = treeY; y <= treeY + 1 + treeHeight && canPlace; ++y) {
+                            int radius = 1;
+                            if (y >= treeY + treeHeight - 2) {
+                                radius = 2;
+                            }
+
+                            for (int x = treeX - radius; x <= treeX + radius && canPlace; ++x) {
+                                for (int z = treeZ - radius; z <= treeZ + radius && canPlace; ++z) {
+                                    if (x >= 0 && y >= 0 && z >= 0 && x < width && y < depth && z < height) {
+                                        if (blocks[(y * height + z) * width + x] != 0) {
+                                            canPlace = false;
+                                        }
+                                    } else {
+                                        canPlace = false;
+                                    }
+                                }
                             }
                         }
+                    }
 
-                        if (canPlace) {
-
+                    if (canPlace) {
+                        int groundIndex = ((treeY - 1) * height + treeZ) * width + treeX;
+                        if (blocks[groundIndex] == Tile::grass->id && treeY < depth - treeHeight - 1) {
                             blocks[groundIndex] = Tile::dirt->id;
 
-                            for (int yOff = 0; yOff < totalTrunkHeight; ++yOff) {
-                                int trunkIndex = ((treeY + yOff) * height + treeZ) * width + treeX;
-                                blocks[trunkIndex] = Tile::log->id;
-                            }
+                            for (int leafY = treeY - 3 + treeHeight; leafY <= treeY + treeHeight; ++leafY) {
+                                int yOff = leafY - (treeY + treeHeight);
+                                int leafRadius = 1 - yOff / 2;
 
-                            for (int yOff = 0; yOff < leafyTrunkHeight; ++yOff) {
-                                int currentLeafY = treeY + bareTrunkHeight + yOff;
-                                for (int xOff = -1; xOff <= 1; ++xOff) {
-                                    for (int zOff = -1; zOff <= 1; ++zOff) {
-                                        if (xOff == 0 && zOff == 0) continue;
-                                        int leafIndex = (currentLeafY * height + (treeZ + zOff)) * width + (treeX + xOff);
-                                        if (blocks[leafIndex] == 0) blocks[leafIndex] = Tile::leaves->id;
+                                for (int leafX = treeX - leafRadius; leafX <= treeX + leafRadius; ++leafX) {
+                                    int xOff = leafX - treeX;
+                                    for (int leafZ = treeZ - leafRadius; leafZ <= treeZ + leafRadius; ++leafZ) {
+                                        int zOff = leafZ - treeZ;
+                                        if (std::abs(xOff) != leafRadius || std::abs(zOff) != leafRadius || (random.nextInt(2) == 0 && yOff != 0)) {
+                                            int leafIndex = (leafY * height + leafZ) * width + leafX;
+                                            if (leafIndex >= 0 && leafIndex < blocks.size())
+                                                blocks[leafIndex] = Tile::leaves->id;
+                                        }
                                     }
                                 }
                             }
 
-                            int topY = treeY + totalTrunkHeight;
-                            #define SAFE_SET_LEAF(lx, lz) if(blocks[(topY * height + (lz)) * width + (lx)] == 0) blocks[(topY * height + (lz)) * width + (lx)] = Tile::leaves->id;
-                            SAFE_SET_LEAF(treeX, treeZ);
-                            SAFE_SET_LEAF(treeX + 1, treeZ);
-                            SAFE_SET_LEAF(treeX - 1, treeZ);
-                            SAFE_SET_LEAF(treeX, treeZ + 1);
-                            SAFE_SET_LEAF(treeX, treeZ - 1);
-                            #undef SAFE_SET_LEAF
+                            for (int trunkY = 0; trunkY < treeHeight; ++trunkY) {
+                                int trunkIndex = ((treeY + trunkY) * height + treeZ) * width + treeX;
+                                if (trunkIndex >= 0 && trunkIndex < blocks.size())
+                                    blocks[trunkIndex] = Tile::log->id;
+                            }
                         }
                     }
                 }
             }
         }
     }
+    listener->levelLoadProgress(100);
 }
 
 void LevelGen::addVeins(int tileId, int abundance) {

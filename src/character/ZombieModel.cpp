@@ -15,7 +15,7 @@ ZombieModel::ZombieModel() {
     arm0->setPos(-5.0f, 2.0f, 0.0f);
     
     arm1 = new Cube(40, 16);
-    arm1->addBox(-1.0f, 0.0f, -2.0f, 4, 12, 4);
+    arm1->addBox(-1.0f, -2.0f, -2.0f, 4, 12, 4);
     arm1->setPos(5.0f, 2.0f, 0.0f);
     
     leg0 = new Cube(0, 16);
@@ -36,10 +36,10 @@ ZombieModel::~ZombieModel() {
     delete leg1;
 }
 
-void ZombieModel::render(float time) {
+void ZombieModel::render(float time, float rot) {
     
-    head->yRot = std::sin(time * 0.83f);
-    head->xRot = std::sin(time) * 0.8f;
+    head->yRot = 0;
+    head->xRot = rot / 57.29578f;
     
     arm0->xRot = std::sin(time * 0.6662f + M_PI) * 2.0f;
     arm0->zRot = (std::sin(time * 0.2312f) + 1.0f);

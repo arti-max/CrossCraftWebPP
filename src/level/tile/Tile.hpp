@@ -59,4 +59,5 @@ public:
     virtual int getLiquidType();
     virtual bool isCalmLiquid();
     virtual void onBlockAdded(Level* level, int x, int y, int z);
+    virtual float getBrightness(Level* level, int x, int y, int z);
 };

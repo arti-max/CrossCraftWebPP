@@ -4,10 +4,12 @@
 #include <set>
 #include <deque>
 #include <cmath>
+#include <map>
 #include "util/Random.hpp"
 #include "phys/AABB.hpp"
 #include "level/render/LevelListener.hpp"
 
+class NetworkPlayer;
 class Entity;
 
 struct TickEntry {
@@ -41,6 +43,7 @@ public:
     std::vector<uint8_t> blocks;
     std::vector<int> lightDepths;
     std::vector<Entity*> entities;
+    std::map<int, NetworkPlayer*> networkPlayers;
     std::string name;
     std::string creator;
     long long creationTime = 0;
@@ -81,6 +84,7 @@ public:
     void findSpawn();
     void setSpawnPos(int x, int y, int z, int rot);
     int getHighestTile(int x, int z);
+    void fillOcean(int x, int y, int z);
 
 private:
     void generateMap();

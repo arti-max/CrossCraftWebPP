@@ -4,6 +4,11 @@
 #include "net/packet/BlockChangePacket.hpp"
 #include "net/packet/LevelLoadPacket.hpp"
 #include "net/packet/BlockUpdatePacket.hpp"
+#include "net/packet/ServerIdent.hpp"
+#include "net/packet/SpawnPlayerPacket.hpp"
+#include "net/packet/DespawnPlayerPacket.hpp"
+#include "net/packet/SetSpawnPositionPacket.hpp"
+#include "net/packet/RequestSpawnPositionPacket.hpp"
 
 void Packet::writeByte(uint8_t value) {
     data.push_back(value);
@@ -121,7 +126,7 @@ Packet* Packet::fromBytes(const uint8_t* bytes, size_t length) {
             packet = new LevelLoadPacket();
             break;
         
-        case PacketType::POSITION_UPDATE:
+        case PacketType::PLAYER_POSITION:
             packet = new PositionPacket();
             break;
         
@@ -133,6 +138,26 @@ Packet* Packet::fromBytes(const uint8_t* bytes, size_t length) {
             packet = new BlockUpdatePacket();
             break;
         
+        case PacketType::SERVER_IDENTIFICATION:
+            packet = new ServerIdentificationPacket();
+            break;
+
+        case PacketType::PLAYER_SPAWN:
+            packet = new SpawnPlayerPacket();
+            break;
+        
+        case PacketType::PLAYER_DESPAWN:
+            packet = new DespawnPlayerPacket();
+            break;
+
+        case PacketType::SET_SPAWN_POSITION:
+            packet = new SetSpawnPositionPacket();
+            break;
+
+        case PacketType::REQUEST_SPAWN_POSITION:
+            packet = new RequestSpawnPositionPacket();
+            break;
+
         default:
             return nullptr;
     }

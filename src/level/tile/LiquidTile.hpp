@@ -22,4 +22,5 @@ public:
     bool blocksLight() override;
     bool isSolid() override;
     int getLiquidType() override;
+    float getBrightness(Level* level, int x, int y, int z) override;
 };

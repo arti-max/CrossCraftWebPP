@@ -128,14 +128,14 @@ void LevelRenderer::render(Player* player, int layer) {
     float yd = player->y - lY;
     float zd = player->z - lZ;
     
-    if (xd * xd + yd * yd + zd * zd > 64.0f) {
-        lX = player->x;
-        lY = player->y;
-        lZ = player->z;
-        std::sort(sortedChunks.begin(), sortedChunks.end(), DistanceSorter(player));
-    }
+    // if (xd * xd + yd * yd + zd * zd > 64.0f) {
+    //     lX = player->x;
+    //     lY = player->y;
+    //     lZ = player->z;
+    //     std::sort(sortedChunks.begin(), sortedChunks.end(), DistanceSorter(player));
+    // }
     
-    for (Chunk* chunk : sortedChunks) {
+    for (Chunk* chunk : chunks) {
         if (chunk->visible) {
             float dd = static_cast<float>(256 / (1 << drawDistance));
             if (drawDistance == 0 || chunk->distanceToSqr(player) < dd * dd) {
@@ -404,7 +404,11 @@ void LevelRenderer::toggleDrawDistance() {
 
 void LevelRenderer::cull(Frustum& frustum) {
     for (Chunk* chunk : chunks) {
-        chunk->visible = frustum.isVisible(chunk->boundingBox);
+        if (!frustum.sphereInFrustum(chunk->x, chunk->y, chunk->z, chunk->boundingSphereRadius)) {
+            chunk->visible = false;
+        } else {
+            chunk->visible = frustum.isVisible(chunk->boundingBox);
+        }
     }
 }
 

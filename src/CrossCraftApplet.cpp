@@ -2,10 +2,22 @@
 #include <iostream>
 #include <emscripten.h>
 
-static CrossCraftApplet* appletInstance = nullptr;
+CrossCraftApplet* CrossCraftApplet::instance = nullptr;
+
+CrossCraftApplet* CrossCraftApplet::getInstance() {
+    if (instance == nullptr) {
+        std::cout << "Creating singleton CrossCraftApplet instance." << std::endl;
+        instance = new CrossCraftApplet();
+    }
+    return instance;
+}
 
 CrossCraftApplet::CrossCraftApplet() {
-    std::cout << "CrossCraftApplet created" << std::endl;
+    std::cout << "CrossCraftApplet singleton created" << std::endl;
+    game = nullptr;
+    width = 0;
+    height = 0;
+    isMultiplayer = false;
 }
 
 CrossCraftApplet::~CrossCraftApplet() {
@@ -114,11 +126,7 @@ extern "C" {
         std::cout << "  sessionid: " << session << std::endl;
         std::cout << "  size: " << width << "x" << height << std::endl;
         
-        if (!appletInstance) {
-            appletInstance = new CrossCraftApplet();
-        }
-        
-        appletInstance->setParams(user, session, mapUser, loadmapId, width, height);
+        CrossCraftApplet::getInstance()->setParams(user, session, mapUser, loadmapId, width, height);
     }
 
     void EMSCRIPTEN_KEEPALIVE setServerParams(const char* server, int port) {
@@ -126,12 +134,8 @@ extern "C" {
         std::cout << "  server: " << (server ? server : "null") << std::endl;
         std::cout << "  port: " << port << std::endl;
         
-        if (!appletInstance) {
-            appletInstance = new CrossCraftApplet();
-        }
-        
         if (server && port > 0) {
-            appletInstance->setServerParams(server, port);
+            CrossCraftApplet::getInstance()->setServerParams(server, port);
         } else {
             std::cout << "Warning: Invalid server parameters" << std::endl;
         }
@@ -139,8 +143,8 @@ extern "C" {
     
     void EMSCRIPTEN_KEEPALIVE startApplet() {
         std::cout << "C interface: startApplet called" << std::endl;
-        if (appletInstance) {
-            appletInstance->start();
+        if (CrossCraftApplet::getInstance()) {
+            CrossCraftApplet::getInstance()->start();
         } else {
             std::cout << "Error: appletInstance is null!" << std::endl;
         }

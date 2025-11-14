@@ -127,7 +127,7 @@ void CrossCraft::setScreen(Screen* screen) {
 }
 
 void CrossCraft::grabMouse() {
-    if (!this->mouseGrabbed) {
+    if (!Mouse::isGrabbed()) {
         Logger::logf(PREFIX_DEBUG, "CrossCraft: Grabbing mouse\n");
         this->mouseGrabbed = true;
         Mouse::setGrabbed(true);
@@ -196,9 +196,11 @@ void CrossCraft::mainLoop() {
         this->tick();
     }
 
-    this->checkGlError("Pre render");
-    this->render(this->timer->partialTicks);
-    this->checkGlError("Post render");
+    if (this->canRender) {
+        this->checkGlError("Pre render");
+        this->render(this->timer->partialTicks);
+        this->checkGlError("Post render");
+    }
     ++this->frames;
     glfwPollEvents();
 
@@ -280,6 +282,10 @@ void CrossCraft::handleMouseClick() {
 }
 
 void CrossCraft::tick() {
+    if (this->attackTime > 0) {
+        this->attackTime--;
+    }
+
     if (this->mouseGrabbed && !Mouse::isGrabbed()) {
         printf("CrossCraft: Pointer lock released by browser (probably ESC)\n");
         this->releaseMouse();
@@ -346,6 +352,7 @@ void CrossCraft::tick() {
             } else {
                 if (Mouse::getEventButton() == 0 && Mouse::getEventButtonState()) {
                     this->handleMouseClick();
+                    this->attackTime = 5; 
                 }
                 if (Mouse::getEventButton() == 2 && Mouse::getEventButtonState()) {
                     this->editMode = (this->editMode + 1) % 2;
@@ -372,6 +379,14 @@ void CrossCraft::tick() {
                 }
             }
         }
+
+        if (this->screen == nullptr && glfwGetMouseButton(this->window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+            if (this->attackTime <= 0) {
+                this->handleMouseClick();
+                this->attackTime = 5; 
+            }
+        }
+
     }
 update_world:
     ++this->levelRenderer->cloudTicks;
@@ -380,8 +395,18 @@ update_world:
 
     this->player->tick();
 
-    if (mpMode && client->isConnected()) {
-        // TODO: Send position to server
+    for (auto const& [id, net_player] : this->level->networkPlayers) {
+        if (net_player != nullptr) {
+            net_player->tick();
+        }
+    }
+
+    if (mpMode && client->isConnected()) { 
+        PositionPacket* pos_packet = new PositionPacket(
+            this->player->x, this->player->y, this->player->z,
+            this->player->yRot, this->player->xRot
+        );
+        client->sendPacket(pos_packet);
     }
 }
 
@@ -425,6 +450,11 @@ void CrossCraft::render(float partialTicks) {
         zombie = this->level->entities[i];
         if (frustum.isVisible(zombie->bb)) {
             this->level->entities[i]->render(partialTicks);
+        }
+    }
+    for (auto const& [id, net_player] : this->level->networkPlayers) {
+        if (net_player != nullptr) {
+            net_player->render(this->textures, partialTicks);
         }
     }
     this->checkGlError("Rendered entities");
@@ -600,6 +630,7 @@ void CrossCraft::setupFog(int layer) {
 void CrossCraft::beginLevelLoading(const char title[]) {
     this->title = title;
     this->status = "";
+    this->lastProgress = -1;
     int screenWidth = this->width * 240 / this->height;
     int screenHeight = this->height * 240 / this->height;
     glClear(GL_DEPTH_BUFFER_BIT);
@@ -616,6 +647,10 @@ void CrossCraft::levelLoadUpdate(const char* status) {
 }
 
 void CrossCraft::levelLoadProgress(int progress) {
+    if (progress == this->lastProgress) {
+        return;
+    }
+    this->lastProgress = progress;
     int screenWidth = this->width * 240 / this->height;
     int screenHeight = this->height * 240 / this->height;
 
@@ -699,10 +734,8 @@ void CrossCraft::connectToServer(const std::string& serverUrl) {
     }
     
     client->setOnConnect([this]() {
-        Logger::logf(PREFIX_NETWORK, "Sending login packet...\n");
-        this->levelLoadUpdate("Sending login...");
-        LoginPacket* packet = new LoginPacket(this->user->username, this->user->sessionid);
-        client->sendPacket(packet);
+        this->canRender = false;
+        Logger::logf(PREFIX_NETWORK, "WebSocket connection opened, waiting for Server ID...\n");
     });
     
     client->setOnPacket([this](Packet* packet) {
@@ -713,8 +746,9 @@ void CrossCraft::connectToServer(const std::string& serverUrl) {
         connectError();
     });
     
-    this->beginLevelLoading("Connecting to server");
-    this->levelLoadUpdate("Try to connect...");
+    this->beginLevelLoading("Connecting to server...");
+    this->levelLoadUpdate("Establishing connection"); 
+    this->levelLoadProgress(10);
     client->connect(serverUrl);
 }
 
@@ -722,36 +756,99 @@ void CrossCraft::connectError() {
     Logger::logf(PREFIX_NETWORK, "Connection error!\n");
     this->mpMode = false;
     this->init();
+    this->canRender = true;
 }
 
 void CrossCraft::handleNetworkPacket(Packet* packet) {
     switch (packet->getType()) {
+        case PacketType::SERVER_IDENTIFICATION: {
+            ServerIdentificationPacket* p = static_cast<ServerIdentificationPacket*>(packet);
+            Logger::logf(PREFIX_NETWORK, "Server Identification received: %s\n", p->serverName.c_str());
+            
+            this->beginLevelLoading(p->serverName.c_str());
+            this->levelLoadUpdate(p->serverMotd.c_str());
+            this->levelLoadProgress(25);
+            
+            Logger::logf(PREFIX_NETWORK, "Sending login packet...\n");
+            this->levelLoadProgress(40);
+            LoginPacket* loginPacket = new LoginPacket(this->user->username, this->user->sessionid);
+            client->sendPacket(loginPacket);
+            break;
+        }
+
         case PacketType::LOGIN_RESPONSE:
             Logger::logf(PREFIX_NETWORK, "Login successful!\n");
-            this->levelLoadUpdate("Successfuly logged!");
+            this->levelLoadProgress(60);
             break;
 
         case PacketType::LEVEL_DATA: {
-            this->levelLoadUpdate("Load level...");
+            this->levelLoadProgress(80);
             LevelLoadPacket* p = static_cast<LevelLoadPacket*>(packet);
             
             this->level->isRemote = true;
             std::vector<uint8_t> levelData = this->levelIO->decompressGzip(p->compressedData.data(), p->compressedData.size());
             this->level->setData(p->width, p->depth, p->height, levelData);
 
-            this->player->resetPos();
+            this->levelLoadProgress(100);
+            emscripten_sleep(1000);
+            this->canRender = true;
         
             Logger::logf(PREFIX_NETWORK, "Level data received and processed.\n");
+            RequestSpawnPositionPacket* requestPacket = new RequestSpawnPositionPacket();
+            this->client->sendPacket(requestPacket);
             break;
         }
             
         case PacketType::BLOCK_UPDATE: {
             BlockUpdatePacket* blockPacket = static_cast<BlockUpdatePacket*>(packet);
             this->level->setTile(blockPacket->x, blockPacket->y, blockPacket->z, blockPacket->blockType);
-            Logger::logf(PREFIX_NETWORK, "Block updated at %i, %i, %i\n", blockPacket->x, blockPacket->y, blockPacket->z);
+            // Logger::logf(PREFIX_NETWORK, "Block updated at %i, %i, %i\n", blockPacket->x, blockPacket->y, blockPacket->z);
             break;
         }
-        
+
+        case PacketType::PLAYER_SPAWN: {
+            SpawnPlayerPacket* p = static_cast<SpawnPlayerPacket*>(packet);
+            Logger::logf(PREFIX_NETWORK, "Spawning player %s (ID: %d)\n", p->username.c_str(), p->playerId);
+            
+            NetworkPlayer* new_player = new NetworkPlayer(this->level, p->playerId, p->username, p->x, p->y, p->z, p->yaw, p->pitch);
+            
+            this->level->networkPlayers[p->playerId] = new_player;
+            break;
+        }
+
+        case PacketType::PLAYER_POSITION: {
+            PositionPacket* p = static_cast<PositionPacket*>(packet);
+            
+            auto it = this->level->networkPlayers.find(p->playerId);
+            if (it != this->level->networkPlayers.end()) {
+                it->second->setServerPosition(p->x, p->y, p->z, p->yaw, p->pitch);
+            }
+            break;
+        }
+
+        case PacketType::PLAYER_DESPAWN: {
+            DespawnPlayerPacket* p = static_cast<DespawnPlayerPacket*>(packet);
+            Logger::logf(PREFIX_NETWORK, "Despawning player (ID: %d)\n", p->playerId);
+
+            auto it = this->level->networkPlayers.find(p->playerId);
+            if (it != this->level->networkPlayers.end()) {
+                delete it->second;
+                this->level->networkPlayers.erase(it);
+            }
+            break;
+        }
+
+        case PacketType::SET_SPAWN_POSITION: {
+            SetSpawnPositionPacket* p = static_cast<SetSpawnPositionPacket*>(packet);
+            Logger::logf(PREFIX_NETWORK, "Received spawn position: %d, %d, %d\n", p->x, p->y, p->z);
+            
+            this->level->setSpawnPos(p->x, p->y, p->z, p->yaw);
+            
+            this->player->resetPos();
+            Logger::logf(PREFIX_NETWORK, "New spawn pos: %d, %d, %d\n", this->level->xSpawn, this->level->ySpawn, this->level->zSpawn);
+            break;
+        }
+            
         // TODO: Other packets
         
         default:

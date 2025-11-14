@@ -5,6 +5,10 @@
 class CrossCraftApplet {
 private:
     CrossCraft* game = nullptr;
+    CrossCraftApplet();
+    CrossCraftApplet(const CrossCraftApplet&) = delete;
+    CrossCraftApplet& operator=(const CrossCraftApplet&) = delete;
+    static CrossCraftApplet* instance;
     std::string username;
     std::string sessionid;
     std::string loadMapUser;
@@ -17,7 +21,7 @@ private:
     bool isMultiplayer = false;
 
 public:
-    CrossCraftApplet();
+    static CrossCraftApplet* getInstance();
     ~CrossCraftApplet();
     
     void setParams(const std::string& user, const std::string& session, 

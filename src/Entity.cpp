@@ -1,4 +1,5 @@
 #include "Entity.hpp"
+#include "util/Logger.hpp"
 #include <random>
 
 std::mt19937 Entity::randomGenerator(std::random_device{}());
@@ -57,15 +58,34 @@ void Entity::setPos(float x, float y, float z) {
 void Entity::turn(float xo, float yo) {
     yRot += xo * 0.15f;
     xRot -= yo * 0.15f;
+
+    yRot = std::fmod(yRot, 360.0f);
+    if (yRot < 0.0f) {
+        yRot += 360.0f;
+    }
     
     xRot = std::max(-90.0f, xRot);
     xRot = std::min(90.0f, xRot);
+}
+
+void Entity::interpolateTurn(float xo, float yo) {
+    float oxr = this->xRot;
+    float oyr = this->yRot;
+    this->yRot = (float)((double)this->yRot + (double)xo * 0.15f);
+    this->xRot = (float)((double)this->xRot - (double)yo * 0.15f);
+    this->xRot = std::max(-90.0f, this->xRot);
+    this->xRot = std::min(90.0f, this->xRot);
+
+    this->xRotI = this->xRot - oxr;
+    this->yRotI = this->yRot - oyr;
 }
 
 void Entity::tick() {
     xo = x;
     yo = y;
     zo = z;
+    this->xRotI = 0.0f;
+    this->yRotI = 0.0f;
 }
 
 bool Entity::isFree(float xa, float ya, float za) {
@@ -73,8 +93,10 @@ bool Entity::isFree(float xa, float ya, float za) {
     std::vector<AABB> aabbs = level->getCubes(box);
     
     if (aabbs.size() > 0) {
+        // Logger::logf(PREFIX_DEBUG, "isFree [1]  ");
         return false;
     } else {
+        // Logger::logf(PREFIX_DEBUG, "isFree [2]  ");
         return !level->containsAnyLiquid(box);
     }
 }
@@ -101,8 +123,8 @@ void Entity::move(float xa, float ya, float za) {
     }
     bb.move(0.0f, 0.0f, za);
 
-    horizontalCollision = xaOrg != xa || zaOrg != za;
-    onGround = (yaOrg != ya && yaOrg < 0.0f);
+    this->horizontalCollision = xaOrg != xa || zaOrg != za;
+    this->onGround = (yaOrg != ya && yaOrg < 0.0f);
 
     if (xaOrg != xa) {
         xd = 0.0f;

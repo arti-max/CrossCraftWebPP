@@ -19,6 +19,11 @@ Chunk::Chunk(Level* level, int x0, int y0, int z0, int x1, int y1, int z1) :
     this->y = (y0 + y1) / 2.0f;
     this->z = (z0 + z1) / 2.0f;
 
+    float dx = x1 - this->x;
+    float dy = y1 - this->y;
+    float dz = z1 - this->z;
+    this->boundingSphereRadius = std::sqrt(dx*dx + dy*dy + dz*dz);
+
     this->lists = glGenLists(2);
 }
 

@@ -45,7 +45,7 @@ AABB AABB::grow(float xa, float ya, float za) const {
 }
 
 AABB AABB::cloneMove(float xa, float ya, float za) const {
-    return AABB(this->x0 + xa, this->y0 + ya, this->z0 + za, 
+    return AABB(this->x0 + za, this->y0 + ya, this->z0 + za, 
                 this->x1 + xa, this->y1 + ya, this->z1 + za);
 }
 

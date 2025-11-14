@@ -1,5 +1,6 @@
 #include "Player.hpp"
 #include "util/Keyboard.hpp"
+#include "util/Logger.hpp"
 #include <GLFW/glfw3.h>
 
 Player::Player(Level* level) : Entity(level) {
@@ -53,23 +54,21 @@ void Player::tick() {
         }
     }
     
+    float oldY;
     if (inWater) {
+        oldY = this->y;
         this->moveRelative(xa, ya, 0.02f);
         this->move(this->xd, this->yd, this->zd);
         this->xd *= 0.8f;
         this->yd *= 0.8f;
         this->zd *= 0.8f;
         this->yd -= 0.02f;
-        if (this->horizontalCollision) {
-            int px = (int)(this->x);
-            int py = (int)(this->y + 1.8f);
-            int pz = (int)(this->z);
-            bool blockAbove = level->isSolidTile(px, py, pz);
-            if (!blockAbove) {
-                this->yd = 0.3f;
-            }
+        // Logger::logf(PREFIX_DEBUG, "hor: %i, is free: %i", this->horizontalCollision, this->isFree(this->xd, this->yd + 0.6f - this->y + oldY, this->zd));
+        if (this->horizontalCollision && this->isFree(this->xd, this->yd + 0.6f - this->y + oldY, this->zd)) {
+            this->yd = 0.3f;
         }
     } else if (inLava) {
+        oldY = this->y;
         this->moveRelative(xa, ya, 0.02f);
         this->move(this->xd, this->yd, this->zd);
         this->xd *= 0.5f;
@@ -77,14 +76,8 @@ void Player::tick() {
         this->zd *= 0.5f;
         this->yd -= 0.02f;
         
-        if (this->horizontalCollision) {
-            int px = (int)(this->x);
-            int py = (int)(this->y + 1.8f);
-            int pz = (int)(this->z);
-            
-            if (!level->isSolidTile(px, py, pz)) {
-                this->yd = 0.3f;
-            }
+        if (this->horizontalCollision && this->isFree(this->xd, this->yd + 0.6f - this->y + oldY, this->zd)) {
+            this->yd = 0.3f;
         }
     } else {
         this->moveRelative(xa, ya, this->onGround ? 0.1f : 0.02f);

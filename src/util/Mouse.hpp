@@ -24,7 +24,23 @@ private:
     static bool grabbed;
     static GLFWwindow* window;
 
+    #ifdef __EMSCRIPTEN__
+        static EM_BOOL mouseDownCallback(int eventType, const EmscriptenMouseEvent *e, void *userData);
+        static EM_BOOL mouseUpCallback(int eventType, const EmscriptenMouseEvent *e, void *userData);
+        static EM_BOOL mouseClickCallback(int eventType, const EmscriptenMouseEvent *e, void *userData);
+        static EM_BOOL mouseMoveCallback(int eventType, const EmscriptenMouseEvent *e, void *userData);
+        static EM_BOOL mouseWheelCallback(int eventType, const EmscriptenWheelEvent *e, void *userData);
+        static EM_BOOL pointerlockChangeCallback(int eventType, const EmscriptenPointerlockChangeEvent *e, void *userData);
+        static EM_BOOL pointerlockErrorCallback(int eventType, const void *reserved, void *userData);
+        
+        static void requestPointerLock();
+        static void exitPointerLock();
+    #endif
+
 public:
+    Mouse(GLFWwindow* win);
+    ~Mouse();
+
     static void create();
     static void destroy();
     static void init(GLFWwindow* win);
@@ -44,16 +60,4 @@ public:
     static bool isGrabbed();
     static void poll();
 
-#ifdef __EMSCRIPTEN__
-    static EM_BOOL mouseDownCallback(int eventType, const EmscriptenMouseEvent *e, void *userData);
-    static EM_BOOL mouseUpCallback(int eventType, const EmscriptenMouseEvent *e, void *userData);
-    static EM_BOOL mouseClickCallback(int eventType, const EmscriptenMouseEvent *e, void *userData);
-    static EM_BOOL mouseMoveCallback(int eventType, const EmscriptenMouseEvent *e, void *userData);
-    static EM_BOOL mouseWheelCallback(int eventType, const EmscriptenWheelEvent *e, void *userData);
-    static EM_BOOL pointerlockChangeCallback(int eventType, const EmscriptenPointerlockChangeEvent *e, void *userData);
-    static EM_BOOL pointerlockErrorCallback(int eventType, const void *reserved, void *userData);
-    
-    static void requestPointerLock();
-    static void exitPointerLock();
-#endif
 };

@@ -29,6 +29,10 @@ bool LiquidTile::tryFlow(Level* level, int x, int y, int z) {
     return false;
 }
 
+float LiquidTile::getBrightness(Level* level, int x, int y, int z) {
+    return this->liquidType == 2 ? 100.0f : level->getBrightness(x, y, z);
+}
+
 void LiquidTile::tick(Level* level, int x, int y, int z, Random* random) {
     bool hasChanged = false;
     int originalY = y;
@@ -65,15 +69,11 @@ bool LiquidTile::shouldRenderFace(Level* level, int x, int y, int z, int layer, 
     
     int neighborId = level->getTile(x, y, z);
     
-    if (neighborId == this->tileId || neighborId == this->calmTileId) {
-        return false;
+    if (neighborId != this->tileId && neighborId != this->calmTileId) {
+        return face != 1 || level->getTile(x-1, y, z) != 0 && level->getTile(x+1, y, z != 0) && level->getTile(x, y, z-1) != 0 && level->getTile(x, y, z+1) != 0 ? Tile::shouldRenderFace(level, x, y, z, -1, face) : true;
     }
     
-    if (level->isSolidTile(x, y, z)) {
-        return false;
-    }
-    
-    return true;
+    return false;
 }
 
 void LiquidTile::renderFace(Tessellator& t, int x, int y, int z, int face) {

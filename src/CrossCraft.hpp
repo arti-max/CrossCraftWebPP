@@ -25,12 +25,14 @@
 #include "level/LevelIO.hpp"
 #include "particle/ParticleEngine.hpp"
 #include "net/Client.hpp"
+#include "net/NetworkPlayer.hpp"
 
 class CrossCraft : public LevelLoaderListener {
 private:
-    const std::string VERSION_STRING = "0.0.4a_01";
+    const std::string VERSION_STRING = "0.0.5a MULTIPLAYER TEST 1";
     int lastFpsTime = 0;
     int frames = 0;
+    int lastProgress = -1;
     std::string fpsString;
     std::string title = "";
     std::string status = "";
@@ -42,11 +44,13 @@ private:
     bool fullscreen;
     bool running = false;
     bool paused = false;
+    bool canRender = true;
     std::string parent;
     int editMode = 0;
     int selectedTile = Tile::rock->id;
     bool mouseGrabbed = false;
     float fogDistance = 0.0f;
+    int attackTime = 0;
 
     GLFWwindow* window;
 

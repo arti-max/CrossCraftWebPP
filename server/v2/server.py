@@ -12,6 +12,9 @@ HOST = "localhost"
 PORT = 25565
 CLIENTS = set()
 
+SERVER_NAME = "CrossCraft Test Server"
+SERVER_MOTD = "Welcome to the 0.0.5a Multiplayer Test!"
+
 # --- Константы ---
 AIR, STONE, GRASS, DIRT, WATER, SAND = 0, 1, 2, 3, 9, 12
 WIDTH, HEIGHT, DEPTH = 256, 256, 64
@@ -117,6 +120,19 @@ async def handler(websocket):
     register(websocket)
     
     try:
+        packet_id = 0x11
+        protocol_version = 1
+        name_bytes = SERVER_NAME.encode('utf-8')
+        motd_bytes = SERVER_MOTD.encode('utf-8')
+        
+        packet_data = struct.pack('!B', protocol_version) + \
+                      struct.pack('!h', len(name_bytes)) + name_bytes + \
+                      struct.pack('!h', len(motd_bytes)) + motd_bytes
+        
+        packet = struct.pack('!B', packet_id) + packet_data
+        await websocket.send(packet)
+        logging.info(f"-> SENT SERVER_IDENTIFICATION (0x11), name: '{SERVER_NAME}'")
+        
         # 1. Получаем Login Packet
         login_packet_data = await websocket.recv()
         logging.info(f"<- RECV LOGIN (0x00), size: {len(login_packet_data)} bytes")

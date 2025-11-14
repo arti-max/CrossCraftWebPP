@@ -19,6 +19,7 @@ public:
     float x, y, z;
     float xd, yd, zd;
     float yRot, xRot;
+    float xRotI, yRotI;
 
     AABB bb;
     
@@ -37,6 +38,7 @@ public:
     void setPos(float x, float y, float z);
     void remove();
     void turn(float xo, float yo);
+    void interpolateTurn(float xo, float yo);
     virtual void tick();
     bool isFree(float xa, float ya, float za);
     void move(float xa, float ya, float za);

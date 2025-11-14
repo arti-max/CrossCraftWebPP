@@ -10,14 +10,15 @@ enum class PacketType : uint8_t {
     
     // from Server
     LOGIN_RESPONSE = 0x10,
-    LEVEL_INIT = 0x11,
+    SERVER_IDENTIFICATION = 0x11,
     LEVEL_DATA = 0x12,
-    LEVEL_FINALIZE = 0x13,
-    PLAYER_SPAWN = 0x14,
-    PLAYER_DESPAWN = 0x15,
-    PLAYER_POSITION = 0x16,
     BLOCK_UPDATE = 0x17,
     CHAT_BROADCAST = 0x18,
+    PLAYER_SPAWN = 0x20,
+    PLAYER_DESPAWN = 0x22,
+    PLAYER_POSITION = 0x21,
+    SET_SPAWN_POSITION = 0x23,
+    REQUEST_SPAWN_POSITION = 0x24,
     
     // Other
     PING = 0xFE,

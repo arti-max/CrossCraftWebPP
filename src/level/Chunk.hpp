@@ -15,13 +15,14 @@ private:
     Level* level;
     int x0, y0, z0;
     int x1, y1, z1;
-    float x, y, z;
     int lists;
     bool dirty = true;
 public:
     static int rebuiltThisFrame;
     static int updates;
     AABB boundingBox;
+    float boundingSphereRadius;
+        float x, y, z;
     bool visible = false;
 
     Chunk(Level* level, int x0, int y0, int z0, int x1, int y1, int z1);

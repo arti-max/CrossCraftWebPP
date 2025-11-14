@@ -87,43 +87,47 @@ bool Tile::render(Tessellator& t, Level* level, int layer, int x, int y, int z) 
     float c3 = 0.6f;
 
     if (this->shouldRenderFace(level, x, y - 1, z, layer, 0)) {
-        float brightness = level->getBrightness(x, y - 1, z);
+        float brightness = this->getBrightness(level, x, y - 1, z);
         t.color(brightness * c1, brightness * c1, brightness * c1);
         this->renderFace(t, x, y, z, 0);
         rendered = true;
     }
     if (this->shouldRenderFace(level, x, y + 1, z, layer, 1)) {
-        float brightness = level->getBrightness(x, y + 1, z);
+        float brightness = this->getBrightness(level, x, y + 1, z);
         t.color(brightness * c1, brightness * c1, brightness * c1);
         this->renderFace(t, x, y, z, 1);
         rendered = true;
     }
     if (this->shouldRenderFace(level, x, y, z - 1, layer, 2)) {
-        float brightness = level->getBrightness(x, y, z - 1);
+        float brightness = this->getBrightness(level, x, y, z - 1);
         t.color(brightness * c2, brightness * c2, brightness * c2);
         this->renderFace(t, x, y, z, 2);
         rendered = true;
     }
     if (this->shouldRenderFace(level, x, y, z + 1, layer, 3)) {
-        float brightness = level->getBrightness(x, y, z + 1);
+        float brightness = this->getBrightness(level, x, y, z + 1);
         t.color(brightness * c2, brightness * c2, brightness * c2);
         this->renderFace(t, x, y, z, 3);
         rendered = true;
     }
     if (this->shouldRenderFace(level, x - 1, y, z, layer, 4)) {
-        float brightness = level->getBrightness(x - 1, y, z);
+        float brightness = this->getBrightness(level, x - 1, y, z);
         t.color(brightness * c3, brightness * c3, brightness * c3);
         this->renderFace(t, x , y, z, 4);
         rendered = true;
     }
     if (this->shouldRenderFace(level, x + 1, y, z, layer, 5)) {
-        float brightness = level->getBrightness(x + 1, y, z);
+        float brightness = this->getBrightness(level, x + 1, y, z);
         t.color(brightness * c3, brightness * c3, brightness * c3);
         this->renderFace(t, x, y, z, 5);
         rendered = true;
     }
 
     return rendered;
+}
+
+float Tile::getBrightness(Level* level, int x, int y, int z) {
+    return level->getBrightness(x, y, z);
 }
 
 void Tile::renderFace(Tessellator& t, int x, int y, int z, int face) {
@@ -133,13 +137,15 @@ void Tile::renderFace(Tessellator& t, int x, int y, int z, int face) {
     const float tilePixels = 16.0f;
     const float atlasPixels = 256.0f;
     
+    const float epsilon = 0.01f / atlasPixels; 
+
     const float col = static_cast<float>(tex % static_cast<int>(atlasSize));
     const float row = static_cast<float>(tex / static_cast<int>(atlasSize));
 
-    const float u0 = col * tilePixels / atlasPixels;
-    const float u1 = u0 + tilePixels / atlasPixels;
-    const float v0 = row * tilePixels / atlasPixels;
-    const float v1 = v0 + tilePixels / atlasPixels;
+    const float u0 = (col * tilePixels) / atlasPixels + epsilon;
+    const float u1 = u0 + (tilePixels / atlasPixels) - (epsilon * 2.0f);
+    const float v0 = (row * tilePixels) / atlasPixels + epsilon;
+    const float v1 = v0 + (tilePixels / atlasPixels) - (epsilon * 2.0f);
 
     float x0 = (float)x + this->minX;
     float x1 = (float)x + this->maxX;
@@ -187,13 +193,15 @@ void Tile::renderBackFace(Tessellator& t, int x, int y, int z, int face) {
     const float tilePixels = 16.0f;
     const float atlasPixels = 256.0f;
     
+    const float epsilon = 0.01f / atlasPixels;
+
     const float col = static_cast<float>(tex % static_cast<int>(atlasSize));
     const float row = static_cast<float>(tex / static_cast<int>(atlasSize));
-    
-    const float u0 = col * tilePixels / atlasPixels;
-    const float u1 = u0 + tilePixels / atlasPixels;
-    const float v0 = row * tilePixels / atlasPixels;
-    const float v1 = v0 + tilePixels / atlasPixels;
+
+    const float u0 = (col * tilePixels) / atlasPixels + epsilon;
+    const float u1 = u0 + (tilePixels / atlasPixels) - (epsilon * 2.0f);
+    const float v0 = (row * tilePixels) / atlasPixels + epsilon;
+    const float v1 = v0 + (tilePixels / atlasPixels) - (epsilon * 2.0f);
 
     float x0 = static_cast<float>(x) + this->minX;
     float x1 = static_cast<float>(x) + this->maxX;

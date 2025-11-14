@@ -4,6 +4,13 @@
 #include "net/packet/BlockChangePacket.hpp"
 #include "net/packet/LevelLoadPacket.hpp"
 #include "net/packet/BlockUpdatePacket.hpp"
+#include "net/packet/ServerIdent.hpp"
+#include "net/packet/SpawnPlayerPacket.hpp"
+#include "net/packet/PositionPacket.hpp"
+#include "net/packet/DespawnPlayerPacket.hpp"
+#include "net/packet/SetSpawnPositionPacket.hpp"
+#include "net/packet/RequestSpawnPositionPacket.hpp"
+
 #include <emscripten/websocket.h>
 #include <functional>
 #include <queue>

@@ -195,12 +195,18 @@ double Mouse::getY() {
 
 double Mouse::getDX() {
     double dx = deltaX;
+    if (std::abs(dx) > 1000.0) {
+        dx = 0.0;
+    }
     deltaX = 0.0;
     return dx;
 }
 
 double Mouse::getDY() {
     double dy = deltaY;
+    if (std::abs(dy) > 1000.0) {
+        dy = 0.0;
+    }
     deltaY = 0.0;
     return dy;
 }
