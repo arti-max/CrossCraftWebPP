@@ -91,6 +91,11 @@ void Font::draw(const std::string& str, float x, float y, int color) {
     internalDraw(str, x, y, color, false);
 }
 
+void Font::drawCentered(const std::string& text, int x, int y, int color) {
+    int textWidth = this->width(text);
+    this->drawShadow(text, x - textWidth / 2, y, color);
+}
+
 void Font::internalDraw(const std::string& str, float x, float y, int color, bool darken) {
     if (str.empty()) return;
     

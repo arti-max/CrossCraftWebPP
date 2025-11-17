@@ -29,13 +29,16 @@
 
 class CrossCraft : public LevelLoaderListener {
 private:
-    const std::string VERSION_STRING = "0.0.5a MULTIPLAYER TEST 1";
+    const std::string VERSION_STRING = "0.0.5a MULTIPLAYER TEST 3";
     int lastFpsTime = 0;
     int frames = 0;
     int lastProgress = -1;
     std::string fpsString;
     std::string title = "";
     std::string status = "";
+    bool inErrorState = false;
+    std::string errorTitle;
+    std::string errorReason;
 
     std::array<float, 4> fogColor0;
     std::array<float, 4> fogColor1;
@@ -51,6 +54,7 @@ private:
     bool mouseGrabbed = false;
     float fogDistance = 0.0f;
     int attackTime = 0;
+    int clickDelay = 0;
 
     GLFWwindow* window;
 
@@ -76,6 +80,8 @@ private:
     void destroy();
     void handleMouseClick();
     bool isFree(const AABB &aabb);
+
+    void drawErrorScreen();
 
     int getSelectedTile();
 
@@ -130,8 +136,9 @@ public:
     void beginLevelLoading(const char str[]) override;
     void levelLoadUpdate(const char str[]) override;
     void levelLoadProgress(int progress) override;
+    void showErrorScreen(const std::string& title, const std::string& reason);
 
     void connectToServer(const std::string& serverUrl);
     void handleNetworkPacket(Packet* packet);
-    void connectError();
+    void connectError(std::string error);
 };

@@ -26,6 +26,7 @@ private:
     std::function<void()> onConnectCallback;
     std::function<void(Packet*)> onPacketCallback;
     std::function<void(const std::string&)> onErrorCallback;
+    std::function<void(const std::string&)> onCloseCallback;
 
     static EM_BOOL onOpen(int eventType, const EmscriptenWebSocketOpenEvent* event, void* userData);
     static EM_BOOL onError(int eventType, const EmscriptenWebSocketErrorEvent* event, void* userData);
@@ -46,4 +47,5 @@ public:
     void setOnConnect(std::function<void()> callback) { onConnectCallback = callback; }
     void setOnPacket(std::function<void(Packet*)> callback) { onPacketCallback = callback; }
     void setOnError(std::function<void(const std::string&)> callback) { onErrorCallback = callback; }
+    void setOnClose(std::function<void(const std::string&)> callback) { onCloseCallback = callback; }
 };

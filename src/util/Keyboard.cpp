@@ -58,18 +58,18 @@ bool Keyboard::isKeyDown(int key) {
         return false;
     }
     
-    bool glfwState = glfwGetKey(window, key) == GLFW_PRESS;
-    bool ourState = keyStates[key];
+    // bool glfwState = glfwGetKey(window, key) == GLFW_PRESS;
+    // bool ourState = keyStates[key];
     
-    if (glfwState != ourState) {
-        keyStates[key] = glfwState;
+    // if (glfwState != ourState) {
+    //     keyStates[key] = glfwState;
         
-        KeyEvent correctionEvent;
-        correctionEvent.key = key;
-        correctionEvent.state = glfwState;
-        correctionEvent.character = 0;
-        events.push(correctionEvent);
-    }
+    //     KeyEvent correctionEvent;
+    //     correctionEvent.key = key;
+    //     correctionEvent.state = glfwState;
+    //     correctionEvent.character = 0;
+    //     events.push(correctionEvent);
+    // }
     
     return keyStates[key];
 }
@@ -106,25 +106,21 @@ void Keyboard::keyCallback(GLFWwindow* window, int key, int scancode, int action
     event.key = key;
     event.character = 0;
     
-    switch (action) {
-        case GLFW_PRESS:
+    if (action == GLFW_PRESS) {
+        if (!keyStates[key]) { 
             event.state = true;
             keyStates[key] = true;
             events.push(event);
-            break;
-            
-        case GLFW_RELEASE:
-            event.state = false;
-            keyStates[key] = false;
+        }
+    } else if (action == GLFW_RELEASE) {
+        event.state = false;
+        keyStates[key] = false;
+        events.push(event);
+    } else if (action == GLFW_REPEAT) {
+        if (repeatEventsEnabled) {
+            event.state = true;
             events.push(event);
-            break;
-            
-        case GLFW_REPEAT:
-            if (repeatEventsEnabled) {
-                event.state = true;
-                events.push(event);
-            }
-            break;
+        }
     }
 }
 

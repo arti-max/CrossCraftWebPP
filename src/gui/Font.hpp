@@ -18,6 +18,7 @@ public:
     ~Font() = default;
     
     void drawShadow(const std::string& str, float x, float y, int color);
+    void drawCentered(const std::string& text, int x, int y, int color);
     void draw(const std::string& str, float x, float y, int color);
     int width(const std::string& str);
 };

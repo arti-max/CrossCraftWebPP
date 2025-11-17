@@ -23,6 +23,7 @@ private:
     static double deltaWheel;
     static bool grabbed;
     static GLFWwindow* window;
+    static bool queue_locked;
 
     #ifdef __EMSCRIPTEN__
         static EM_BOOL mouseDownCallback(int eventType, const EmscriptenMouseEvent *e, void *userData);
@@ -41,6 +42,7 @@ public:
     Mouse(GLFWwindow* win);
     ~Mouse();
 
+    static size_t getQueueSize();
     static void create();
     static void destroy();
     static void init(GLFWwindow* win);
@@ -59,5 +61,6 @@ public:
     static void setGrabbed(bool grab);
     static bool isGrabbed();
     static void poll();
+    static void clearEvents();
 
 };

@@ -58,11 +58,6 @@ void Entity::setPos(float x, float y, float z) {
 void Entity::turn(float xo, float yo) {
     yRot += xo * 0.15f;
     xRot -= yo * 0.15f;
-
-    yRot = std::fmod(yRot, 360.0f);
-    if (yRot < 0.0f) {
-        yRot += 360.0f;
-    }
     
     xRot = std::max(-90.0f, xRot);
     xRot = std::min(90.0f, xRot);

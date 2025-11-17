@@ -1,7 +1,7 @@
 #include "net/NetworkPlayer.hpp"
 #include <random>
 
-NetworkPlayer::NetworkPlayer(Level* level, int var2, std::string &var3, float x, float y, float z, float yRot, float xRot) : Entity::Entity(level) {
+NetworkPlayer::NetworkPlayer(Level* level, int playerId, std::string &username, float x, float y, float z, float yRot, float xRot) : Entity::Entity(level) {
     this->setPos(x, y, z);
     this->xRot = xRot;
     this->yRot = yRot;
@@ -21,6 +21,9 @@ NetworkPlayer::NetworkPlayer(Level* level, int var2, std::string &var3, float x,
     this->serverZ = z;
     this->serverYaw = yRot;
     this->serverPitch = xRot;
+
+    this->username = username;
+    this->playerId = playerId;
 }
 
 NetworkPlayer::~NetworkPlayer() {
@@ -48,14 +51,14 @@ void NetworkPlayer::tick() {
     }
 }
 
-void NetworkPlayer::render(Textures* textures, float partialTicks) {
+void NetworkPlayer::render(Textures* textures, float partialTicks, Font* font, Player* localPlayer) {
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, textures->loadTexture("char", GL_NEAREST));
     glPushMatrix();
     float interpX = this->xo + (this->x - this->xo) * partialTicks;
     float interpY = this->yo + (this->y - this->yo) * partialTicks;
     float interpZ = this->zo + (this->z - this->zo) * partialTicks;
-    float renderAnimTime = (float)(this->level->tickCount + partialTicks) * 0.4f;
+    float renderAnimTime = (float)(this->level->tickCount + partialTicks) * 0.5f;
     if (this->movingTicks == 0) {
         renderAnimTime = 0;
     }
@@ -71,6 +74,49 @@ void NetworkPlayer::render(Textures* textures, float partialTicks) {
     glRotatef(-this->yRot, 0.0f, 1.0f, 0.0f);
     this->model->render((float)renderAnimTime, this->xRot);
     glPopMatrix();
+
+    float dx = interpX - localPlayer->x;
+    float dy = interpY - localPlayer->y;
+    float dz = interpZ - localPlayer->z;
+    float distanceSq = dx*dx + dy*dy + dz*dz;
+
+    if (distanceSq < 4096.0f) {
+        glPushMatrix();
+        
+        glTranslatef(interpX, interpY + 0.8f, interpZ);
+
+        glRotatef(-localPlayer->yRot, 0.0f, 1.0f, 0.0f);
+        glRotatef(-localPlayer->xRot, 1.0f, 0.0f, 0.0f);
+
+        float scale = 0.005f * std::sqrt(distanceSq);
+        const float min_scale = 0.02f;
+        const float max_scale = 0.2f;
+
+        if (scale < min_scale) scale = min_scale;
+        if (scale > max_scale) scale = max_scale;
+        
+        glScalef(scale, -scale, scale); 
+
+        glDisable(GL_BLEND);
+        glDisable(GL_LIGHTING);
+        glDisable(GL_TEXTURE_2D);
+        glDisable(GL_FOG);
+        
+        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+        font->drawCentered(this->username, 0, 0, 0xFFFFFF);
+
+        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+        glDisable(GL_DEPTH_TEST);
+        font->drawCentered(this->username, 0, 0, 0xFFFFFF);
+        glEnable(GL_DEPTH_TEST);
+
+        glEnable(GL_BLEND);
+        glEnable(GL_LIGHTING);
+        glEnable(GL_TEXTURE_2D);
+        glEnable(GL_FOG);
+
+        glPopMatrix();
+    }
     glDisable(GL_TEXTURE_2D);
 }
 

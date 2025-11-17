@@ -12,7 +12,15 @@
 #include "Player.hpp"
 #include "sort/DistanceSorter.hpp"
 #include "sort/DirtyChunkSorter.hpp"
+#include "character/Vec3.hpp"
+#include "gui/Font.hpp"
 #include <GL/gl.h>
+
+struct NameTagInfo {
+    std::string text;
+    Vec3 position;
+    float scale;
+};
 
 class LevelRenderer : public LevelListener {
 private:
@@ -25,6 +33,7 @@ private:
     float lX = 0.0f;
     float lY = 0.0f;
     float lZ = 0.0f;
+    std::vector<NameTagInfo> nameTagsToRender;
 
 public:
     static const int MAX_REBUILDS_PER_FRAME = 4;
@@ -53,4 +62,6 @@ public:
     void renderHitOutline(HitResult* h, Player* player, int mode, int tileType);
     void renderClouds(float partialTicks);
     void renderSky();
+    void addNameTagToRender(const std::string& text, const Vec3& pos, float scale);
+    void renderNameTags(Font* font, Player* localPlayer);
 };

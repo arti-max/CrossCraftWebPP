@@ -3,6 +3,7 @@
 
 // Статические переменные
 std::queue<MouseEvent> Mouse::events;
+bool Mouse::queue_locked = false;
 MouseEvent Mouse::currentEvent;
 double Mouse::mouseX = 0.0;
 double Mouse::mouseY = 0.0;
@@ -16,8 +17,12 @@ GLFWwindow* Mouse::window = nullptr;
 #include <emscripten.h>
 #include <emscripten/html5.h>
 
+size_t Mouse::getQueueSize() {
+    return events.size();
+}
+
 EM_BOOL Mouse::mouseDownCallback(int eventType, const EmscriptenMouseEvent *e, void *userData) {
-    
+    if (Mouse::queue_locked) return EM_TRUE;
     // Добавляем событие нажатия в очередь
     MouseEvent event;
     event.button = e->button;
@@ -31,7 +36,7 @@ EM_BOOL Mouse::mouseDownCallback(int eventType, const EmscriptenMouseEvent *e, v
 }
 
 EM_BOOL Mouse::mouseUpCallback(int eventType, const EmscriptenMouseEvent *e, void *userData) {
-    
+    if (Mouse::queue_locked) return EM_TRUE;
     // Добавляем событие отпускания в очередь
     MouseEvent event;
     event.button = e->button;
@@ -45,13 +50,16 @@ EM_BOOL Mouse::mouseUpCallback(int eventType, const EmscriptenMouseEvent *e, voi
 }
 
 EM_BOOL Mouse::mouseWheelCallback(int eventType, const EmscriptenWheelEvent *e, void *userData) {
-    MouseEvent event;
-    event.button = -1; // Не является кликом
-    event.state = false;
-    event.x = e->mouse.targetX;
-    event.y = e->mouse.targetY;
-    event.dwheel = e->deltaY; // Сохраняем значение прокрутки
-    Mouse::events.push(event); // Добавляем в общую очередь событий
+    if (!Mouse::isGrabbed()) {
+        return EM_FALSE;
+    }
+    
+    double delta = e->deltaY;
+    if (e->deltaMode == DOM_DELTA_LINE) delta *= 16;
+    else if (e->deltaMode == DOM_DELTA_PAGE) delta *= 800;
+
+    Mouse::deltaWheel += delta;
+
     return EM_TRUE;
 }
 
@@ -130,7 +138,7 @@ void Mouse::create() {
     emscripten_set_mousemove_callback("#canvas", nullptr, true, mouseMoveCallback);
     std::cout << "✓ Mouse move callback registered" << std::endl;
 
-    emscripten_set_wheel_callback("#canvas", nullptr, true, mouseWheelCallback);
+    emscripten_set_wheel_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, nullptr, true, mouseWheelCallback);
     
     // Pointer lock callbacks
     emscripten_set_pointerlockchange_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT, nullptr, true, pointerlockChangeCallback);
@@ -155,13 +163,24 @@ void Mouse::init(GLFWwindow* win) {
     std::cout << "Mouse initialized (GLFW callbacks disabled for web)" << std::endl;
 }
 
+void Mouse::clearEvents() {
+    while (!events.empty()) {
+        events.pop();
+    }
+    deltaWheel = 0.0; 
+}
+
 bool Mouse::next() {
+    queue_locked = true;
+
     if (events.empty()) {
+        queue_locked = false;
         return false;
     }
     
     currentEvent = events.front();
     events.pop();
+    queue_locked = false;
     return true;
 }
 

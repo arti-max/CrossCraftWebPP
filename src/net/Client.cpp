@@ -1,6 +1,26 @@
 #include "net/Client.hpp"
 #include "util/Logger.hpp"
 
+std::string getWebSocketCloseReason(int code) {
+    switch (code) {
+        case 1000: return "Connection closed normally.";
+        case 1001: return "The server is going away.";
+        case 1002: return "Protocol error.";
+        case 1003: return "Unsupported data.";
+        case 1005: return "No status received.";
+        case 1006: return "Connection lost.";
+        case 1007: return "Invalid frame payload data.";
+        case 1008: return "Policy violation.";
+        case 1009: return "Message too big.";
+        case 1010: return "Missing extension.";
+        case 1011: return "Internal server error.";
+        case 1015: return "TLS handshake failed.";
+        default:
+            return "Unknown reason (code: " + std::to_string(code) + ")";
+    }
+}
+
+
 Client::Client() {}
 
 Client::~Client() {
@@ -89,7 +109,18 @@ EM_BOOL Client::onError(int eventType, const EmscriptenWebSocketErrorEvent* even
 EM_BOOL Client::onClose(int eventType, const EmscriptenWebSocketCloseEvent* event, void* userData) {
     Client* client = static_cast<Client*>(userData);
     client->connected = false;
-    Logger::logf(PREFIX_NETWORK, "Disconnected from server (code: %d)\n", event->code);
+
+    std::string reason = getWebSocketCloseReason(event->code);
+    Logger::logf(PREFIX_NETWORK, "Disconnected from server: %s\n", reason.c_str());
+    
+    if (client->onCloseCallback) {
+        if (strlen(event->reason) > 0) {
+            reason += " (";
+            reason += event->reason;
+            reason += ")";
+        }
+        client->onCloseCallback(reason);
+    }
     
     return EM_TRUE;
 }

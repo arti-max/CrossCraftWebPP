@@ -101,6 +101,7 @@ void Screen::mouseClicked(int x, int y, int mbtn) {
             Button* btn = this->buttons[i];
             if (btn->enabled && btn->visible && x >= btn->x && y >= btn->y && x < btn->x + btn->w && y < btn->y + btn->h) {
                 this->buttonClicked(btn);
+                while(Mouse::next()) {}
             }
         }
     }
@@ -116,6 +117,7 @@ void Screen::updateEvents() {
             float xm = Mouse::getEventX() * this->width / this->cc->width;
             float ym = Mouse::getEventY() * this->height / this->cc->height;
             this->mouseClicked(xm, ym, Mouse::getEventButton());
+            return;
         }
     }
 

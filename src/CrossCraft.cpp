@@ -119,6 +119,10 @@ void CrossCraft::init() {
 void CrossCraft::setScreen(Screen* screen) {
     if (this->screen != nullptr) this->screen->onClose();
     this->screen = screen;
+    if (screen == nullptr) {
+        Mouse::clearEvents();
+        this->clickDelay = 10;
+    }
     if (screen != nullptr) {
         int screenWidth = this->width * 240 / this->height;
         int screenHeight = this->height * 240 / this->height;
@@ -196,7 +200,9 @@ void CrossCraft::mainLoop() {
         this->tick();
     }
 
-    if (this->canRender) {
+    if (this->inErrorState) {
+        this->drawErrorScreen();
+    } else if (this->canRender) {
         this->checkGlError("Pre render");
         this->render(this->timer->partialTicks);
         this->checkGlError("Post render");
@@ -233,6 +239,10 @@ bool CrossCraft::isFree(const AABB &aabb) {
 }
 
 void CrossCraft::handleMouseClick() {
+    if (this->clickDelay > 0) {
+        return;
+    }
+
     if (this->editMode == 0) {
         if (this->hitResult != nullptr) {
             Tile* previousTile = Tile::tiles[this->level->getTile(this->hitResult->x, this->hitResult->y, this->hitResult->z)];
@@ -245,9 +255,8 @@ void CrossCraft::handleMouseClick() {
                         this->hitResult->x, this->hitResult->y, this->hitResult->z, 
                         0, false);
                     client->sendPacket(packet);
-                } else {
-                    previousTile->onDestroy(this->level, this->hitResult->x, this->hitResult->y, this->hitResult->z, this->particleEngine);
                 }
+                previousTile->onDestroy(this->level, this->hitResult->x, this->hitResult->y, this->hitResult->z, this->particleEngine);
             }
         }
     } else if (this->hitResult != nullptr) {
@@ -285,6 +294,9 @@ void CrossCraft::tick() {
     if (this->attackTime > 0) {
         this->attackTime--;
     }
+    if (this->clickDelay > 0) {
+        this->clickDelay--;
+    }
 
     if (this->mouseGrabbed && !Mouse::isGrabbed()) {
         printf("CrossCraft: Pointer lock released by browser (probably ESC)\n");
@@ -297,14 +309,11 @@ void CrossCraft::tick() {
             this->screen->tick();
         }
         
-        while (Mouse::next()) {}
-        while (Keyboard::next()) {}
-        
         goto update_world;
     }
 
     if (this->screen == nullptr) {
-        if (Keyboard::next()) {
+        while (Keyboard::next()) { 
             this->player->setKey();
             if (Keyboard::getEventKeyState()) {
                 if (Keyboard::getEventKey() == GLFW_KEY_ESCAPE) {
@@ -337,23 +346,15 @@ void CrossCraft::tick() {
             }
         }
         while (Mouse::next()) {
-            double dWheel = Mouse::getEventDWheel();
-            if (dWheel != 0.0) {
-                int scrollDirection = (dWheel > 0) ? 1 : -1;
-                this->hotbarIndex += scrollDirection;
-
-                int numSlots = this->hotbarSlots.size();
-                this->hotbarIndex = (this->hotbarIndex % numSlots + numSlots) % numSlots;
-                this->selectedTile = this->hotbarSlots[this->hotbarIndex];
-            }
 
             if (!this->mouseGrabbed && Mouse::getEventButtonState()) {
                 this->grabMouse();
             } else {
                 if (Mouse::getEventButton() == 0 && Mouse::getEventButtonState()) {
                     this->handleMouseClick();
-                    this->attackTime = 5; 
+                    this->attackTime = 5;
                 }
+
                 if (Mouse::getEventButton() == 2 && Mouse::getEventButtonState()) {
                     this->editMode = (this->editMode + 1) % 2;
                 }
@@ -370,13 +371,31 @@ void CrossCraft::tick() {
                                 if (this->hotbarSlots[i] == pickedID) {
                                     this->hotbarIndex = i;
                                     this->selectedTile = this->hotbarSlots[this->hotbarIndex];
-                                    Logger::logf(PREFIX_DEBUG, "Picked block: %d, hotbar slot: %d\n", pickedID, i + 1);
                                     break;
                                 }
                             }
                         }
                     }
                 }
+            }
+        }
+
+        double dWheel = Mouse::getDWheel();
+        if (dWheel != 0.0) {
+            const double threshold = 5.0; 
+            
+            int scrollDirection = 0;
+            if (dWheel > threshold) scrollDirection = 1;
+            else if (dWheel < -threshold) scrollDirection = -1;
+
+            if (scrollDirection != 0) {
+                int steps = static_cast<int>(dWheel / 100.0);
+                if (steps == 0) steps = scrollDirection;
+
+                this->hotbarIndex += steps;
+                int numSlots = this->hotbarSlots.size();
+                this->hotbarIndex = (this->hotbarIndex % numSlots + numSlots) % numSlots;
+                this->selectedTile = this->hotbarSlots[this->hotbarIndex];
             }
         }
 
@@ -435,6 +454,10 @@ void CrossCraft::render(float partialTicks) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     this->fogDistance = (float)(1024 >> (this->levelRenderer->drawDistance << 1));
     this->setupCamera(partialTicks);
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
     glEnable(GL_CULL_FACE);
     Frustum& frustum = Frustum::getFrustum();
     this->levelRenderer->cull(frustum);
@@ -454,7 +477,7 @@ void CrossCraft::render(float partialTicks) {
     }
     for (auto const& [id, net_player] : this->level->networkPlayers) {
         if (net_player != nullptr) {
-            net_player->render(this->textures, partialTicks);
+            net_player->render(this->textures, partialTicks, this->font, this->player);
         }
     }
     this->checkGlError("Rendered entities");
@@ -500,6 +523,10 @@ void CrossCraft::render(float partialTicks) {
         glEnable(GL_ALPHA_TEST);
         glDepthFunc(GL_LEQUAL);
     }
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
     this->drawGui(partialTicks);
     this->checkGlError("Rendered gui");
     glfwSwapBuffers(window);
@@ -728,6 +755,50 @@ void CrossCraft::generateNewLevel(int width, int height, int depth) {
     }
 }
 
+void CrossCraft::showErrorScreen(const std::string& title, const std::string& reason) {
+    this->inErrorState = true;
+    this->errorTitle = title;
+    this->errorReason = reason;
+}
+
+void CrossCraft::drawErrorScreen() {
+    int screenWidth = this->width * 240 / this->height;
+    int screenHeight = this->height * 240 / this->height;
+
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0.0f, screenWidth, screenHeight, 0.0f, 100.0f, 300.0f);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glTranslatef(0.0f, 0.0f, -200.0f);
+
+    glDisable(GL_TEXTURE_2D);
+
+    glBegin(GL_QUADS);
+    
+    glColor4f(0.42f, 0.08f, 0.07f, 1.0f);  // #6b1412
+    glVertex2f(screenWidth, 0);
+    glVertex2f(0, 0);
+    
+    glColor4f(0.24f, 0.02f, 0.02f, 1.0f); // #3d0505
+    glVertex2f(0, screenHeight);
+    glVertex2f(screenWidth, screenHeight);
+    
+    glEnd();
+
+    glPushMatrix();
+    glTranslatef(screenWidth / 2.0f, screenHeight / 2.0f - 20.0f, 0.0f);
+    glScalef(2.0f, 2.0f, 2.0f);
+    this->font->drawCentered(this->errorTitle, 0, 0, 0xFFFFFFFF);
+    glPopMatrix();
+
+    glPushMatrix();
+    glTranslatef(screenWidth / 2.0f, screenHeight / 2.0f + 10.0f, 0.0f);
+    this->font->drawCentered(this->errorReason, 0, 0, 0xFFFFFFFF);
+    glPopMatrix();
+}
+
 void CrossCraft::connectToServer(const std::string& serverUrl) {
     if (client == nullptr) {
         client = new Client();
@@ -743,7 +814,11 @@ void CrossCraft::connectToServer(const std::string& serverUrl) {
     });
 
     client->setOnError([this](std::string error) {
-        connectError();
+        connectError(error);
+    });
+
+    client->setOnClose([this](std::string reason) {
+        this->showErrorScreen("Disconnected", reason);
     });
     
     this->beginLevelLoading("Connecting to server...");
@@ -752,11 +827,9 @@ void CrossCraft::connectToServer(const std::string& serverUrl) {
     client->connect(serverUrl);
 }
 
-void CrossCraft::connectError() {
+void CrossCraft::connectError(std::string error) {
     Logger::logf(PREFIX_NETWORK, "Connection error!\n");
-    this->mpMode = false;
-    this->init();
-    this->canRender = true;
+    this->showErrorScreen("Connection Error!", error);
 }
 
 void CrossCraft::handleNetworkPacket(Packet* packet) {
@@ -811,7 +884,7 @@ void CrossCraft::handleNetworkPacket(Packet* packet) {
             Logger::logf(PREFIX_NETWORK, "Spawning player %s (ID: %d)\n", p->username.c_str(), p->playerId);
             
             NetworkPlayer* new_player = new NetworkPlayer(this->level, p->playerId, p->username, p->x, p->y, p->z, p->yaw, p->pitch);
-            
+            Logger::logf(PREFIX_NETWORK, "Username in player: %s", new_player->username.c_str());
             this->level->networkPlayers[p->playerId] = new_player;
             break;
         }
