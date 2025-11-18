@@ -10,6 +10,7 @@
 #include "net/packet/DespawnPlayerPacket.hpp"
 #include "net/packet/SetSpawnPositionPacket.hpp"
 #include "net/packet/RequestSpawnPositionPacket.hpp"
+#include "net/packet/ChatMessagePacket.hpp"
 
 #include <emscripten/websocket.h>
 #include <functional>

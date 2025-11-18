@@ -18,6 +18,8 @@
 #include "character/Zombie.hpp"
 #include "gui/Screen.hpp"
 #include "gui/PauseScreen.hpp"
+#include "gui/ChatScreen.hpp"
+#include "gui/ChatGui.hpp"
 #include "User.hpp"
 #include "util/Logger.hpp"
 #include "level/LevelLoaderListener.hpp"
@@ -29,7 +31,7 @@
 
 class CrossCraft : public LevelLoaderListener {
 private:
-    const std::string VERSION_STRING = "0.0.5a MULTIPLAYER TEST 3";
+    const std::string VERSION_STRING = "0.0.5a_01";
     int lastFpsTime = 0;
     int frames = 0;
     int lastProgress = -1;
@@ -39,6 +41,8 @@ private:
     bool inErrorState = false;
     std::string errorTitle;
     std::string errorReason;
+    std::vector<std::string> connectionUrls;
+    int currentUrlIndex = 0;
 
     std::array<float, 4> fogColor0;
     std::array<float, 4> fogColor1;
@@ -66,7 +70,6 @@ private:
     LevelGen* levelGen = new LevelGen(this);
     LevelIO* levelIO = new LevelIO(this);
     ParticleEngine* particleEngine;
-    Client* client = nullptr;
     
     std::vector<int> hotbarSlots;
     int hotbarIndex = 0;
@@ -76,7 +79,7 @@ private:
     void init();
     void tick();
     void render(float partialTicks);
-    void raycast(float partialTicks);
+    void raycast();
     void destroy();
     void handleMouseClick();
     bool isFree(const AABB &aabb);
@@ -106,6 +109,8 @@ public:
     Font* font;
     Textures* textures = nullptr;
     Player* player;
+    Client* client = nullptr;
+    ChatGui* chatGui;
 
     CrossCraft(const char* parent, int width, int height, bool fullscreen);
     ~CrossCraft();
@@ -138,7 +143,7 @@ public:
     void levelLoadProgress(int progress) override;
     void showErrorScreen(const std::string& title, const std::string& reason);
 
-    void connectToServer(const std::string& serverUrl);
+    void connectToServer();
     void handleNetworkPacket(Packet* packet);
     void connectError(std::string error);
 };

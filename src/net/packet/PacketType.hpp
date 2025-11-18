@@ -19,6 +19,10 @@ enum class PacketType : uint8_t {
     PLAYER_POSITION = 0x21,
     SET_SPAWN_POSITION = 0x23,
     REQUEST_SPAWN_POSITION = 0x24,
+
+    SERVER_CHAT_MESSAGE = 0x30,
+    CLIENT_CHAT_MESSAGE = 0x31,
+
     
     // Other
     PING = 0xFE,

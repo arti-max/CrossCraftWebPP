@@ -9,6 +9,7 @@
 #include "net/packet/DespawnPlayerPacket.hpp"
 #include "net/packet/SetSpawnPositionPacket.hpp"
 #include "net/packet/RequestSpawnPositionPacket.hpp"
+#include "net/packet/ChatMessagePacket.hpp"
 
 void Packet::writeByte(uint8_t value) {
     data.push_back(value);
@@ -156,6 +157,14 @@ Packet* Packet::fromBytes(const uint8_t* bytes, size_t length) {
 
         case PacketType::REQUEST_SPAWN_POSITION:
             packet = new RequestSpawnPositionPacket();
+            break;
+
+        case PacketType::SERVER_CHAT_MESSAGE:
+            packet = new ChatMessagePacket();
+            break;
+
+        case PacketType::CLIENT_CHAT_MESSAGE:
+            packet = new ChatMessagePacket();
             break;
 
         default:

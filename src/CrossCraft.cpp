@@ -71,6 +71,7 @@ void CrossCraft::init() {
     glMatrixMode(GL_MODELVIEW);
     this->checkGlError("Startup");
     this->font = new Font("default", this->textures);
+    this->chatGui = new ChatGui();
     glViewport(0, 0, this->width, this->height);
     this->level = new Level();
     this->particleEngine = new ParticleEngine(this->level);
@@ -86,9 +87,12 @@ void CrossCraft::init() {
             this->loadLevel(this->loadMapUser.c_str(), this->loadMapId);
         }
     } else {
-        this->level->isRemote = true;
-        std::string wsUrl = "ws://" + this->serverAddress + ":" + std::to_string(this->serverPort);
-        this->connectToServer(wsUrl);
+        this->connectionUrls.push_back("ws://" + this->serverAddress + ":" + std::to_string(this->serverPort));
+        
+        this->connectionUrls.push_back("ws://" + this->serverAddress + "/ws/");
+
+        this->currentUrlIndex = 0;
+        this->connectToServer();
     }
 
     this->levelRenderer = new LevelRenderer(this->level, this->textures);
@@ -249,7 +253,7 @@ void CrossCraft::handleMouseClick() {
 
             bool tileChanged = this->level->setTile(this->hitResult->x, this->hitResult->y, this->hitResult->z, 0);
             if (previousTile != nullptr && tileChanged) {
-                if (this->mpMode && client && client->isConnected()) {
+                if (this->mpMode && this->client && this->client->isConnected()) {
                     this->level->setTile(this->hitResult->x, this->hitResult->y, this->hitResult->z, previousTile->id);
                     BlockChangePacket* packet = new BlockChangePacket(
                         this->hitResult->x, this->hitResult->y, this->hitResult->z, 
@@ -298,9 +302,15 @@ void CrossCraft::tick() {
         this->clickDelay--;
     }
 
+    this->chatGui->tick();
+
     if (this->mouseGrabbed && !Mouse::isGrabbed()) {
         printf("CrossCraft: Pointer lock released by browser (probably ESC)\n");
         this->releaseMouse();
+    }
+
+    if (this->screen == nullptr) {
+        this->raycast();
     }
 
     if (this->screen != nullptr) {
@@ -319,6 +329,12 @@ void CrossCraft::tick() {
                 if (Keyboard::getEventKey() == GLFW_KEY_ESCAPE) {
                     this->releaseMouse();
                 }
+
+                if (Keyboard::getEventKey() == GLFW_KEY_T) {
+                    this->player->releaseAllKeys();
+                    this->setScreen(new ChatScreen());
+                }
+
                 if (Keyboard::getEventKey() == GLFW_KEY_ENTER) {
                     this->level->setSpawnPos((int)this->player->x, (int)this->player->y, (int)this->player->z, (int)this->player->yRot);
                     this->player->resetPos();
@@ -429,7 +445,7 @@ update_world:
     }
 }
 
-void CrossCraft::raycast(float partialTicks) {
+void CrossCraft::raycast() {
     if (this->hitResult != nullptr) {
         delete this->hitResult;
         this->hitResult = nullptr;
@@ -449,7 +465,6 @@ void CrossCraft::render(float partialTicks) {
     }
     
     this->checkGlError("Set viewport");
-    this->raycast(partialTicks);
     this->checkGlError("Rasycasted");
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     this->fogDistance = (float)(1024 >> (this->levelRenderer->drawDistance << 1));
@@ -579,6 +594,7 @@ void CrossCraft::drawGui(float partialTicks) {
     t.vertex((float)(wc + 5), (float)(hc + 1), 0.0F);
     t.end();
     this->checkGlError("GUI: Draw crosshair");
+    this->chatGui->render(this->font, screenWidth, screenHeight);
     if (this->screen != nullptr) {
         this->screen->render(xMouse, yMouse);
     }
@@ -799,7 +815,20 @@ void CrossCraft::drawErrorScreen() {
     glPopMatrix();
 }
 
-void CrossCraft::connectToServer(const std::string& serverUrl) {
+void CrossCraft::connectToServer() {
+    if (currentUrlIndex >= connectionUrls.size()) {
+        this->showErrorScreen("Connection Failed", "All connection methods failed.");
+        return;
+    }
+
+    std::string urlToTry = connectionUrls[currentUrlIndex];
+    currentUrlIndex++;
+
+    std::string status = "Connecting... (Attempt " + std::to_string(currentUrlIndex) + "/" + std::to_string(connectionUrls.size()) + ")";
+    this->beginLevelLoading("Connecting to server...");
+    this->levelLoadUpdate(status.c_str()); 
+    this->levelLoadProgress(10);
+
     if (client == nullptr) {
         client = new Client();
     }
@@ -814,7 +843,8 @@ void CrossCraft::connectToServer(const std::string& serverUrl) {
     });
 
     client->setOnError([this](std::string error) {
-        connectError(error);
+        Logger::logf(PREFIX_NETWORK, "Attempt %d failed: %s\n", this->currentUrlIndex, error.c_str());
+        this->connectToServer(); 
     });
 
     client->setOnClose([this](std::string reason) {
@@ -824,7 +854,7 @@ void CrossCraft::connectToServer(const std::string& serverUrl) {
     this->beginLevelLoading("Connecting to server...");
     this->levelLoadUpdate("Establishing connection"); 
     this->levelLoadProgress(10);
-    client->connect(serverUrl);
+    client->connect(urlToTry);
 }
 
 void CrossCraft::connectError(std::string error) {
@@ -919,6 +949,12 @@ void CrossCraft::handleNetworkPacket(Packet* packet) {
             
             this->player->resetPos();
             Logger::logf(PREFIX_NETWORK, "New spawn pos: %d, %d, %d\n", this->level->xSpawn, this->level->ySpawn, this->level->zSpawn);
+            break;
+        }
+
+        case PacketType::SERVER_CHAT_MESSAGE: {
+            ChatMessagePacket* p = static_cast<ChatMessagePacket*>(packet);
+            this->chatGui->addMessage(p->message);
             break;
         }
             
