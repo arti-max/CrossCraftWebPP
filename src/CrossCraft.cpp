@@ -122,6 +122,10 @@ void CrossCraft::init() {
 
 void CrossCraft::setScreen(Screen* screen) {
     if (this->screen != nullptr) this->screen->onClose();
+    if (this->screen == nullptr && screen != nullptr) {
+        Keyboard::clearEvents();
+        Mouse::clearEvents();
+    }
     this->screen = screen;
     if (screen == nullptr) {
         Mouse::clearEvents();
@@ -328,14 +332,16 @@ void CrossCraft::tick() {
             if (Keyboard::getEventKeyState()) {
                 if (Keyboard::getEventKey() == GLFW_KEY_ESCAPE) {
                     this->releaseMouse();
+                    break;
                 }
 
                 if (Keyboard::getEventKey() == GLFW_KEY_T) {
                     this->player->releaseAllKeys();
                     this->setScreen(new ChatScreen());
+                    break;
                 }
 
-                if (Keyboard::getEventKey() == GLFW_KEY_ENTER) {
+                if (Keyboard::getEventKey() == GLFW_KEY_ENTER && !this->mpMode) {
                     this->level->setSpawnPos((int)this->player->x, (int)this->player->y, (int)this->player->z, (int)this->player->yRot);
                     this->player->resetPos();
                 }
@@ -890,7 +896,7 @@ void CrossCraft::handleNetworkPacket(Packet* packet) {
             
             this->level->isRemote = true;
             std::vector<uint8_t> levelData = this->levelIO->decompressGzip(p->compressedData.data(), p->compressedData.size());
-            this->level->setData(p->width, p->depth, p->height, levelData);
+            this->level->setData(p->width, p->depth, p->height, levelData); // fff
 
             this->levelLoadProgress(100);
             emscripten_sleep(1000);

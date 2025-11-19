@@ -33,4 +33,5 @@ public:
     static void charCallback(GLFWwindow* window, unsigned int codepoint);
     
     static void clearStuckKeys();
+    static void clearEvents();
 };

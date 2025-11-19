@@ -60,31 +60,37 @@
             color: #ff4444 !important;
         }
         
-        #controls {
+       #controls-container {
             text-align: left;
-            padding: 15px;
-            background-color: rgba(0, 0, 0, 0.7);
-            border-radius: 8px;
+            padding: 10px;
+            background-color: rgba(20, 20, 20, 0.8); /* Более темный фон */
             border: 1px solid #444;
-            max-width: 400px;
+            max-width: 550px;
+            font-size: 13px;
+        }
+        
+        #controls-container h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: normal;
+            color: #ccc;
         }
 
-        #controls ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Две равные колонки */
+            grid-row-gap: 6px;
+            grid-column-gap: 20px;
         }
 
-        #controls li {
-            margin-bottom: 5px;
-        }
-
-        #controls li kbd {
+        .control-item kbd {
             display: inline-block;
-            width: 90px;
+            width: 100px;
             font-weight: bold;
-            font-family: monospace;
-            color: #ccc; /* Светло-серый вместо зелёного */
+            color: #fff;
+            text-align: right;
+            margin-right: 10px;
         }
 
         #texture-atlases {
@@ -93,7 +99,7 @@
         
         #output {
             width: 100%;
-            max-width: 854px;
+            max-width: 1024px;
             height: 100px;
             background-color: #2d2d2d;
             color: #00ff00;
@@ -108,7 +114,7 @@
 </head>
 <body>
     <!-- Контейнер для игры с атрибутами размера -->
-    <div id="app" width="854" height="480">
+    <div id="app" width="1024" height="576">
         <canvas id="canvas"></canvas>
     </div>
     
@@ -119,22 +125,22 @@
         <hr>
     </div>
     
-    <div id="controls">
-        <ul>
-            <li><kbd>1 - 9 / Wheel Scroll</kbd> - Changing building block type</li>
-            <li><kbd>Right click</kbd> - Change edit mode</li>
-            <li><kbd>Left click</kbd> - Place/Destroy block</li>
-            <li><kbd>Wheel Click</kbd> - Pick block</li>
-            <li><kbd>Enter</kbd> - Change respawn position</li>
-            <li><kbd>R</kbd> - Respawn</li>
-            <li><kbd>F</kbd> - Toggle rendering distance</li>
-            <li><kbd>G</kbd> - Spawn mob</li>
-            <li><kbd>Y</kbd> - Invert Y-Axis</li>
-            <li><kbd>T</kbd> - Open Chat</li>
-            <li><kbd>WASD</kbd> - Movement</li>
-            <li><kbd>SPACE</kbd> - Jump</li>
-            <li><kbd>ESC</kbd> - Pause screen</li>
-        </ul>
+    <div id="controls-container">
+        <h3>Controls</h3>
+        <div class="controls-grid">
+            <div class="control-item"><kbd>WASD</kbd> - Movement</div>
+            <div class="control-item"><kbd>Space</kbd> - Jump</div>
+            <div class="control-item"><kbd>Left Click</kbd> - Place/Destroy</div>
+            <div class="control-item"><kbd>Right Click</kbd> - Edit Mode</div>
+            <div class="control-item"><kbd>Wheel Click</kbd> - Pick Block</div>
+            <div class="control-item"><kbd>1-9 / Wheel</kbd> - Select Block</div>
+            <div class="control-item"><kbd>T</kbd> - Open Chat</div>
+            <div class="control-item"><kbd>Esc</kbd> - Pause/Menu</div>
+            <div class="control-item"><kbd>R</kbd> - Respawn</div>
+            <div class="control-item"><kbd>F</kbd> - Toggle Distance</div>
+            <div class="control-item"><kbd>G</kbd> - Spawn Mob</div>
+            <div class="control-item"><kbd>Y</kbd> - Invert Y-Axis</div>
+        </div>
     </div>
     
     <div id="output" style="display:none;"></div>
@@ -178,8 +184,8 @@
         
         const widthAttr = appContainer.getAttribute('width');
         const heightAttr = appContainer.getAttribute('height');
-        const width = widthAttr ? parseInt(widthAttr, 10) : 854;
-        const height = heightAttr ? parseInt(heightAttr, 10) : 480;
+        const width = widthAttr ? parseInt(widthAttr, 10) : 1024;
+        const height = heightAttr ? parseInt(heightAttr, 10) : 576;
 
         // Устанавливаем размеры
         appContainer.style.width = `${width}px`;

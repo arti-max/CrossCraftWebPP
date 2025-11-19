@@ -133,3 +133,9 @@ void Keyboard::charCallback(GLFWwindow* window, unsigned int codepoint) {
         events.push(event);
     }
 }
+
+void Keyboard::clearEvents() {
+    while (!events.empty()) {
+        events.pop();
+    }
+}

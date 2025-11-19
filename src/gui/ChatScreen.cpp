@@ -3,6 +3,17 @@
 #include "net/packet/ChatMessagePacket.hpp"
 #include <GLFW/glfw3.h>
 
+std::string trim(const std::string& str) {
+    const std::string& whitespace = " \t";
+    const auto strBegin = str.find_first_not_of(whitespace);
+    if (strBegin == std::string::npos) return "";
+
+    const auto strEnd = str.find_last_not_of(whitespace);
+    const auto strRange = strEnd - strBegin + 1;
+
+    return str.substr(strBegin, strRange);
+}
+
 ChatScreen::ChatScreen() {
     this->message = "";
 }
@@ -28,14 +39,19 @@ void ChatScreen::render(int xMouse, int yMouse) {
 }
 
 void ChatScreen::keyPressed(char eventCharacter, int eventKey) {
+    if (this->inputDelay > 0) {
+        return;
+    }
+
     if (eventKey == GLFW_KEY_ESCAPE) {
         this->cc->setScreen(nullptr);
         return;
     }
 
     if (eventKey == GLFW_KEY_ENTER) {
-        if (!this->message.empty()) {
-            ChatMessagePacket* packet = new ChatMessagePacket(this->message);
+        std::string trimmed_message = trim(this->message); 
+        if (!trimmed_message.empty()) {
+            ChatMessagePacket* packet = new ChatMessagePacket(trimmed_message);
             this->cc->client->sendPacket(packet);
         }
         this->cc->setScreen(nullptr);
@@ -53,4 +69,7 @@ void ChatScreen::keyPressed(char eventCharacter, int eventKey) {
 
 void ChatScreen::tick() {
     this->tickCount++;
+    if (this->inputDelay > 0) {
+        this->inputDelay--;
+    }
 }

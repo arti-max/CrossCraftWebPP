@@ -6,6 +6,7 @@ class ChatScreen : public Screen {
 private:
     std::string message;
     int tickCount = 0;
+    int inputDelay = 4;
 
 public:
     ChatScreen();
