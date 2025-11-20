@@ -1,5 +1,5 @@
 # ninja log v7
-82	364	7851966971079529	CMakeFiles/copy_textures.util	dd584b43a4d87892
+98	1008	7852847407222076	CMakeFiles/copy_textures.util	dd584b43a4d87892
 488	6679	7851956672472648	CMakeFiles/CrossCraftWebPP.dir/src/level/LevelIO.cpp.o	49ccd54b2d7c4147
 345	16912	7824315983416730	CMakeFiles/CrossCraftWebPP.dir/src/Timer.cpp.o	3d6d597f2b23ee56
 356	3693	7849102881774667	CMakeFiles/CrossCraftWebPP.dir/src/Entity.cpp.o	6652992896759c4f
@@ -16,8 +16,8 @@
 603	9725	7848207296126037	CMakeFiles/CrossCraftWebPP.dir/src/level/levelgen/LevelGen.cpp.o	35f6163dfc157b0e
 470	6185	7851956672296110	CMakeFiles/CrossCraftWebPP.dir/src/gui/Screen.cpp.o	7a83b0b5495865ca
 393	942	7845062060442502	CMakeFiles/CrossCraftWebPP.dir/src/phys/AABB.cpp.o	366532de10804c4c
-364	7119	7851956671238338	CMakeFiles/CrossCraftWebPP.dir/src/CrossCraft.cpp.o	ee586f16f3622d27
-559	9482	7848207295687883	CMakeFiles/CrossCraftWebPP.dir/src/level/Level.cpp.o	10c56be22248846d
+329	4671	7851967273527971	CMakeFiles/CrossCraftWebPP.dir/src/CrossCraft.cpp.o	ee586f16f3622d27
+1009	10240	7852847416333204	CMakeFiles/CrossCraftWebPP.dir/src/level/Level.cpp.o	10c56be22248846d
 642	7411	7850205123218586	CMakeFiles/CrossCraftWebPP.dir/src/level/render/LevelRenderer.cpp.o	10035d1f61bce684
 17794	19615	7824316157907097	CMakeFiles/CrossCraftWebPP.dir/src/render/Frustum.cpp.o	22361c5d5bb88740
 8032	14918	7848207370573034	CMakeFiles/CrossCraftWebPP.dir/src/level/tile/GrassTile.cpp.o	e108e9659eeda94c
@@ -27,7 +27,7 @@
 18240	22533	7824316162361184	CMakeFiles/CrossCraftWebPP.dir/src/render/Textures.cpp.o	21479c47ccb2eed
 2705	7876	7850183311413418	CMakeFiles/CrossCraftWebPP.dir/src/util/Mouse.cpp.o	134934b99635d22f
 510	6222	7851956672696606	CMakeFiles/CrossCraftWebPP.dir/src/main.cpp.o	a5325db712f83d07
-7119	15631	7851956738787326	game.html	85ebd4be76dba137
+10241	23009	7852847508657896	game.html	85ebd4be76dba137
 361	5105	7824385528707390	CMakeFiles/CrossCraftWebPP.dir/src/gui/LeveLoadScreen.cpp.o	c33a03e1bd640ab5
 409	6427	7851956671684155	CMakeFiles/CrossCraftWebPP.dir/src/gui/LevelLoadScreen.cpp.o	d0bfc9b1e8df91b6
 437	6204	7851956671975704	CMakeFiles/CrossCraftWebPP.dir/src/gui/LevelSaveScreen.cpp.o	a9fac4c38175223a
@@ -49,6 +49,16 @@
 768	6653	7843335071702103	CMakeFiles/CrossCraftWebPP.dir/src/level/levelgen/synth/ImprovedNoise.cpp.o	312a22ef0865b1aa
 386	6235	7851956671456247	CMakeFiles/CrossCraftWebPP.dir/src/gui/ChatScreen.cpp.o	6671334c9656f701
 372	3550	7851061355450554	CMakeFiles/CrossCraftWebPP.dir/src/gui/ChatGui.cpp.o	87069f84f92607aa
-52	329	7851967270693279	CMakeFiles/copy_textures.util	dd584b43a4d87892
-329	4671	7851967273527971	CMakeFiles/CrossCraftWebPP.dir/src/CrossCraft.cpp.o	ee586f16f3622d27
-4672	13418	7851967316952846	game.html	85ebd4be76dba137
+84	377	7852848389346011	CMakeFiles/copy_textures.util	dd584b43a4d87892
+493	6366	7852848393431936	CMakeFiles/CrossCraftWebPP.dir/src/gui/Screen.cpp.o	7a83b0b5495865ca
+460	6441	7852848393117771	CMakeFiles/CrossCraftWebPP.dir/src/gui/LevelSaveScreen.cpp.o	a9fac4c38175223a
+392	6543	7852848392428319	CMakeFiles/CrossCraftWebPP.dir/src/CrossCraftApplet.cpp.o	476b4a7b3f0ef260
+403	6546	7852848392538872	CMakeFiles/CrossCraftWebPP.dir/src/gui/ChatScreen.cpp.o	6671334c9656f701
+526	6549	7852848393770534	CMakeFiles/CrossCraftWebPP.dir/src/main.cpp.o	a5325db712f83d07
+477	6553	7852848393279160	CMakeFiles/CrossCraftWebPP.dir/src/gui/PauseScreen.cpp.o	1ddf215534d3aa38
+418	6574	7852848392688286	CMakeFiles/CrossCraftWebPP.dir/src/gui/LevelGenerateScreen.cpp.o	68274284eb52cc64
+446	6581	7852848392971173	CMakeFiles/CrossCraftWebPP.dir/src/gui/LevelSaveInputScreen.cpp.o	f9a5cf8a2ea6c625
+430	6734	7852848392808217	CMakeFiles/CrossCraftWebPP.dir/src/gui/LevelLoadScreen.cpp.o	d0bfc9b1e8df91b6
+508	7065	7852848393590911	CMakeFiles/CrossCraftWebPP.dir/src/level/LevelIO.cpp.o	49ccd54b2d7c4147
+378	7761	7852848392288287	CMakeFiles/CrossCraftWebPP.dir/src/CrossCraft.cpp.o	ee586f16f3622d27
+7761	16827	7852848466117481	game.html	85ebd4be76dba137
