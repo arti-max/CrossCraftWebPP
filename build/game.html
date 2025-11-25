@@ -68,6 +68,21 @@
             max-width: 550px;
             font-size: 13px;
         }
+
+        #back-link {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #5555ff;
+            text-decoration: underline;
+            font-size: 16px;
+            z-index: 1000;
+            cursor: pointer;
+        }
+
+        #back-link:hover {
+            color: #aaaaff;
+        }
         
         #controls-container h3 {
             margin-top: 0;
@@ -113,6 +128,7 @@
     </style>
 </head>
 <body>
+    <a id="back-link" href="http://crosscraftweb.ddns.net/">Back to home</a>
     <!-- Контейнер для игры с атрибутами размера -->
     <div id="app" width="1024" height="576">
         <canvas id="canvas"></canvas>
@@ -140,6 +156,7 @@
             <div class="control-item"><kbd>F</kbd> - Toggle Distance</div>
             <div class="control-item"><kbd>G</kbd> - Spawn Mob</div>
             <div class="control-item"><kbd>Y</kbd> - Invert Y-Axis</div>
+            <div class="control-item"><kbd>TAB</kbd> - Player List</div>
         </div>
     </div>
     
@@ -292,6 +309,60 @@
                 }
             }
         }
+
+        window.onerror = function(event, source, lineno, colno, error) {
+            console.error("Global error caught:", error);
+            
+            try {
+                if (Module && Module.pauseMainLoop) Module.pauseMainLoop();
+            } catch(e) {}
+
+            var msg = event.toString();
+            if (error && error.message) msg = error.message;
+            
+            var app = document.getElementById('app');
+            
+            var errorHtml = `
+                <div style="
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(to bottom, #6b1412 0%, #3d0505 100%);
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                    color: white;
+                    text-align: center;
+                    z-index: 9999;
+                    pointer-events: auto;
+                    cursor: default;
+                ">
+                    <div style="
+                        font-size: 24px; 
+                        margin-bottom: 20px; 
+                        text-shadow: 2px 2px 0px #000;
+                        font-weight: bold;
+                    ">Runtime Error</div>
+                    
+                    <div style="
+                        font-size: 14px; 
+                        color: #cccccc;
+                        text-shadow: 1px 1px 0px #000;
+                        max-width: 80%;
+                        word-wrap: break-word;
+                    ">${msg}</div>
+                </div>
+            `;
+            
+            app.style.position = 'relative';
+            app.innerHTML += errorHtml;
+            
+            return true;
+        };
     </script>
 
     <script async type="text/javascript" src="game.js"></script>

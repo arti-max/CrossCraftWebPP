@@ -7,7 +7,7 @@ public:
     std::string username;
     std::string sessionid;
 
-    User(std::string& uname, std::string& sessionid) {
+    User(const std::string& uname, const std::string& sessionid) {
         this->username = uname;
         this->sessionid = sessionid;
     }

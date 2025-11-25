@@ -7,4 +7,5 @@ protected:
 public:
     void init() override;
     void render(int xMouse, int yMouse) override;
+    void tick() override;
 };

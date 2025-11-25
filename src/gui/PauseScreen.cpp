@@ -14,6 +14,11 @@ void PauseScreen::init() {
         this->buttons[1]->enabled = false;
         this->buttons[2]->enabled = false;
     }
+    if (this->cc->mpMode) {
+        this->buttons[0]->enabled = false;
+        this->buttons[1]->enabled = false;
+        this->buttons[2]->enabled = false;
+    }
 }
 
 void PauseScreen::buttonClicked(Button* btn) {
@@ -29,8 +34,9 @@ void PauseScreen::buttonClicked(Button* btn) {
         }
     }
     if (btn->id == 3) {
-        this->cc->grabMouse();
+        // this->cc->grabMouse();
         this->cc->setScreen(nullptr);
+        this->cc->waitingForFocus = true;
     }
 }
 
@@ -38,4 +44,10 @@ void PauseScreen::render(int xMouse, int yMouse) {
     this->fillGradient(0, 0, this->width, this->height, 0x20050500, 0xA0303060);
     this->drawCenteredString("Game Menu", this->width / 2, 40, 0xFFFFFFFF);
     Screen::render(xMouse, yMouse);
+}
+
+void PauseScreen::tick() {
+    // if (Mouse::isGrabbed()) {
+    //     this->cc->setScreen(nullptr);
+    // }
 }

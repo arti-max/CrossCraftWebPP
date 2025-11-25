@@ -10,6 +10,7 @@
 #include "net/packet/SetSpawnPositionPacket.hpp"
 #include "net/packet/RequestSpawnPositionPacket.hpp"
 #include "net/packet/ChatMessagePacket.hpp"
+#include "net/packet/LoginResponsePacket.hpp"
 
 void Packet::writeByte(uint8_t value) {
     data.push_back(value);
@@ -165,6 +166,10 @@ Packet* Packet::fromBytes(const uint8_t* bytes, size_t length) {
 
         case PacketType::CLIENT_CHAT_MESSAGE:
             packet = new ChatMessagePacket();
+            break;
+
+        case PacketType::LOGIN_RESPONSE:
+            packet = new LoginResponsePacket();
             break;
 
         default:

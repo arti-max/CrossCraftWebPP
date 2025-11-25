@@ -1,5 +1,6 @@
 #pragma once
 #include <emscripten/html5.h>
+#include <emscripten.h>
 #include <GLFW/glfw3.h>
 #include <string>
 #include <array>
@@ -20,6 +21,7 @@
 #include "gui/PauseScreen.hpp"
 #include "gui/ChatScreen.hpp"
 #include "gui/ChatGui.hpp"
+#include "gui/PlayerListScreen.hpp"
 #include "User.hpp"
 #include "util/Logger.hpp"
 #include "level/LevelLoaderListener.hpp"
@@ -31,7 +33,7 @@
 
 class CrossCraft : public LevelLoaderListener {
 private:
-    const std::string VERSION_STRING = "0.0.6a";
+    const std::string VERSION_STRING = "0.0.7a";
     int lastFpsTime = 0;
     int frames = 0;
     int lastProgress = -1;
@@ -43,6 +45,7 @@ private:
     std::string errorReason;
     std::vector<std::string> connectionUrls;
     int currentUrlIndex = 0;
+    
 
     std::array<float, 4> fogColor0;
     std::array<float, 4> fogColor1;
@@ -60,9 +63,7 @@ private:
     int attackTime = 0;
     int clickDelay = 0;
 
-    GLFWwindow* window;
 
-    Level* level;
     Timer* timer = new Timer(20.0f);
     LevelRenderer* levelRenderer;
     HitResult* hitResult;
@@ -83,8 +84,7 @@ private:
     void destroy();
     void handleMouseClick();
     bool isFree(const AABB &aabb);
-
-    void drawErrorScreen();
+    void fill(int x0, int y0, int x1, int y1, int col);
 
     int getSelectedTile();
 
@@ -104,19 +104,24 @@ private:
     void asyncSleep(int ms);
 
 public:
+    static CrossCraft* instance;
     int width, height;
+    GLFWwindow* window;
 
+    Level* level;
     Font* font;
     Textures* textures = nullptr;
     Player* player;
     Client* client = nullptr;
     ChatGui* chatGui;
+    PlayerListScreen* playerListScreen = new PlayerListScreen();
 
     CrossCraft(const char* parent, int width, int height, bool fullscreen);
     ~CrossCraft();
 
     bool appletMode = false;
     bool mpMode = false;
+    bool waitingForFocus = false;
 
     int serverPort;
     std::string serverAddress;
@@ -134,6 +139,7 @@ public:
     void setScreen(Screen* screen);
     void grabMouse();
     void releaseMouse();
+    void drawErrorScreen();
 
     void generateNewLevel(int width, int height, int depth);
     bool loadLevel(const char username[], int levelId);
@@ -147,3 +153,8 @@ public:
     void handleNetworkPacket(Packet* packet);
     void connectError(std::string error);
 };
+
+extern "C" {
+    EMSCRIPTEN_KEEPALIVE
+    void showCrashScreen(const char* msg);
+}

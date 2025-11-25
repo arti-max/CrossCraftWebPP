@@ -87,31 +87,14 @@ EM_BOOL Mouse::mouseMoveCallback(int eventType, const EmscriptenMouseEvent *e, v
 }
 
 EM_BOOL Mouse::pointerlockChangeCallback(int eventType, const EmscriptenPointerlockChangeEvent *e, void *userData) {
-    bool wasGrabbed = Mouse::grabbed;
-    bool shouldBeGrabbed = e->isActive;
+    bool isActive = e->isActive;
+    Mouse::grabbed = isActive;
     
-    
-    Mouse::grabbed = shouldBeGrabbed;
-    
-    if (shouldBeGrabbed && !wasGrabbed) {
+    if (isActive) {
         Mouse::deltaX = 0.0;
         Mouse::deltaY = 0.0;
-    } else if (!shouldBeGrabbed && wasGrabbed) {
-        
-        // ИСПРАВЛЕНО: Добавляем ESC событие для синхронизации с CrossCraft
-        // Это гарантирует что CrossCraft узнает об освобождении мыши
-        // EM_ASM({
-        //     // Отправляем событие ESC в C++  
-        //     const escEvent = new KeyboardEvent('keydown', {
-        //         key: 'Escape',
-        //         code: 'Escape',
-        //         keyCode: 27,
-        //         which: 27
-        //     });
-        //     document.dispatchEvent(escEvent);
-        // });
     }
-    
+    std::cout << "Pointer lock state changed: " << (isActive ? "LOCKED" : "UNLOCKED") << std::endl;
     return EM_TRUE;
 }
 

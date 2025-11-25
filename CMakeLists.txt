@@ -45,8 +45,8 @@ if(EMSCRIPTEN)
             -s USE_ZLIB=1 \
             -s FETCH=1 \
             -s ASSERTIONS=1 \
-            -s EXPORTED_FUNCTIONS=['_main','_setAppletParams','_startApplet','_testAsyncify','_setServerParams'] \
-            -s EXPORTED_RUNTIME_METHODS=['ccall','cwrap'] \
+            -s EXPORTED_FUNCTIONS=['_main','_setAppletParams','_startApplet','_testAsyncify','_setServerParams','_showCrashScreen'] \
+            -s EXPORTED_RUNTIME_METHODS=['ccall','cwrap','allocate','intArrayFromString','UTF8ToString'] \
             -s ERROR_ON_UNDEFINED_SYMBOLS=0 \
             -s STACK_SIZE=2097152 \
             -s INITIAL_MEMORY=67108864 \

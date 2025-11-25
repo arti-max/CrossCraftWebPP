@@ -3,6 +3,8 @@
 #include <GL/glu.h>
 #include <cmath>
 
+CrossCraft* CrossCraft::instance = nullptr;
+
 CrossCraft::CrossCraft(const char* canvas, int w, int h, bool fs) : 
     width(w), 
     height(h), 
@@ -10,6 +12,7 @@ CrossCraft::CrossCraft(const char* canvas, int w, int h, bool fs) :
     window(nullptr),
     textures()
 {
+    CrossCraft::instance = this;
     if (canvas) {
         parent = canvas;
     }
@@ -19,6 +22,12 @@ CrossCraft::CrossCraft(const char* canvas, int w, int h, bool fs) :
 
 CrossCraft::~CrossCraft() {
     this->destroy();
+    if (this->textures) {
+        delete this->textures;
+    }
+    if (this->level) {
+        delete this->level;
+    }
 }
 
 void CrossCraft::destroy() {
@@ -139,26 +148,24 @@ void CrossCraft::setScreen(Screen* screen) {
 }
 
 void CrossCraft::grabMouse() {
-    if (!Mouse::isGrabbed()) {
-        Logger::logf(PREFIX_DEBUG, "CrossCraft: Grabbing mouse\n");
-        this->mouseGrabbed = true;
+    if (!this->mouseGrabbed) {
+        Logger::logf(PREFIX_DEBUG, "CrossCraft: Requesting mouse grab\n");
         Mouse::setGrabbed(true);
         if (!this->appletMode) {
             Mouse::setCursorPosition(width / 2, height / 2);
         }
         this->setScreen(nullptr);
-        Logger::logf(PREFIX_DEBUG, "Mouse grabbed successfully\n");
     }
 }
 
 void CrossCraft::releaseMouse() {
     if (this->mouseGrabbed) {
         Logger::logf(PREFIX_DEBUG, "CrossCraft: Releasing mouse\n");
-        this->player->releaseAllKeys();
-        this->mouseGrabbed = false;
-        this->setScreen((Screen*)(new PauseScreen()));
         Mouse::setGrabbed(false);
-        Logger::logf(PREFIX_DEBUG, "Mouse released successfully\n");
+        this->player->releaseAllKeys();
+        if (this->screen == nullptr) {
+             this->setScreen((Screen*)(new PauseScreen()));
+        }
     }
 }
 
@@ -306,7 +313,41 @@ void CrossCraft::tick() {
         this->clickDelay--;
     }
 
+    bool isActuallyGrabbed = Mouse::isGrabbed();
+
+    if (this->mouseGrabbed && !isActuallyGrabbed) {
+        printf("CrossCraft: Pointer lock lost\n");
+        this->mouseGrabbed = false;
+        this->player->releaseAllKeys();
+        
+        if (this->screen == nullptr) {
+            this->setScreen(new PauseScreen());
+        }
+    } 
+    
+    else if (!this->mouseGrabbed && isActuallyGrabbed) {
+        printf("CrossCraft: Pointer lock acquired\n");
+        this->mouseGrabbed = true;
+        
+        if (this->screen != nullptr && dynamic_cast<PauseScreen*>(this->screen)) {
+             this->setScreen(nullptr);
+        }
+    }
+
     this->chatGui->tick();
+
+    if (this->waitingForFocus) {
+        if (Mouse::getEventButtonState()) {
+            this->grabMouse();
+        }
+        
+        if (Mouse::isGrabbed()) {
+            this->waitingForFocus = false;
+            this->mouseGrabbed = true;
+        }
+        
+        return; 
+    }
 
     if (this->mouseGrabbed && !Mouse::isGrabbed()) {
         printf("CrossCraft: Pointer lock released by browser (probably ESC)\n");
@@ -368,6 +409,10 @@ void CrossCraft::tick() {
             }
         }
         while (Mouse::next()) {
+            if (!this->mouseGrabbed && Mouse::getEventButtonState()) {
+                this->grabMouse();
+                break;
+            }
 
             if (!this->mouseGrabbed && Mouse::getEventButtonState()) {
                 this->grabMouse();
@@ -473,7 +518,7 @@ void CrossCraft::render(float partialTicks) {
     this->checkGlError("Set viewport");
     this->checkGlError("Rasycasted");
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    this->fogDistance = (float)(1024 >> (this->levelRenderer->drawDistance << 1));
+    this->fogDistance = (float)(512 >> (this->levelRenderer->drawDistance << 1));
     this->setupCamera(partialTicks);
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
@@ -601,9 +646,31 @@ void CrossCraft::drawGui(float partialTicks) {
     t.end();
     this->checkGlError("GUI: Draw crosshair");
     this->chatGui->render(this->font, screenWidth, screenHeight);
+        if (this->mpMode && Keyboard::isKeyDown(GLFW_KEY_TAB)) {
+        playerListScreen->init(this, this->width * 240 / this->height, this->height * 240 / this->height);
+        playerListScreen->render(Mouse::getX(), Mouse::getY());
+    }
     if (this->screen != nullptr) {
         this->screen->render(xMouse, yMouse);
     }
+}
+
+void CrossCraft::fill(int x0, int y0, int x1, int y1, int col) {
+    float a = (col >> 24 & 255) / 255.0f;
+    float r = (col >> 16 & 255) / 255.0f;
+    float g = (col >> 8 & 255) / 255.0f;
+    float b = (col & 255) / 255.0f;
+    Tessellator& t = Tessellator::getInstance();
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glColor4f(r, g, b, a);
+    t.begin();
+    t.vertex((float)x0, (float)y1, 0.0f);
+    t.vertex((float)x1, (float)y1, 0.0f);
+    t.vertex((float)x1, (float)y0, 0.0f);
+    t.vertex((float)x0, (float)y0, 0.0f);
+    t.end();
+    glDisable(GL_BLEND);
 }
 
 void CrossCraft::setupCamera(float partialTicks) {
@@ -880,15 +947,29 @@ void CrossCraft::handleNetworkPacket(Packet* packet) {
             
             Logger::logf(PREFIX_NETWORK, "Sending login packet...\n");
             this->levelLoadProgress(40);
-            LoginPacket* loginPacket = new LoginPacket(this->user->username, this->user->sessionid);
-            client->sendPacket(loginPacket);
+            if (this->user != nullptr) {
+                    LoginPacket* loginPacket = new LoginPacket(this->user->username, this->user->sessionid);
+                    client->sendPacket(loginPacket);
+                } else {
+                    Logger::logf(PREFIX_WARNING, "User is null, sending guest login\n");
+                    LoginPacket* loginPacket = new LoginPacket("", ""); 
+                    client->sendPacket(loginPacket);
+                }
             break;
         }
 
-        case PacketType::LOGIN_RESPONSE:
-            Logger::logf(PREFIX_NETWORK, "Login successful!\n");
+        case PacketType::LOGIN_RESPONSE: {
+            LoginResponsePacket* p = static_cast<LoginResponsePacket*>(packet);
+            Logger::logf(PREFIX_NETWORK, "Login successful! Server assigned name: %s\n", p->username.c_str());
+            if (this->user == nullptr) {
+                this->user = new User(p->username, ""); 
+            } else {
+                this->user->username = p->username;
+            }
             this->levelLoadProgress(60);
             break;
+
+        }
 
         case PacketType::LEVEL_DATA: {
             this->levelLoadProgress(80);
@@ -968,5 +1049,22 @@ void CrossCraft::handleNetworkPacket(Packet* packet) {
         
         default:
             Logger::logf(PREFIX_WARNING, "Unknown packet type: %d\n", static_cast<int>(packet->getType()));
+    }
+}
+
+extern "C" {
+    EMSCRIPTEN_KEEPALIVE
+    void showCrashScreen(const char* msg) {
+        if (CrossCraft::instance) {
+            printf("Creating crash screen for: %s\n", msg);
+            emscripten_cancel_main_loop(); 
+            CrossCraft::instance->showErrorScreen("Runtime Error", msg);
+            glfwMakeContextCurrent(CrossCraft::instance->window);
+            CrossCraft::instance->drawErrorScreen();
+            glfwSwapBuffers(CrossCraft::instance->window);
+            glFlush();
+            glFinish();
+            printf("Crash screen rendered.\n");
+        }
     }
 }
