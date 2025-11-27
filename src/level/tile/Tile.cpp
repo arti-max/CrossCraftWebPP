@@ -291,6 +291,8 @@ void Tile::renderFaceNoTexture(Player* player, Tessellator& t, int x, int y, int
 void Tile::onDestroy(Level* level, int x, int y, int z, ParticleEngine* engine) {
     int spread = 4;
 
+    bool isLeaves = (this->id == 15); 
+
     for (int offsetX = 0; offsetX < spread; offsetX++) {
         for (int offsetY = 0; offsetY < spread; offsetY++) {
             for (int offsetZ = 0; offsetZ < spread; offsetZ++) {
@@ -303,6 +305,12 @@ void Tile::onDestroy(Level* level, int x, int y, int z, ParticleEngine* engine) 
                 float motionZ = targetZ - z - 0.5f;
 
                 Particle* p = new Particle(level, targetX, targetY, targetZ, motionX, motionY, motionZ, this->textureId);
+                if (isLeaves) {
+                    p->gravity = 0.005f;
+                    p->xd *= 0.6f;
+                    p->yd *= 0.6f;
+                    p->zd *= 0.6f;
+                }
                 engine->add(p);
             }
         }

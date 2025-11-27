@@ -14,5 +14,5 @@ public:
     ZombieModel();
     ~ZombieModel();
     
-    void render(float time, float rot);
+    void render(float time, float headYRot, float headXRot);
 };

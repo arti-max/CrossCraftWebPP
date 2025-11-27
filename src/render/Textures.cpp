@@ -51,6 +51,50 @@ EM_JS(int, js_getImageData, (const char* elementId, unsigned char* buffer, int b
     }
 });
 
+EM_JS(void, js_loadTextureFromUrl, (const char* url, int textureId, int mode), {
+    var img = new Image();
+    img.crossOrigin = "Anonymous";
+    
+    img.onload = function() {
+        console.log("Skin loaded from URL:", UTF8ToString(url));
+        
+        var canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        
+        var imageData = ctx.getImageData(0, 0, img.width, img.height);
+        var data = imageData.data;
+        
+        var bufferPtr = _malloc(data.length);
+        writeArrayToMemory(data, bufferPtr);
+        
+        Module['_updateTextureFromJs'](textureId, bufferPtr, img.width, img.height, mode);
+        
+        _free(bufferPtr);
+    };
+    
+    img.onerror = function() {
+        console.warn("Failed to load skin from URL:", UTF8ToString(url), "Keeping default.");
+    };
+    
+    img.src = UTF8ToString(url);
+});
+
+extern "C" {
+    EMSCRIPTEN_KEEPALIVE
+    void updateTextureFromJs(int textureId, unsigned char* data, int width, int height, int mode) {
+        
+        glBindTexture(GL_TEXTURE_2D, textureId);
+        
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mode);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mode);
+        
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    }
+}
+
 #else
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -88,6 +132,45 @@ GLuint Textures::loadTexture(const std::string& resourceName, int mode) {
     
     return textureId;
 }
+
+GLuint Textures::loadTextureFromUrl(const std::string& url, int mode) {
+    auto it = idMap.find(url);
+    if (it != idMap.end()) {
+        return it->second;
+    }
+    
+    GLuint textureId;
+    glGenTextures(1, &textureId);
+    glBindTexture(GL_TEXTURE_2D, textureId);
+    
+    int w = 0, h = 0;
+    const int MAX_SIZE = 64 * 64 * 4;
+    std::vector<unsigned char> placeholder(MAX_SIZE);
+    
+    int success = 0;
+#ifdef __EMSCRIPTEN__
+    success = js_getImageData("char", placeholder.data(), MAX_SIZE, &w, &h);
+#endif
+
+    if (success) {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, placeholder.data());
+    } else {
+        std::vector<unsigned char> white(64 * 32 * 4, 255);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 64, 32, 0, GL_RGBA, GL_UNSIGNED_BYTE, white.data());
+    }
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mode);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mode);
+    
+    idMap[url] = textureId;
+    
+#ifdef __EMSCRIPTEN__
+    js_loadTextureFromUrl(url.c_str(), textureId, mode);
+#endif
+
+    return textureId;
+}
+
 
 GLuint Textures::createTextureFromPixels(const unsigned char* pixels, int width, int height, int mode) {
     std::cout << "Creating texture from pixels: " << width << "x" << height << std::endl;
@@ -171,3 +254,8 @@ GLuint Textures::loadTextureFromFile(const std::string& filename, int mode) {
     return textureId;
 }
 #endif
+
+void Textures::updateTextureFX(const unsigned char* pixels, int textureId) {
+    glBindTexture(GL_TEXTURE_2D, this->loadTexture("terrain", GL_NEAREST));
+    glTexSubImage2D(GL_TEXTURE_2D, 0, (textureId % 16) * 16, (textureId / 16) * 16, 16, 16, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+}

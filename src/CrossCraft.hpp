@@ -30,10 +30,13 @@
 #include "particle/ParticleEngine.hpp"
 #include "net/Client.hpp"
 #include "net/NetworkPlayer.hpp"
+#include "render/fx/TextureFX.hpp"
+#include "render/fx/WaterTextureFX.hpp"
+#include "render/fx/LavaTextureFX.hpp"
 
 class CrossCraft : public LevelLoaderListener {
 private:
-    const std::string VERSION_STRING = "0.0.7a";
+    const std::string VERSION_STRING = "0.0.8a";
     int lastFpsTime = 0;
     int frames = 0;
     int lastProgress = -1;
@@ -45,12 +48,14 @@ private:
     std::string errorReason;
     std::vector<std::string> connectionUrls;
     int currentUrlIndex = 0;
+    int playerId = -1;
     
 
     std::array<float, 4> fogColor0;
     std::array<float, 4> fogColor1;
     std::array<int, 16> viewportBuffer;
     std::array<int, 2000> selectBuffer;
+    std::vector<TextureFX*> textureEffects;
     bool fullscreen;
     bool running = false;
     bool paused = false;

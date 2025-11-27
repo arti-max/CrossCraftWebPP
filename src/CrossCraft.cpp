@@ -18,6 +18,9 @@ CrossCraft::CrossCraft(const char* canvas, int w, int h, bool fs) :
     }
 
     this->textures = new Textures();
+
+    textureEffects.push_back(new WaterTextureFX());
+    textureEffects.push_back(new LavaTextureFX());
 }
 
 CrossCraft::~CrossCraft() {
@@ -475,6 +478,11 @@ void CrossCraft::tick() {
 
     }
 update_world:
+    // TODO: IN 0.0.9a
+    // for (TextureFX* fx : textureEffects) {
+    //     fx->tick();
+    //     textures->updateTextureFX(fx->pixels, fx->textureId);
+    // }
     ++this->levelRenderer->cloudTicks;
     this->level->tick();
     this->particleEngine->tick();
@@ -961,6 +969,7 @@ void CrossCraft::handleNetworkPacket(Packet* packet) {
         case PacketType::LOGIN_RESPONSE: {
             LoginResponsePacket* p = static_cast<LoginResponsePacket*>(packet);
             Logger::logf(PREFIX_NETWORK, "Login successful! Server assigned name: %s\n", p->username.c_str());
+            this->playerId = p->playerId;
             if (this->user == nullptr) {
                 this->user = new User(p->username, ""); 
             } else {
@@ -1009,9 +1018,17 @@ void CrossCraft::handleNetworkPacket(Packet* packet) {
         case PacketType::PLAYER_POSITION: {
             PositionPacket* p = static_cast<PositionPacket*>(packet);
             
-            auto it = this->level->networkPlayers.find(p->playerId);
-            if (it != this->level->networkPlayers.end()) {
-                it->second->setServerPosition(p->x, p->y, p->z, p->yaw, p->pitch);
+            if (this->player != nullptr && p->playerId == this->playerId && p->type == 1) {
+                this->player->setPos(p->x, p->y, p->z);
+                this->player->yRot = p->yaw;
+                this->player->xRot = p->pitch;
+                Logger::logf(PREFIX_NETWORK, "Teleported by server to %f, %f, %f\n", p->x, p->y, p->z);
+            } 
+            else {
+                auto it = this->level->networkPlayers.find(p->playerId);
+                if (it != this->level->networkPlayers.end()) {
+                    it->second->queue(p->x, p->y, p->z, p->yaw, p->pitch);
+                }
             }
             break;
         }

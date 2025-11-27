@@ -16,12 +16,15 @@ private:
 
 public:
     GLuint loadTexture(const std::string& resourceName, int mode);
+    GLuint loadTextureFromUrl(const std::string& url, int mode);
+    void updateTextureFX(const unsigned char* pixels, int textureId);
     
 private:
     GLuint createTextureFromPixels(const unsigned char* pixels, int width, int height, int mode);
     
 #ifdef __EMSCRIPTEN__
     GLuint loadTextureFromHTMLImage(const std::string& elementId, int mode);
+    void updateTextureFromPixels(GLuint textureId, const unsigned char* pixels, int width, int height, int mode);
 #else
     GLuint loadTextureFromFile(const std::string& filename, int mode);
 #endif

@@ -36,16 +36,16 @@ ZombieModel::~ZombieModel() {
     delete leg1;
 }
 
-void ZombieModel::render(float time, float rot) {
+void ZombieModel::render(float time, float headYRot, float headXRot) {
     
-    head->yRot = 0;
-    head->xRot = rot / 57.29578f;
+    head->yRot = headYRot / 57.29578f;
+    head->xRot = headXRot / 57.29578f;
     
     arm0->xRot = std::sin(time * 0.6662f + M_PI) * 2.0f;
     arm0->zRot = (std::sin(time * 0.2312f) + 1.0f);
     
     arm1->xRot = std::sin(time * 0.6662f) * 2.0f;
-    arm1->zRot = (std::sin(time * 0.2312f) - 1.0f);
+    arm1->zRot = (std::sin(time * 0.2812f) - 1.0f);
     
     leg0->xRot = std::sin(time * 0.6662f) * 1.4f;
     leg1->xRot = std::sin(time * 0.6662f + M_PI) * 1.4f;

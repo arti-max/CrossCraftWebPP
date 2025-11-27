@@ -4,6 +4,7 @@
 class PositionPacket : public Packet {
 public:
     int8_t playerId;
+    int8_t type;
     float x, y, z;
     float yaw, pitch;
 
@@ -17,6 +18,7 @@ public:
 
     void serialize() override {
         writeByte(playerId);
+        writeByte(type);
         writeFloat(x);
         writeFloat(y);
         writeFloat(z);
@@ -26,6 +28,7 @@ public:
 
     void deserialize() override {
         playerId = readByte();
+        type = readByte();
         x = readFloat();
         y = readFloat();
         z = readFloat();

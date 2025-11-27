@@ -14,6 +14,7 @@ private:
     int age = 0;
 public:
     int textureId;
+    float gravity = 0.04f;
 
     Particle(Level* level, double x, double y, double z, double motionX, double motionY, double motionZ, int textureId);
     void tick() override;

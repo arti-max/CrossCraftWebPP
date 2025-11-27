@@ -99,7 +99,7 @@ glEnable(GL_TEXTURE_2D);
     glRotatef(this->rot * radToDeg + 180.0f, 0.0f, 1.0f, 0.0f);
     
     glColor3f(brightness, brightness, brightness);
-    zombieModel->render((float)(time), 0.0f);
+    zombieModel->render((float)(time), 0.0f, 0.0f);
     
     glPopMatrix();
     glDisable(GL_TEXTURE_2D);

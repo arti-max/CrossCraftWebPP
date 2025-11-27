@@ -41,15 +41,23 @@ void Entity::setSize(float w, float h) {
     bbHeight = h;
 }
 
+void Entity::setRot(float yRot, float xRot) {
+    while(this->yRotO - yRot < -180.0F) {
+        this->yRotO += 360.0F;
+    }
+
+    while(this->yRotO - yRot >= 180.0F) {
+        this->yRotO -= 360.0F;
+    }
+
+    this->yRot = yRot;
+    this->xRot = xRot;
+   }
+
 void Entity::setPos(float x, float y, float z) {
     this->x = x;
     this->y = y;
     this->z = z;
-
-    this->xo = x;
-    this->yo = y;
-    this->zo = z;
-    
     float w = bbWidth / 2.0f;
     float h = bbHeight / 2.0f;
     bb = AABB(x - w, y - h, z - w, x + w, y + h, z + w);
@@ -71,16 +79,16 @@ void Entity::interpolateTurn(float xo, float yo) {
     this->xRot = std::max(-90.0f, this->xRot);
     this->xRot = std::min(90.0f, this->xRot);
 
-    this->xRotI = this->xRot - oxr;
-    this->yRotI = this->yRot - oyr;
+    this->xRotO = this->xRot - oxr;
+    this->yRotO = this->yRot - oyr;
 }
 
 void Entity::tick() {
     xo = x;
     yo = y;
     zo = z;
-    this->xRotI = 0.0f;
-    this->yRotI = 0.0f;
+    this->xRotO = this->xRot;
+    this->yRotO = this->yRot;
 }
 
 bool Entity::isFree(float xa, float ya, float za) {

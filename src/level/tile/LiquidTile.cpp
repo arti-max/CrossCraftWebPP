@@ -11,7 +11,7 @@ LiquidTile::LiquidTile(int id, int liquidType) : Tile::Tile(id) {
     if (this->liquidType == 1) {
         this->tickRate = 40;
     } else {
-        this->tickRate = 5;
+        this->tickRate = 2;
     }
 
     this->tileId = id;

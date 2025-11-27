@@ -8,6 +8,7 @@ double randomDouble() {
 
 Particle::Particle(Level* level, double x, double y, double z, double motionX, double motionY, double motionZ, int textureId) : Entity::Entity(level) {
     this->textureId = textureId;
+    this->gravity = 0.06f;
 
     this->setSize(0.2f, 0.2f);
     this->heightOffset = this->bbHeight / 2.0f;
@@ -39,7 +40,7 @@ void Particle::tick() {
         this->remove();
     }
 
-    this->yd -= 0.06f;
+    this->yd -= this->gravity;
 
     this->move(this->xd, this->yd, this->zd);
 
