@@ -9,7 +9,7 @@
 #include "render/Frustum.hpp"
 #include "render/Textures.hpp"
 #include "HitResult.hpp"
-#include "Player.hpp"
+#include "player/Player.hpp"
 #include "sort/DistanceSorter.hpp"
 #include "sort/DirtyChunkSorter.hpp"
 #include "character/Vec3.hpp"

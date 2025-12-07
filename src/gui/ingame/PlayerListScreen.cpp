@@ -1,4 +1,4 @@
-#include "gui/PlayerListScreen.hpp"
+#include "gui/ingame/PlayerListScreen.hpp"
 #include "CrossCraft.hpp" 
 #include "level/Level.hpp"
 #include "net/NetworkPlayer.hpp"

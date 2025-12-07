@@ -3,7 +3,7 @@
 #include "character/ZombieModel.hpp"
 #include "render/Textures.hpp"
 #include "gui/Font.hpp"
-#include "Player.hpp"
+#include "player/Player.hpp"
 #include <string>
 #include <deque>
 #include <cmath>

@@ -9,7 +9,7 @@
 #include "level/Level.hpp"
 #include "level/tile/Tile.hpp"
 #include "level/render/LevelRenderer.hpp"
-#include "Player.hpp"
+#include "player/Player.hpp"
 #include "Timer.hpp"
 #include "render/Textures.hpp"
 #include "HitResult.hpp"
@@ -18,10 +18,11 @@
 #include "Entity.hpp"
 #include "character/Zombie.hpp"
 #include "gui/Screen.hpp"
-#include "gui/PauseScreen.hpp"
-#include "gui/ChatScreen.hpp"
-#include "gui/ChatGui.hpp"
-#include "gui/PlayerListScreen.hpp"
+#include "gui/pause/PauseScreen.hpp"
+#include "gui/ingame/ChatScreen.hpp"
+#include "gui/ingame/ChatGui.hpp"
+#include "gui/ingame/PlayerListScreen.hpp"
+#include "gui/ingame/Hud.hpp"
 #include "User.hpp"
 #include "util/Logger.hpp"
 #include "level/LevelLoaderListener.hpp"
@@ -36,7 +37,7 @@
 
 class CrossCraft : public LevelLoaderListener {
 private:
-    const std::string VERSION_STRING = "0.0.8a";
+    const std::string VERSION_STRING = "0.0.9a";
     int lastFpsTime = 0;
     int frames = 0;
     int lastProgress = -1;
@@ -76,6 +77,7 @@ private:
     LevelGen* levelGen = new LevelGen(this);
     LevelIO* levelIO = new LevelIO(this);
     ParticleEngine* particleEngine;
+    Hud* hud;
     
     std::vector<int> hotbarSlots;
     int hotbarIndex = 0;

@@ -1,5 +1,5 @@
 #pragma once
-#include "Player.hpp"
+#include "player/Player.hpp"
 #include "level/Chunk.hpp"
 
 struct DirtyChunkSorter {

@@ -1,4 +1,4 @@
-#include "gui/LevelSaveScreen.hpp"
+#include "gui/pause/LevelSaveScreen.hpp"
 #include "CrossCraft.hpp"
 
 LevelSaveScreen::LevelSaveScreen(Screen* parent) : LevelLoadScreen(parent) {
@@ -8,6 +8,7 @@ LevelSaveScreen::LevelSaveScreen(Screen* parent) : LevelLoadScreen(parent) {
 void LevelSaveScreen::updateButtonLabels(std::vector<std::string> names) {
     for (int i = 0; i < 5; ++i) {
         Button* btn = this->buttons[i];
+        btn->enabled = true;
         btn->msg = names[i];
         btn->visible = true;
     }

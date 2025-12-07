@@ -1,4 +1,4 @@
-#include "gui/ChatScreen.hpp"
+#include "gui/ingame/ChatScreen.hpp"
 #include "CrossCraft.hpp"
 #include "net/packet/ChatMessagePacket.hpp"
 #include <GLFW/glfw3.h>

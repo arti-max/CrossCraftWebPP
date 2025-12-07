@@ -1,8 +1,8 @@
-#include "gui/PauseScreen.hpp"
+#include "gui/pause/PauseScreen.hpp"
 #include "CrossCraft.hpp"
-#include "gui/LevelLoadScreen.hpp"
-#include "gui/LevelSaveScreen.hpp"
-#include "gui/LevelGenerateScreen.hpp"
+#include "gui/pause/LevelLoadScreen.hpp"
+#include "gui/pause/LevelSaveScreen.hpp"
+#include "gui/pause/LevelGenerateScreen.hpp"
 
 void PauseScreen::init() {
     this->buttons.push_back(new Button(0, this->width / 2 - 100, this->height / 3 + 0, 200, 20, "Generate new level"));

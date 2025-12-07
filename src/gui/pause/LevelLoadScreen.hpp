@@ -31,7 +31,7 @@ public:
     
     void init(CrossCraft* cc, int width, int height) override;
     void loadLevelList();
-    void updateButtonLabels(std::vector<std::string> names);
+    virtual void updateButtonLabels(std::vector<std::string> names);
     void render(int xMouse, int yMouse) override;
     
     friend void fetchSuccessCallback(emscripten_fetch_t* fetch);

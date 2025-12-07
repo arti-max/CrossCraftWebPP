@@ -1,5 +1,6 @@
 #pragma once
 #include "Entity.hpp"
+#include "player/Inventory.hpp"
 
 class Player : public Entity {
 public:
@@ -15,6 +16,8 @@ private:
 public:
     Player(Level* level);
     
+    Inventory* inventory = new Inventory(this);
+
     void setKey();
     void releaseAllKeys();
     void tick() override;

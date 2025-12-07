@@ -2,7 +2,7 @@
 #include "phys/AABB.hpp"
 #include "level/Level.hpp"
 #include "level/tile/Tile.hpp"
-#include "Player.hpp"
+#include "player/Player.hpp"
 #include "Entity.hpp"
 #include "HitResult.hpp"
 #include <cmath>

@@ -14,6 +14,7 @@
     <link rel="preload" as="image" href="water.png">
     <link rel="preload" as="image" href="default.png">
     <link rel="preload" as="image" href="clouds.png">
+    <link rel="preload" as="image" href="gui.png">
     
     <style>
         body, html {
@@ -172,6 +173,7 @@
         <img id="rock2" src="rock2.png" crossorigin="anonymous" />
         <img id="water" src="water.png" crossorigin="anonymous" />
         <img id="clouds" src="clouds.png" crossorigin="anonymous" />
+        <img id="gui" src="gui.png" crossorigin="anonymous" />
     </div>
 
     <script type='text/javascript'>
@@ -216,7 +218,7 @@
         }
 
         // Ждем загрузки всех изображений
-        let imagesToLoad = ['terrain', 'char', 'dirt', 'rock', 'rock2', 'water', 'default'];
+        let imagesToLoad = ['terrain', 'char', 'dirt', 'rock', 'rock2', 'water', 'default', 'clouds', 'gui'];
         let loadedCount = 0;
         
         function checkAllImagesLoaded() {

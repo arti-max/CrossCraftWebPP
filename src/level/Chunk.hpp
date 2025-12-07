@@ -6,7 +6,7 @@
 #include "level/Level.hpp"
 #include "phys/AABB.hpp"
 #include "level/tile/Tile.hpp"
-#include "Player.hpp"
+#include "player/Player.hpp"
 #include <GL/gl.h>
 
 class Chunk {

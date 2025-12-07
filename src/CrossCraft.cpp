@@ -84,6 +84,7 @@ void CrossCraft::init() {
     this->checkGlError("Startup");
     this->font = new Font("default", this->textures);
     this->chatGui = new ChatGui();
+    this->hud = new Hud(this->textures, this->width*240/this->height, this->height*240/this->height);
     glViewport(0, 0, this->width, this->height);
     this->level = new Level();
     this->particleEngine = new ParticleEngine(this->level);
@@ -117,13 +118,13 @@ void CrossCraft::init() {
 
     this->hotbarSlots = {
         Tile::rock->id,
-        Tile::cobblestone->id,
+        Tile::sponge->id,
         Tile::dirt->id,
         Tile::wood->id,
         Tile::bush->id,
         Tile::log->id,
         Tile::leaves->id,
-        Tile::sand->id,
+        Tile::glass->id,
         Tile::gravel->id,
     };
     this->hotbarIndex = 0;
@@ -289,16 +290,16 @@ void CrossCraft::handleMouseClick() {
         if (this->hitResult->f == 4) x--;
         if (this->hitResult->f == 5) x++;
 
-        AABB* aabb = Tile::tiles[this->selectedTile]->getAABB(x, y, z);
+        AABB* aabb = Tile::tiles[this->player->inventory->getCurrentBlock()]->getAABB(x, y, z);
         
         if (aabb == nullptr || this->isFree(*aabb)) {
             if (this->mpMode && client && client->isConnected()) {
                 BlockChangePacket* packet = new BlockChangePacket(
                         x, y, z, 
-                        this->selectedTile, true);
+                        this->player->inventory->getCurrentBlock(), true);
                 client->sendPacket(packet);
             } else {
-                this->level->setTile(x, y, z, this->selectedTile);
+                this->level->setTile(x, y, z, this->player->inventory->getCurrentBlock());
             }
         }
         
@@ -395,9 +396,9 @@ void CrossCraft::tick() {
                 }
                 if (Keyboard::getEventKey() >= GLFW_KEY_1 && Keyboard::getEventKey() <= GLFW_KEY_9) {
                     int keyIndex = Keyboard::getEventKey() - GLFW_KEY_1;
-                    if (keyIndex < this->hotbarSlots.size()) {
-                        this->hotbarIndex = keyIndex;
-                        this->selectedTile = this->hotbarSlots[this->hotbarIndex];
+                    if (keyIndex < this->player->inventory->slots.size()) {
+                        this->player->inventory->selectedSlot = keyIndex;
+                        // this->selectedTile = this->hotbarSlots[this->hotbarIndex];
                     }
                 }
                 if (Keyboard::getEventKey() == GLFW_KEY_F) {
@@ -437,10 +438,10 @@ void CrossCraft::tick() {
                         }
 
                         if (pickedID > 0 && Tile::tiles[pickedID] != nullptr && Tile::tiles[pickedID]->mayPick()) {
-                            for (int i = 0; i < this->hotbarSlots.size(); ++i) {
-                                if (this->hotbarSlots[i] == pickedID) {
-                                    this->hotbarIndex = i;
-                                    this->selectedTile = this->hotbarSlots[this->hotbarIndex];
+                            for (int i = 0; i < this->player->inventory->slots.size(); ++i) {
+                                if (this->player->inventory->slots[i] == pickedID) {
+                                    this->player->inventory->selectedSlot = i;
+                                    // this->selectedTile = this->hotbarSlots[this->hotbarIndex];
                                     break;
                                 }
                             }
@@ -462,10 +463,10 @@ void CrossCraft::tick() {
                 int steps = static_cast<int>(dWheel / 100.0);
                 if (steps == 0) steps = scrollDirection;
 
-                this->hotbarIndex += steps;
-                int numSlots = this->hotbarSlots.size();
-                this->hotbarIndex = (this->hotbarIndex % numSlots + numSlots) % numSlots;
-                this->selectedTile = this->hotbarSlots[this->hotbarIndex];
+                this->player->inventory->selectedSlot += steps;
+                int numSlots = this->player->inventory->slots.size();
+                this->player->inventory->selectedSlot = (this->player->inventory->selectedSlot % numSlots + numSlots) % numSlots;
+                // this->selectedTile = this->hotbarSlots[this->hotbarIndex];
             }
         }
 
@@ -478,11 +479,10 @@ void CrossCraft::tick() {
 
     }
 update_world:
-    // TODO: IN 0.0.9a
-    // for (TextureFX* fx : textureEffects) {
-    //     fx->tick();
-    //     textures->updateTextureFX(fx->pixels, fx->textureId);
-    // }
+    for (TextureFX* fx : textureEffects) {
+        fx->tick();
+        textures->updateTextureFX(fx->pixels, fx->textureId);
+    }
     ++this->levelRenderer->cloudTicks;
     this->level->tick();
     this->particleEngine->tick();
@@ -568,8 +568,8 @@ void CrossCraft::render(float partialTicks) {
     if (this->hitResult != nullptr) {
         glDisable(GL_LIGHTING);
         glDisable(GL_ALPHA_TEST);
-        this->levelRenderer->renderHit(this->hitResult, this->player, this->editMode, this->selectedTile);
-        this->levelRenderer->renderHitOutline(this->hitResult, this->player, this->editMode, this->selectedTile);
+        this->levelRenderer->renderHit(this->hitResult, this->player, this->editMode, this->player->inventory->getCurrentBlock());
+        this->levelRenderer->renderHitOutline(this->hitResult, this->player, this->editMode, this->player->inventory->getCurrentBlock());
         glEnable(GL_ALPHA_TEST);
         glEnable(GL_LIGHTING);
     }
@@ -592,8 +592,8 @@ void CrossCraft::render(float partialTicks) {
     if (this->hitResult != nullptr) {
         glDepthFunc(GL_LESS);
         glDisable(GL_ALPHA_TEST);
-        this->levelRenderer->renderHit(this->hitResult, this->player, this->editMode, this->selectedTile);
-        this->levelRenderer->renderHitOutline(this->hitResult, this->player, this->editMode, this->selectedTile);
+        this->levelRenderer->renderHit(this->hitResult, this->player, this->editMode, this->player->inventory->getCurrentBlock());
+        this->levelRenderer->renderHitOutline(this->hitResult, this->player, this->editMode, this->player->inventory->getCurrentBlock());
         glEnable(GL_ALPHA_TEST);
         glDepthFunc(GL_LEQUAL);
     }
@@ -618,22 +618,25 @@ void CrossCraft::drawGui(float partialTicks) {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glTranslatef(0.0f, 0.0f, -200.0f);
+    Tessellator& t = Tessellator::getInstance();
     this->checkGlError("GUI: Init");
     glPushMatrix();
-    glTranslatef(screenWidth - 16, 16.0f, -50.0f);
-    Tessellator& t = Tessellator::getInstance();
-    glScalef(16.0f, 16.0f, 16.0f);
-    glRotatef(-30.0f, 1.0f, 0.0f, 0.0f);
-    glRotatef(45.0, 0.0f, 1.0f, 0.0f);
-    glTranslatef(-1.5f, 0.5f, 0.5f);
-    glScalef(-1.0f, -1.0f, -1.0f);
-    GLuint id = this->textures->loadTexture("terrain", GL_NEAREST);
-    glBindTexture(GL_TEXTURE_2D, id);
-    glEnable(GL_TEXTURE_2D);
-    t.begin();
-    Tile::tiles[this->selectedTile]->render(t, this->level, 0, -2, 0, 0);
-    t.end();
-    glDisable(GL_TEXTURE_2D);
+    // glTranslatef(screenWidth - 16, 16.0f, -50.0f);
+    // glScalef(16.0f, 16.0f, 16.0f);
+    // glRotatef(-30.0f, 1.0f, 0.0f, 0.0f);
+    // glRotatef(45.0, 0.0f, 1.0f, 0.0f);
+    // glTranslatef(-1.5f, 0.5f, 0.5f);
+    // glScalef(-1.0f, -1.0f, -1.0f);
+    // GLuint id = this->textures->loadTexture("terrain", GL_NEAREST);
+    // glBindTexture(GL_TEXTURE_2D, id);
+    // glEnable(GL_TEXTURE_2D);
+    // t.begin();
+    // Tile::tiles[this->player->inventory->getCurrentBlock()]->render(t, this->level, 0, -2, 0, 0);
+    // t.end();
+    // glDisable(GL_TEXTURE_2D);
+    if (this->hud != nullptr) {
+        this->hud->render(this->player, this->level, partialTicks);
+    }
     glPopMatrix();
     this->checkGlError("GUI: Draw selected");
     this->font->drawShadow(VERSION_STRING, 2, 2, 0xFFFFFF);

@@ -1,4 +1,4 @@
-#include "gui/LevelGenerateScreen.hpp"
+#include "gui/pause/LevelGenerateScreen.hpp"
 #include "CrossCraft.hpp"
 
 LevelGenerateScreen::LevelGenerateScreen(Screen* parent) : Screen::Screen() {

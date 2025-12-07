@@ -1,4 +1,4 @@
-#include "gui/LevelLoadScreen.hpp"
+#include "gui/pause/LevelLoadScreen.hpp"
 #include "CrossCraft.hpp"
 #include "gui/Button.hpp"
 #include <emscripten/fetch.h>

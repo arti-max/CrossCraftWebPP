@@ -60,6 +60,7 @@ if(EMSCRIPTEN)
             --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/water.png@water.png \
             --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/default.png@default.png \
             --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/clouds.png@clouds.png \
+            --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/gui.png@gui.png \
         "
     )
     set_target_properties(CrossCraftWebPP PROPERTIES OUTPUT_NAME "game")
@@ -74,6 +75,7 @@ if(EMSCRIPTEN)
         water.png
         default.png
         clouds.png
+        gui.png
     )
     
     foreach(TEXTURE_FILE ${TEXTURE_FILES})

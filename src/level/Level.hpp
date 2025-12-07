@@ -16,6 +16,7 @@ struct TickEntry {
     int x, y, z, tileId;
 };
 
+
 class Level {
 private:
     static const int TILE_UPDATE_INTERVAL = 200;
@@ -26,6 +27,7 @@ private:
     Random* random;
     std::set<int> ticking;
     std::deque<TickEntry> tickNextTickList;
+    std::vector<TickEntry> bannedTiles;
     static const int maxBits = 10;
     int randValue;
     int unprocessed = 0;
@@ -85,6 +87,9 @@ public:
     void setSpawnPos(int x, int y, int z, int rot);
     int getHighestTile(int x, int z);
     void fillOcean(int x, int y, int z);
+    void addBanned(int x, int y, int z, int id);
+    void removeBanned(int x, int y, int z, int id);
+    bool isBanned(int x, int y, int z);
 
 private:
     void generateMap();

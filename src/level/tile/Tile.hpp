@@ -4,7 +4,7 @@
 #include "level/Level.hpp"
 #include "util/Random.hpp"
 #include "phys/AABB.hpp"
-#include "Player.hpp"
+#include "player/Player.hpp"
 #include "particle/ParticleEngine.hpp"
 
 class Tile {
@@ -40,6 +40,8 @@ public:
     static const Tile* goldOre;
     static const Tile* ironOre;
     static const Tile* coalOre;
+    static const Tile* sponge;
+    static const Tile* glass;
 
     int textureId;
     int id;

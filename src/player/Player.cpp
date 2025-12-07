@@ -1,4 +1,4 @@
-#include "Player.hpp"
+#include "player/Player.hpp"
 #include "util/Keyboard.hpp"
 #include "util/Logger.hpp"
 #include <GLFW/glfw3.h>

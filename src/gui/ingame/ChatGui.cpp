@@ -1,4 +1,4 @@
-#include "gui/ChatGui.hpp"
+#include "gui/ingame/ChatGui.hpp"
 #include "gui/Screen.hpp"
 
 const int MESSAGE_LIFETIME = 200;

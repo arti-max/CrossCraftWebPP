@@ -1,4 +1,4 @@
-#include "gui/LevelSaveInputScreen.hpp"
+#include "gui/pause/LevelSaveInputScreen.hpp"
 #include "CrossCraft.hpp"
 
 LevelSaveInputScreen::LevelSaveInputScreen(Screen* parent, std::string currentName, int levelId) : Screen::Screen() {
