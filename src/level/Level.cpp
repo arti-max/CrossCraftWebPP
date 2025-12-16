@@ -554,3 +554,7 @@ bool Level::isBanned(int x, int y, int z) {
     }
     return false;
 }
+
+void Level::addEntity(Entity* entity) {
+    this->entities.push_back(entity);
+}

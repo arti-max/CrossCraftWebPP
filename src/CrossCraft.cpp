@@ -45,10 +45,10 @@ void CrossCraft::destroy() {
 
 void CrossCraft::init() {
     int col1 = 920330;
-    float fr = 0.92f;
-    float fg = 0.98f;
-    float fb = 1.0f;
-    fogColor0 = {fr, fg, fb, 1.0};
+    this->bgB = 0.92f;
+    this->bgG = 0.98f;
+    this->bgB = 1.0f;
+    fogColor0 = {this->bgR, this->bgG, this->bgB, 1.0};
     fogColor1 = {(float)14/255.0f, (float)11/255.0f, (float)10/255.0f, 1.0f};
 
 
@@ -71,7 +71,6 @@ void CrossCraft::init() {
     this->checkGlError("Pre startup");
     glEnable(GL_TEXTURE_2D);
     glShadeModel(GL_SMOOTH);
-    glClearColor(fr, fg, fb, 0.0f);
     glClearDepth(1.0f);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
@@ -113,9 +112,10 @@ void CrossCraft::init() {
 
     Mouse::init(window);
     Keyboard::init(window);
+    Item::initModels();
 
     Keyboard::enableRepeatEvents(false);
-
+    
     this->hotbarSlots = {
         Tile::rock->id,
         Tile::sponge->id,
@@ -168,7 +168,7 @@ void CrossCraft::releaseMouse() {
         Mouse::setGrabbed(false);
         this->player->releaseAllKeys();
         if (this->screen == nullptr) {
-             this->setScreen((Screen*)(new PauseScreen()));
+            this->setScreen((Screen*)(new PauseScreen()));
         }
     }
 }
@@ -275,7 +275,7 @@ void CrossCraft::handleMouseClick() {
                         0, false);
                     client->sendPacket(packet);
                 }
-                previousTile->onDestroy(this->level, this->hitResult->x, this->hitResult->y, this->hitResult->z, this->particleEngine);
+                previousTile->onDestroy(this->level, this->hitResult->x, this->hitResult->y, this->hitResult->z, this->particleEngine, this->isDrop);
             }
         }
     } else if (this->hitResult != nullptr) {
@@ -383,6 +383,17 @@ void CrossCraft::tick() {
                 if (Keyboard::getEventKey() == GLFW_KEY_T) {
                     this->player->releaseAllKeys();
                     this->setScreen(new ChatScreen());
+                    break;
+                }
+
+                if (Keyboard::getEventKey() == GLFW_KEY_C) {
+                    this->isDrop == true ? this->isDrop = false : this->isDrop = true;
+                }
+
+                if (Keyboard::getEventKey() == GLFW_KEY_B) {
+                    this->player->releaseAllKeys();
+                    this->setScreen(new BlockSelectScreen());
+                    this->releaseMouse();
                     break;
                 }
 
@@ -525,6 +536,7 @@ void CrossCraft::render(float partialTicks) {
     
     this->checkGlError("Set viewport");
     this->checkGlError("Rasycasted");
+    glClearColor(this->bgR, this->bgG, this->bgB, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     this->fogDistance = (float)(512 >> (this->levelRenderer->drawDistance << 1));
     this->setupCamera(partialTicks);
@@ -542,11 +554,11 @@ void CrossCraft::render(float partialTicks) {
     this->levelRenderer->render(this->player, 0);
     this->checkGlError("Rendered level");
     int i;
-    Entity* zombie;
+    Entity* entity;
     for (i = 0; i < this->level->entities.size(); ++i) {
-        zombie = this->level->entities[i];
-        if (frustum.isVisible(zombie->bb)) {
-            this->level->entities[i]->render(partialTicks);
+        entity = this->level->entities[i];
+        if (frustum.isVisible(entity->bb)) {
+            this->level->entities[i]->render(partialTicks, this->textures);
         }
     }
     for (auto const& [id, net_player] : this->level->networkPlayers) {
@@ -728,19 +740,31 @@ void CrossCraft::setupFog(int layer) {
             glFogi(GL_FOG_MODE, GL_EXP);
             glFogf(GL_FOG_DENSITY, 0.1f);
             glFogfv(GL_FOG_COLOR, getBuffer(0.02f, 0.02f, 0.2f, 1.0f));
+            this->bgR = 0.02f;
+            this->bgG = 0.02f;
+            this->bgB = 0.2f;
             glLightModelfv(GL_LIGHT_MODEL_AMBIENT, getBuffer(0.3f, 0.3f, 0.7f, 1.0f));
         } else if (currentTile != nullptr && currentTile->getLiquidType() == 2) {
             glFogi(GL_FOG_MODE, GL_EXP);
             glFogf(GL_FOG_DENSITY, 2.0f);
             glFogfv(GL_FOG_COLOR, getBuffer(0.6f, 0.1f, 0.0f, 1.0f));
+            this->bgR = 0.6f;
+            this->bgG = 0.1f;
+            this->bgB = 0.0f;
             glLightModelfv(GL_LIGHT_MODEL_AMBIENT, getBuffer(0.4f, 0.3f, 0.3f, 1.0f));
         } else if (layer == 0) {
+            this->bgR = 0.92f;
+            this->bgG = 0.98f;
+            this->bgB = 1.0f;
             glFogi(GL_FOG_MODE, GL_LINEAR);
             glFogf(GL_FOG_START, 0.0f);
             glFogf(GL_FOG_END, this->fogDistance);
             glFogfv(GL_FOG_COLOR, getBuffer(0.92f, 0.98f, 1.0f, 1.0f));
             glLightModelfv(GL_LIGHT_MODEL_AMBIENT, getBuffer(1.0f, 1.0f, 1.0f, 1.0f));
         } else if (layer == 1) {
+            this->bgR = 0.92f;
+            this->bgG = 0.98f;
+            this->bgB = 1.0f;
             glFogi(GL_FOG_MODE, GL_EXP);
             glFogf(GL_FOG_DENSITY, 0.01f);
             glFogfv(GL_FOG_COLOR, this->fogColor1.data());
@@ -959,7 +983,7 @@ void CrossCraft::handleNetworkPacket(Packet* packet) {
             Logger::logf(PREFIX_NETWORK, "Sending login packet...\n");
             this->levelLoadProgress(40);
             if (this->user != nullptr) {
-                    LoginPacket* loginPacket = new LoginPacket(this->user->username, this->user->sessionid);
+                    LoginPacket* loginPacket = new LoginPacket(this->user->username, this->user->sessionid); // тут так-же ещё внутри отправляется версия протокола, главное не забывать менять, хд.
                     client->sendPacket(loginPacket);
                 } else {
                     Logger::logf(PREFIX_WARNING, "User is null, sending guest login\n");

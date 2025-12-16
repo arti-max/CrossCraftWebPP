@@ -90,6 +90,7 @@ public:
     void addBanned(int x, int y, int z, int id);
     void removeBanned(int x, int y, int z, int id);
     bool isBanned(int x, int y, int z);
+    void addEntity(Entity* entity);
 
 private:
     void generateMap();

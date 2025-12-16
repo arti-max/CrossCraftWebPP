@@ -39,6 +39,8 @@ void LevelGen::generateLevel(Level* level, const char* username, int w, int h, i
     growSurface(this->heightmap);
     
     listener->levelLoadUpdate("Planting..");
+    addFlowersAndMushrooms(this->heightmap);
+    listener->levelLoadProgress(0);
     addTrees(this->heightmap);
 
         listener->levelLoadUpdate("Finalizing..");
@@ -286,6 +288,62 @@ void LevelGen::floodFill(int x, int y, int z, uint8_t targetBlock) {
             if(iz > 0) stack.push_back(index - width);
             if(iz < height - 1) stack.push_back(index + width);
             if(iy > 0) stack.push_back(index - width * height);
+        }
+    }
+}
+
+void LevelGen::addFlowersAndMushrooms(const std::vector<int>& map) {
+    int numFlowersPatches = width * height / 200;
+
+    if (numFlowersPatches <= 1) {
+        if (numFlowersPatches == 1) {
+            listener->levelLoadProgress(50);
+        }
+    }
+
+    for (int i = 0; i < numFlowersPatches; ++i) {
+        if (numFlowersPatches > 1) {
+            listener->levelLoadProgress(i * 100 / (numFlowersPatches - 1));
+        }
+
+        int x = random.nextInt(width);
+        int z = random.nextInt(height);
+        int y = heightmap[x + z * width];
+
+        int index = (y * height + z) * width + x;
+
+        if (blocks[index] == Tile::grass->id) {
+            int aboveIndex = ((y+1) * height + z) * width + x;
+            if (y + 1 < depth && blocks[aboveIndex] == 0) {
+                blocks[aboveIndex] = (random.nextInt(2) == 0) ? Tile::yellowFlower->id : Tile::redFlower->id;
+            }
+        }
+    }
+
+    int numMushroomsPatches = width * height / 500;
+
+    if (numMushroomsPatches <= 1) {
+        if (numMushroomsPatches == 1) {
+            listener->levelLoadProgress(50);
+        }
+    }
+
+    for (int i = 0; i < numMushroomsPatches; ++i) {
+        if (numMushroomsPatches > 1) {
+            listener->levelLoadProgress(i * 100 / (numMushroomsPatches - 1));
+        }
+
+        int x = random.nextInt(width);
+        int z = random.nextInt(height);
+        int y = heightmap[x + z * width];
+
+        int index = (y * height + z) * width + x;
+
+        if (blocks[index] == Tile::grass->id) {
+            int aboveIndex = ((y+1) * height + z) * width + x;
+            if (y + 1 < depth && blocks[aboveIndex] == 0) {
+                blocks[aboveIndex] = (random.nextInt(2) == 0) ? Tile::redMushroom->id : Tile::brownMushroom->id;
+            }
         }
     }
 }

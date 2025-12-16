@@ -177,7 +177,7 @@ bool Entity::isLit() {
     return level->isLit(xTile, yTile, zTile);
 }
 
-void Entity::render(float a) {
+void Entity::render(float partialTicks, Textures* textures) {
 }
 
 float Entity::randomFloat() {

@@ -5,6 +5,8 @@
 #include <cmath>
 #include <random>
 
+class Textures;
+
 class Entity {
 protected:
     Level* level;
@@ -49,7 +51,7 @@ public:
     void moveRelative(float xa, float za, float speed);
     bool isLit();
     float getBrightness();
-    virtual void render(float a);
+    virtual void render(float a, Textures* textures);
 
 private:
     float randomFloat();

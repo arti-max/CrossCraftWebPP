@@ -22,7 +22,7 @@ public:
     ~Zombie() = default;
     
     void tick() override;
-    void render(float partialTicks) override;
+    void render(float partialTicks, Textures* textures) override;
     
     static void initModel();
     static void destroyModel();

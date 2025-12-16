@@ -70,7 +70,7 @@ void Zombie::tick() {
     }
 }
 
-void Zombie::render(float partialTicks) {
+void Zombie::render(float partialTicks, Textures* textures) {
 glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, this->textures->loadTexture("char", GL_NEAREST));
     

@@ -1,7 +1,7 @@
 #include "level/tile/BushTile.hpp"
 
-Bush::Bush(int id) : Tile(id) {
-    this->textureId = 15;
+Bush::Bush(int id, int textureId) : Tile(id) {
+    this->textureId = textureId;
 }
 
 void Bush::tick(Level* level, int x, int y, int z, Random* random) {

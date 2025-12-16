@@ -2,9 +2,8 @@
 #include "level/tile/Tile.hpp"
 
 class GrassTile : public Tile {
-protected:
-    int getTexture(int face) override;
 public:
     GrassTile(int id);
+    int getTexture(int face) override;
     void tick(Level* level, int x, int y, int z, Random* random) override;
 };

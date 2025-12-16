@@ -23,6 +23,7 @@
 #include "gui/ingame/ChatGui.hpp"
 #include "gui/ingame/PlayerListScreen.hpp"
 #include "gui/ingame/Hud.hpp"
+#include "gui/ingame/BlockSelectScreen.hpp"
 #include "User.hpp"
 #include "util/Logger.hpp"
 #include "level/LevelLoaderListener.hpp"
@@ -34,10 +35,11 @@
 #include "render/fx/TextureFX.hpp"
 #include "render/fx/WaterTextureFX.hpp"
 #include "render/fx/LavaTextureFX.hpp"
+#include "item/Item.hpp"
 
 class CrossCraft : public LevelLoaderListener {
 private:
-    const std::string VERSION_STRING = "0.0.9a";
+    const std::string VERSION_STRING = "0.0.10a";
     int lastFpsTime = 0;
     int frames = 0;
     int lastProgress = -1;
@@ -68,6 +70,7 @@ private:
     float fogDistance = 0.0f;
     int attackTime = 0;
     int clickDelay = 0;
+    bool isDrop = false;
 
 
     Timer* timer = new Timer(20.0f);
@@ -78,10 +81,15 @@ private:
     LevelIO* levelIO = new LevelIO(this);
     ParticleEngine* particleEngine;
     Hud* hud;
+    BlockSelectScreen* blockSelectScreen;
     
     std::vector<int> hotbarSlots;
     int hotbarIndex = 0;
     int yMouseAxis = -1;
+
+    float bgR = 0.0f;
+    float bgG = 0.0f;
+    float bgB = 0.0f;
 
     // game loop
     void init();

@@ -7,6 +7,7 @@
 #include "level/tile/TransparentTile.hpp"
 #include "level/tile/SpongeTile.hpp"
 #include "level/tile/GlassTile.hpp"
+#include "item/Item.hpp"
 #include "level/tile/Tile.hpp"
 
 std::array<Tile*, 256> Tile::tiles = {nullptr};
@@ -17,7 +18,7 @@ static GrassTile grassTile(2);
 static Tile dirtTile(3, 3);
 static Tile cobbleTile(4, 5);
 static Tile woodTile(5, 2);
-static Bush bushTile(6);
+static Bush bushTile(6, 15);
 static Tile unbreakableTile(7, 17);
 static LiquidTile waterTile(8, 1);
 static CalmLiquidTile calmWaterTile(9, 1);
@@ -32,6 +33,28 @@ static Tile ironOreTile(17, 33);
 static Tile coalOreTile(18, 34);
 static SpongeTile spongeTile(19);
 static GlassTile glassTile(20);
+static Tile woolTile1(21, 64);
+static Tile woolTile2(22, 65);
+static Tile woolTile3(23, 66);
+static Tile woolTile4(24, 67);
+static Tile woolTile5(25, 68);
+static Tile woolTile6(26, 69);
+static Tile woolTile7(27, 70);
+static Tile woolTile8(28, 71);
+static Tile woolTile9(29, 72);
+static Tile woolTile10(30, 73);
+static Tile woolTile11(31, 74);
+static Tile woolTile12(32, 75);
+static Tile woolTile13(33, 76);
+static Tile woolTile14(34, 77);
+static Tile woolTile15(35, 78);
+static Tile woolTile16(36, 79);
+static Bush redFlowerTile(37, 12);
+static Bush yellowFlowerTile(38, 13);
+static Bush redMushroomTile(39, 28);
+static Bush brownMushroomTile(40, 29);
+static Tile goldBlockTile(41, 40);
+
 
 const Tile* Tile::rock = &rockTile;
 const Tile* Tile::grass = &grassTile;
@@ -53,6 +76,27 @@ const Tile* Tile::ironOre = &ironOreTile;
 const Tile* Tile::coalOre = &coalOreTile;
 const Tile* Tile::sponge = &spongeTile;
 const Tile* Tile::glass = &glassTile;
+const Tile* Tile::wool1 = &woolTile1;
+const Tile* Tile::wool2 = &woolTile2;
+const Tile* Tile::wool3 = &woolTile3;
+const Tile* Tile::wool4 = &woolTile4;
+const Tile* Tile::wool5 = &woolTile5;
+const Tile* Tile::wool6 = &woolTile6;
+const Tile* Tile::wool7 = &woolTile7;
+const Tile* Tile::wool8 = &woolTile8;
+const Tile* Tile::wool9 = &woolTile9;
+const Tile* Tile::wool10 = &woolTile10;
+const Tile* Tile::wool11 = &woolTile11;
+const Tile* Tile::wool12 = &woolTile12;
+const Tile* Tile::wool13 = &woolTile13;
+const Tile* Tile::wool14 = &woolTile14;
+const Tile* Tile::wool15 = &woolTile15;
+const Tile* Tile::wool16 = &woolTile16;
+const Tile* Tile::redFlower = &redFlowerTile;
+const Tile* Tile::yellowFlower = &yellowFlowerTile;
+const Tile* Tile::redMushroom = &redMushroomTile;
+const Tile* Tile::brownMushroom = &brownMushroomTile;
+const Tile* Tile::goldBlock = &goldBlockTile;
 
 Tile::Tile(int id) {
     tiles[id] = this;
@@ -294,7 +338,15 @@ void Tile::renderFaceNoTexture(Player* player, Tessellator& t, int x, int y, int
     }
 }
 
-void Tile::onDestroy(Level* level, int x, int y, int z, ParticleEngine* engine) {
+void Tile::onDestroy(Level* level, int x, int y, int z, ParticleEngine* engine, bool drop) {
+    Random rnd = Random();
+    if (drop) {
+        float spr = 0.7f;
+        float dropX = rnd.nextFloat() * spr + (1.0f - spr) * 0.5f;
+        float dropY = rnd.nextFloat() * spr + (1.0f - spr) * 0.5f;
+        float dropZ = rnd.nextFloat() * spr + (1.0f - spr) * 0.5f;
+        level->addEntity(new Item(level, x+dropX, y+dropY, z+dropZ, this->id));
+    }
     int spread = 4;
 
     bool isLeaves = (this->id == 15); 

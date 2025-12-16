@@ -14,4 +14,6 @@ public:
 
     void addBlockToSlot(int slot, int id);
     int getCurrentBlock();
+    int getInSlot(int slot);
+    int inInventory(int id, int ignore);
 };
