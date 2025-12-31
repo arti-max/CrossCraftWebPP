@@ -16,19 +16,11 @@ void BlockSelectScreen::init() {
 
 void BlockSelectScreen::render(int xMouse, int yMouse) {
     glDisable(GL_DEPTH_TEST); 
-    this->fillGradient(0, 0, this->width, this->height, 0x20050500, 0xA0303060);
+    this->fillGradient(this->width/2-120, 30, this->width/2+120, 180, -1878719232, -1070583712);
     this->drawCenteredString("Select block", this->width/2, 40, 0xFFFFFFFF);
     int startX = this->width/2-24*4;
     int startY = this->height/2-24*2;
     Tessellator& t = Tessellator::getInstance();
-    glBindTexture(GL_TEXTURE_2D, this->cc->textures->loadTexture("terrain", GL_NEAREST));
-    glEnable(GL_TEXTURE_2D);
-    glDisable(GL_BLEND);
-    glEnable(GL_DEPTH_TEST);
-    glClear(GL_DEPTH_BUFFER_BIT); 
-
-    glEnable(GL_RESCALE_NORMAL);
-    glEnable(GL_COLOR_MATERIAL);
 
     int index = -1;
     int relativeX = xMouse - startX;
@@ -39,6 +31,22 @@ void BlockSelectScreen::render(int xMouse, int yMouse) {
     if (relativeX < 0 || relativeY < 0) index=-1;
     if (col >= 8) index=-1;
     if (index >= this->blocks.size()) index=-1;
+
+    if (index >= 0) {
+        int tileX = startX + (index % 8) * 24;
+        int tileY = startY + (index / 8) * 24;
+        this->fillGradient(tileX, tileY, tileX+24, tileY+24, -1862270977, -1056964609);
+    }
+
+    glBindTexture(GL_TEXTURE_2D, this->cc->textures->loadTexture("terrain", GL_NEAREST));
+    glEnable(GL_TEXTURE_2D);
+    glDisable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
+    glClear(GL_DEPTH_BUFFER_BIT); 
+
+    glEnable(GL_RESCALE_NORMAL);
+    glEnable(GL_COLOR_MATERIAL);
+
 
     for (int i=0; i<this->blocks.size(); i++) {
         int tileX = startX + (i % 8) * 24;

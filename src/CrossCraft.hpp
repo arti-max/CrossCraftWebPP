@@ -39,7 +39,7 @@
 
 class CrossCraft : public LevelLoaderListener {
 private:
-    const std::string VERSION_STRING = "0.0.10a";
+    const std::string VERSION_STRING = "0.0.11a";
     int lastFpsTime = 0;
     int frames = 0;
     int lastProgress = -1;

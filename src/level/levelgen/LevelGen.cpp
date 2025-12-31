@@ -39,8 +39,8 @@ void LevelGen::generateLevel(Level* level, const char* username, int w, int h, i
     growSurface(this->heightmap);
     
     listener->levelLoadUpdate("Planting..");
-    addFlowersAndMushrooms(this->heightmap);
-    listener->levelLoadProgress(0);
+    // addFlowersAndMushrooms(this->heightmap);
+    // listener->levelLoadProgress(0);
     addTrees(this->heightmap);
 
         listener->levelLoadUpdate("Finalizing..");
@@ -175,12 +175,13 @@ void LevelGen::carve() {
     int numCaves = width * height * depth / 256 / 64;
     for (int i = 0; i < numCaves; ++i) {
         listener->levelLoadProgress(i * 100 / (numCaves - 1));
+
         float x = random.nextFloat() * width;
         float y = random.nextFloat() * depth;
         float z = random.nextFloat() * height;
-        
+
         int length = static_cast<int>((random.nextFloat() + random.nextFloat()) * 75.0f);
-        
+
         float yaw = random.nextFloat() * 2.0f * M_PI;
         float pitch = 0.0f;
         float yawMod = 0.0f;
@@ -190,28 +191,34 @@ void LevelGen::carve() {
             x += std::sin(yaw) * std::cos(pitch);
             z += std::cos(yaw) * std::cos(pitch);
             y += std::sin(pitch);
-            
+
             yaw += yawMod * 0.2f;
             yawMod = (yawMod * 0.9f) + (random.nextFloat() - random.nextFloat());
             pitch = (pitch + pitchMod * 0.5f) * 0.5f;
             pitchMod = (pitchMod * 0.9f) + (random.nextFloat() - random.nextFloat());
-            
-            float size = std::sin(static_cast<float>(l) * M_PI / static_cast<float>(length)) * 2.5f + 1.0f;
 
-            for (int ix = static_cast<int>(x - size); ix <= static_cast<int>(x + size); ++ix) {
-                for (int iy = static_cast<int>(y - size); iy <= static_cast<int>(y + size); ++iy) {
-                    for (int iz = static_cast<int>(z - size); iz <= static_cast<int>(z + size); ++iz) {
-                        float dx = ix - x;
-                        float dy = iy - y;
-                        float dz = iz - z;
+            if (random.nextFloat() >= 0.25f) {
+                float centerX = x + random.nextFloat() * 4.0f - 2.0f;
+                float centerY = y + random.nextFloat() * 4.0f - 2.0f;
+                float centerZ = z + random.nextFloat() * 4.0f - 2.0f;
+                
+                float size = std::sin(static_cast<float>(l) * M_PI / static_cast<float>(length)) * 2.5f + 1.0f;
 
-                        if (dx * dx + dy * dy * 2.0f + dz * dz < size * size &&
-                            ix >= 1 && iy >= 1 && iz >= 1 && 
-                            ix < width - 1 && iy < depth - 1 && iz < height - 1) {
-                            
-                            int index = (iy * height + iz) * width + ix;
-                            if (blocks[index] == Tile::rock->id) {
-                                blocks[index] = 0;
+                for (int ix = static_cast<int>(centerX - size); ix <= static_cast<int>(centerX + size); ++ix) {
+                    for (int iy = static_cast<int>(centerY - size); iy <= static_cast<int>(centerY + size); ++iy) {
+                        for (int iz = static_cast<int>(centerZ - size); iz <= static_cast<int>(centerZ + size); ++iz) {
+                            float dx = ix - centerX;
+                            float dy = iy - centerY;
+                            float dz = iz - centerZ;
+
+                            if (dx * dx + dy * dy * 2.0f + dz * dz < size * size &&
+                                ix >= 1 && iy >= 1 && iz >= 1 &&
+                                ix < width - 1 && iy < depth - 1 && iz < height - 1) {
+
+                                int index = (iy * height + iz) * width + ix;
+                                if (blocks[index] == Tile::rock->id) {
+                                    blocks[index] = 0;
+                                }
                             }
                         }
                     }
@@ -219,14 +226,6 @@ void LevelGen::carve() {
             }
         }
     }
-    listener->levelLoadUpdate("Adding minerals..");
-    listener->levelLoadProgress(25);
-    addVeins(Tile::coalOre->id, 90);
-    listener->levelLoadProgress(50);
-    addVeins(Tile::ironOre->id, 75);
-    listener->levelLoadProgress(75);
-    addVeins(Tile::goldOre->id, 50);
-    listener->levelLoadProgress(100);
 }
 
 void LevelGen::addWaterAndLava() {

@@ -13,11 +13,13 @@ void SpongeTile::neighborChanged(Level* level, int x, int y, int z, int type) {
 }
 
 void SpongeTile::checkSpongeEffect(Level* level, int x, int y, int z) {
-    for (int dx = -2; dx <= 2; dx++) {
-        for (int dy = -2; dy <= 2; dy++) {
-            for (int dz = -2; dz <= 2; dz++) {
-                if (level->getTile(x + dx, y + dy, z + dz) == Tile::water->id || level->getTile(x + dx, y + dy, z + dz) == Tile::calmWater->id) {
-                    level->setTile(x + dx, y + dy, z + dz, 0);
+    if (!level->isRemote) {
+        for (int dx = -2; dx <= 2; dx++) {
+            for (int dy = -2; dy <= 2; dy++) {
+                for (int dz = -2; dz <= 2; dz++) {
+                    if (level->getTile(x + dx, y + dy, z + dz) == Tile::water->id || level->getTile(x + dx, y + dy, z + dz) == Tile::calmWater->id) {
+                        level->setTile(x + dx, y + dy, z + dz, 0);
+                    }
                 }
             }
         }
