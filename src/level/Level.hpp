@@ -16,6 +16,7 @@ struct TickEntry {
     int x, y, z, tileId;
 };
 
+class CrossCraft;
 
 class Level {
 private:
@@ -24,7 +25,6 @@ private:
     static const int addend = 1013904223;
     
     std::vector<LevelListener*> levelListeners;
-    Random* random;
     std::set<int> ticking;
     std::deque<TickEntry> tickNextTickList;
     std::vector<TickEntry> bannedTiles;
@@ -49,6 +49,9 @@ public:
     std::string name;
     std::string creator;
     long long creationTime = 0;
+
+    Random* random;
+    CrossCraft* cc = nullptr;
 
     int xSpawn;
     int ySpawn;
@@ -91,6 +94,9 @@ public:
     void removeBanned(int x, int y, int z, int id);
     bool isBanned(int x, int y, int z);
     void addEntity(Entity* entity);
+    void playSound(const std::string& name, Entity* entity, float volume, float pitch);
+    void playSound(const std::string& name, float x, float y, float z, float volume, float pitch);
+
 
 private:
     void generateMap();

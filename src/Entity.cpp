@@ -1,5 +1,7 @@
 #include "Entity.hpp"
 #include "util/Logger.hpp"
+#include "sound/SoundType.hpp"
+#include "level/tile/Tile.hpp"
 #include <random>
 
 std::mt19937 Entity::randomGenerator(std::random_device{}());
@@ -105,6 +107,8 @@ bool Entity::isFree(float xa, float ya, float za) {
 }
 
 void Entity::move(float xa, float ya, float za) {
+    float xxo = this->x;
+    float zzo = this->z;
     float xaOrg = xa;
     float yaOrg = ya;
     float zaOrg = za;
@@ -142,6 +146,19 @@ void Entity::move(float xa, float ya, float za) {
     x = (bb.x0 + bb.x1) / 2.0f;
     y = bb.y0 + heightOffset;
     z = (bb.z0 + bb.z1) / 2.0f;
+    float zz = this->x - xxo;
+    xa = this->z - zzo;
+    this->walkDist = (float)((float)this->walkDist+std::sqrt((float)(zz*zz+xa*xa))*0.6f);
+    if (this->makeStepSound) {
+        int tileid = this->level->getTile((int)this->x, (int)(this->y - 0.2f - this->heightOffset), (int)this->z);
+        const SoundType* st = Tile::tiles[tileid]->st;
+        if (this->walkDist > 1.0f && tileid > 0 && st != &SoundType::none) {
+            // Logger::logf(PREFIX_DEBUG, "STEP! tile: %d, sound: %s\n", tileid, st->name.c_str());
+            this->walkDist -= (float)((int)this->walkDist);
+            this->playSound("step." + st->name, st->getVolume()*0.75f, st->getPitch());
+        }
+    }
+
 }
 
 bool Entity::isInWater() {
@@ -190,4 +207,8 @@ float Entity::getBrightness() {
     int yTile = static_cast<int>(y + heightOffset / 2.0f);
     int zTile = static_cast<int>(z);
     return level->getBrightness(xTile, yTile, zTile);
+}
+
+void Entity::playSound(const std::string& name, float volume, float pitch) {
+    this->level->playSound(name, this, volume, pitch);
 }

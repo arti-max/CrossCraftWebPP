@@ -36,10 +36,12 @@
 #include "render/fx/WaterTextureFX.hpp"
 #include "render/fx/LavaTextureFX.hpp"
 #include "item/Item.hpp"
+#include "sound/SoundManager.hpp"
+#include "sound/SoundType.hpp"
 
 class CrossCraft : public LevelLoaderListener {
 private:
-    const std::string VERSION_STRING = "0.0.11a";
+    const std::string VERSION_STRING = "0.0.12a";
     int lastFpsTime = 0;
     int frames = 0;
     int lastProgress = -1;
@@ -130,6 +132,7 @@ public:
     Client* client = nullptr;
     ChatGui* chatGui;
     PlayerListScreen* playerListScreen = new PlayerListScreen();
+    SoundManager* sound;
 
     CrossCraft(const char* parent, int width, int height, bool fullscreen);
     ~CrossCraft();

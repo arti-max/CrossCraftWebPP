@@ -1,4 +1,5 @@
 #include "particle/Particle.hpp"
+#include "level/tile/Tile.hpp"
 #include <cstdlib>
 #include <ctime>
 
@@ -6,14 +7,16 @@ double randomDouble() {
     return (double)rand() / RAND_MAX;
 }
 
-Particle::Particle(Level* level, double x, double y, double z, double motionX, double motionY, double motionZ, int textureId) : Entity::Entity(level) {
-    this->textureId = textureId;
-    this->gravity = 0.06f;
+Particle::Particle(Level* level, double x, double y, double z, double motionX, double motionY, double motionZ, Tile* tile) : Entity::Entity(level) {
+    this->textureId = tile->textureId;
+    this->gravity = tile->particleGravity;
 
     this->setSize(0.2f, 0.2f);
     this->heightOffset = this->bbHeight / 2.0f;
 
     this->setPos(x, y, z);
+
+    this->rCol = this->gCol = this->bCol = 1.0f;
 
     this->xd = motionX + (randomDouble() * 2.0f - 1.0f) * 0.4f;
     this->yd = motionY + (randomDouble() * 2.0f - 1.0f) * 0.4f;
@@ -23,7 +26,7 @@ Particle::Particle(Level* level, double x, double y, double z, double motionX, d
 
     double distance = std::sqrt(this->xd * this->xd + this->yd * this->yd + this->zd * this->zd);
     this->xd = this->xd / distance * speed * 0.7f;
-    this->yd = this->yd / distance * speed;
+    this->yd = this->yd / distance * speed * 0.4f + 0.1f;
     this->zd = this->zd / distance * speed * 0.7f;
 
     this->textureUOffset = randomDouble() * 3.0f;
@@ -31,6 +34,9 @@ Particle::Particle(Level* level, double x, double y, double z, double motionX, d
 
     this->size = randomDouble() * 0.5f + 0.5f;
     this->lifeTime = (int) (4.0f / (randomDouble() * 0.9f + 0.1f));
+
+    this->age = 0;
+    this->makeStepSound = false;
 }
 
 void Particle::tick() {
@@ -40,7 +46,7 @@ void Particle::tick() {
         this->remove();
     }
 
-    this->yd -= this->gravity;
+    this->yd = this->yd - 0.04f * this->gravity;
 
     this->move(this->xd, this->yd, this->zd);
 
@@ -54,6 +60,19 @@ void Particle::tick() {
     }
 }
 
+Particle* Particle::setPower(float power) {
+    this->xd *= power;
+    this->yd = (this->yd - 0.1f) * power + 0.1f;
+    this->zd *= power;
+    return this;
+}
+
+Particle* Particle::setScale(float scale) {
+    this->setSize(0.2f * scale, 0.2f * scale);
+    this->size *= scale;
+    return this;
+}
+
 void Particle::render(Tessellator& t, float partialTicks, float cameraX, float cameraY, float cameraZ, float cameraXWithY, float cameraZWithY) {
     float minU = (this->textureId % 16 + this->textureUOffset / 4.0F) / 16.0F;
     float maxU = minU + 999.0F / 64000.0F;
@@ -64,8 +83,10 @@ void Particle::render(Tessellator& t, float partialTicks, float cameraX, float c
     float y = this->yo + (this->y - this->yo) * partialTicks;
     float z = this->zo + (this->z - this->zo) * partialTicks;
 
+    float brightness = this->getBrightness();
+
     float size = this->size * 0.1f;
-    
+    t.color(brightness, brightness, brightness);
     t.vertexUV(x - cameraX * size - cameraXWithY * size, y - cameraY * size, z - cameraZ * size - cameraZWithY * size, minU, maxV);
     t.vertexUV(x - cameraX * size + cameraXWithY * size, y + cameraY * size, z - cameraZ * size + cameraZWithY * size, minU, minV);
     t.vertexUV(x + cameraX * size + cameraXWithY * size, y + cameraY * size, z + cameraZ * size + cameraZWithY * size, maxU, minV);

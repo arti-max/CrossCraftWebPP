@@ -10,6 +10,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/level)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/phys)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/render)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/util)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/stb)
 
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 file(GLOB_RECURSE HEADERS 
@@ -21,6 +22,9 @@ file(GLOB_RECURSE HEADERS
 
 message(STATUS "Source files: ${SOURCES}")
 
+add_library(stb_vorbis STATIC "${CMAKE_CURRENT_SOURCE_DIR}/lib/stb/stb_impl.c")
+target_include_directories(stb_vorbis PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/lib/stb")
+
 add_executable(CrossCraftWebPP ${SOURCES} ${HEADERS})
 
 if(EMSCRIPTEN)
@@ -28,6 +32,7 @@ if(EMSCRIPTEN)
     target_link_libraries(CrossCraftWebPP PRIVATE 
         glfw
         websocket.js
+        stb_vorbis
         "${CMAKE_CURRENT_SOURCE_DIR}/lib/libGLU.a"
         "${CMAKE_CURRENT_SOURCE_DIR}/lib/libGL.a"
     )
@@ -50,6 +55,8 @@ if(EMSCRIPTEN)
             -s ERROR_ON_UNDEFINED_SYMBOLS=0 \
             -s STACK_SIZE=2097152 \
             -s INITIAL_MEMORY=67108864 \
+            -s NO_EXIT_RUNTIME=1 \
+            -l openal \
             --allow-multiple-definition \
             --shell-file ${CMAKE_CURRENT_SOURCE_DIR}/index.html \
             --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/terrain.png@terrain.png \

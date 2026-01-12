@@ -202,12 +202,16 @@
                 <div class="control-item"><kbd>R-Click</kbd> - Edit Mode</div>
                 <div class="control-item"><kbd>M-Click</kbd> - Pick Block</div>
                 <div class="control-item"><kbd>1-9</kbd> - Select Block</div>
+                <div class="control-item"><kbd>Y</kbd> - Invert Y-axis</div>
                 <div class="control-item"><kbd>T</kbd> - Open Chat</div>
                 <div class="control-item"><kbd>Esc</kbd> - Pause/Menu</div>
                 <div class="control-item"><kbd>R</kbd> - Respawn</div>
                 <div class="control-item"><kbd>F</kbd> - Toggle Fog</div>
                 <div class="control-item"><kbd>G</kbd> - Spawn Mob</div>
-                <div class="control-item"><kbd>B</kbd> - Build menu</div>
+                <div class="control-item"><kbd>TAB</kbd> - Player List</div>
+                <div class="control-item"><kbd>B</kbd> - Build Menu</div>
+                <div class="control-item"><kbd>M</kbd> - Toggle Sounds</div>
+                
             </div>
         </div>
         
@@ -401,18 +405,7 @@
                 }
             }
         }
-
-        window.addEventListener('keydown', function(e) {
-            // Коды клавиш, которые могут скроллить: Пробел, Стрелки, PageUp/Down, Home/End
-            if([32, 37, 38, 39, 40, 33, 34, 35, 36].indexOf(e.keyCode) > -1) {
-                // Если фокус не в поле ввода (например, чат), предотвращаем скролл
-                if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-                    e.preventDefault();
-                }
-            }
-        }, false);
         
-
         window.onerror = function(event, source, lineno, colno, error) {
             console.error("Global error caught:", error);
             

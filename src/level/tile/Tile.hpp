@@ -6,6 +6,7 @@
 #include "phys/AABB.hpp"
 #include "player/Player.hpp"
 #include "particle/ParticleEngine.hpp"
+#include "sound/SoundType.hpp"
 
 class Tile {
 
@@ -65,7 +66,10 @@ public:
 
     int textureId;
     int id;
+    float particleGravity;
+    const SoundType* st;
 
+    virtual Tile* setData(const SoundType& st, float particleGravity);
     virtual int getTexture(int face);
     virtual bool render(Tessellator& t, Level* level, int layer, int x, int y, int z);
     virtual void renderFace(Tessellator& t, int x, int y, int z, int face);

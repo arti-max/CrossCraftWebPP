@@ -4,6 +4,7 @@
 #include <vector>
 #include <cmath>
 #include <random>
+#include <string>
 
 class Textures;
 
@@ -23,12 +24,14 @@ public:
     float yRot, xRot;
     float yRotO, xRotO;
     float xRotI, yRotI;
+    float walkDist = 0.0f;
 
     AABB bb;
     
     bool onGround = false;
     bool horizontalCollision = false;
     bool removed = false;
+    bool makeStepSound = true;
 
     Entity(Level* level);
     virtual ~Entity() = default;
@@ -52,6 +55,7 @@ public:
     bool isLit();
     float getBrightness();
     virtual void render(float a, Textures* textures);
+    virtual void playSound(const std::string& name, float volume, float pitch);
 
 private:
     float randomFloat();

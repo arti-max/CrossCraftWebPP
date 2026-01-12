@@ -11,10 +11,11 @@ Tessellator::Tessellator() {
     p = 0; len = 3;
     u = 0.0f; v = 0.0f;
     r = 0.0f; g = 0.0f; b = 0.0f;
+    nx = 0.0f; ny = 0.0f; nz = 0.0f;
     hasColor = false;
     hasTexture = false;
     noColor = false;
-
+    hasNormal = false;
     buffer.reserve(MAX_FLOATS);
 }
 
@@ -24,23 +25,37 @@ void Tessellator::end() {
         return;
     }
 
-    if (hasTexture && hasColor) {
-        glInterleavedArrays(GL_T2F_C3F_V3F, 0, buffer.data());
-    } else if (hasTexture) {
-        glInterleavedArrays(GL_T2F_V3F, 0, buffer.data());
-    } else if (hasColor) {
-        glInterleavedArrays(GL_C3F_V3F, 0, buffer.data());
+    int stride = this->len * sizeof(float);
+    float* data = buffer.data();
+
+    int offset = 0;
+
+    if (hasTexture) {
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+        glTexCoordPointer(2, GL_FLOAT, stride, data + offset);
+        offset += 2;
     } else {
-        glInterleavedArrays(GL_V3F, 0, buffer.data());
+        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+    }
+
+    if (hasColor) {
+        glEnableClientState(GL_COLOR_ARRAY);
+        glColorPointer(3, GL_FLOAT, stride, data + offset);
+        offset += 3;
+    } else {
+        glDisableClientState(GL_COLOR_ARRAY);
+    }
+
+    if (hasNormal) {
+        glEnableClientState(GL_NORMAL_ARRAY);
+        glNormalPointer(GL_FLOAT, stride, data + offset);
+        offset += 3;
+    } else {
+        glDisableClientState(GL_NORMAL_ARRAY);
     }
 
     glEnableClientState(GL_VERTEX_ARRAY);
-    if (hasTexture) {
-        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-    }
-    if (hasColor) {
-        glEnableClientState(GL_COLOR_ARRAY);
-    }
+    glVertexPointer(3, GL_FLOAT, stride, data + offset);
 
     glDrawArrays(GL_QUADS, 0, this->vertices);
     glDisableClientState(GL_VERTEX_ARRAY);
@@ -49,6 +64,9 @@ void Tessellator::end() {
     }
     if (hasColor) {
         glDisableClientState(GL_COLOR_ARRAY);
+    }
+    if (hasNormal)  {
+        glDisableClientState(GL_NORMAL_ARRAY);
     }
 
     clear();
@@ -59,6 +77,7 @@ void Tessellator::begin() {
     hasColor = false;
     hasTexture = false;
     noColor = false;
+    hasNormal = false;
     len = 3;
 }
 
@@ -89,6 +108,16 @@ void Tessellator::color(float r, float g, float b) {
     }
 }
 
+void Tessellator::normal(float x, float y, float z) {
+    if (!hasNormal) {
+        this->len += 3;
+    }
+    this->hasNormal = true;
+    this->nx = x;
+    this->ny = y;
+    this->nz = z;
+}
+
 void Tessellator::vertex(float x, float y, float z) {
     // printf("VERTEX %f, %f, %f\n", x, y, z);
     if (hasTexture) {
@@ -99,6 +128,11 @@ void Tessellator::vertex(float x, float y, float z) {
         buffer.push_back(r);
         buffer.push_back(g);
         buffer.push_back(b);
+    }
+    if (hasNormal) {
+        buffer.push_back(nx);
+        buffer.push_back(ny);
+        buffer.push_back(nz);
     }
 
     buffer.push_back(x);

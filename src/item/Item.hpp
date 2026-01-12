@@ -2,6 +2,7 @@
 #include "Entity.hpp"
 #include "render/Textures.hpp"
 #include "render/Tessellator.hpp"
+#include "item/ItemModel.hpp"
 #include <vector>
 
 class Item : public Entity {
@@ -11,7 +12,7 @@ private:
     float hoverAnim;
     int rot;
 public:
-    static std::vector<int> models; 
+    static std::vector<ItemModel*> models; 
     Item(Level* level, float x, float y, float z, int resourceId);
 
     void tick() override;

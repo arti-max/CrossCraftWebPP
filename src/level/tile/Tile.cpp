@@ -56,47 +56,47 @@ static Bush brownMushroomTile(40, 29);
 static Tile goldBlockTile(41, 40);
 
 
-const Tile* Tile::rock = &rockTile;
-const Tile* Tile::grass = &grassTile;
-const Tile* Tile::dirt = &dirtTile;
-const Tile* Tile::cobblestone = &cobbleTile;
-const Tile* Tile::wood = &woodTile;
-const Tile* Tile::bush = &bushTile;
-const Tile* Tile::unbreakable = &unbreakableTile;
-const Tile* Tile::water = &waterTile;
-const Tile* Tile::calmWater = &calmWaterTile;
-const Tile* Tile::lava = &lavaTile;
-const Tile* Tile::calmLava = &calmLavaTile;
-const Tile* Tile::gravel = &gravelTile;
-const Tile* Tile::sand = &sandTile;
-const Tile* Tile::log = &logTile;
-const Tile* Tile::leaves = &leavesTile;
-const Tile* Tile::goldOre = &goldOreTile;
-const Tile* Tile::ironOre = &ironOreTile;
-const Tile* Tile::coalOre = &coalOreTile;
-const Tile* Tile::sponge = &spongeTile;
-const Tile* Tile::glass = &glassTile;
-const Tile* Tile::wool1 = &woolTile1;
-const Tile* Tile::wool2 = &woolTile2;
-const Tile* Tile::wool3 = &woolTile3;
-const Tile* Tile::wool4 = &woolTile4;
-const Tile* Tile::wool5 = &woolTile5;
-const Tile* Tile::wool6 = &woolTile6;
-const Tile* Tile::wool7 = &woolTile7;
-const Tile* Tile::wool8 = &woolTile8;
-const Tile* Tile::wool9 = &woolTile9;
-const Tile* Tile::wool10 = &woolTile10;
-const Tile* Tile::wool11 = &woolTile11;
-const Tile* Tile::wool12 = &woolTile12;
-const Tile* Tile::wool13 = &woolTile13;
-const Tile* Tile::wool14 = &woolTile14;
-const Tile* Tile::wool15 = &woolTile15;
-const Tile* Tile::wool16 = &woolTile16;
-const Tile* Tile::redFlower = &redFlowerTile;
-const Tile* Tile::yellowFlower = &yellowFlowerTile;
-const Tile* Tile::redMushroom = &redMushroomTile;
-const Tile* Tile::brownMushroom = &brownMushroomTile;
-const Tile* Tile::goldBlock = &goldBlockTile;
+const Tile* Tile::rock = rockTile.setData(SoundType::stone, 1.0f);
+const Tile* Tile::grass = grassTile.setData(SoundType::grass, 1.0f);
+const Tile* Tile::dirt = dirtTile.setData(SoundType::grass, 1.0f);
+const Tile* Tile::cobblestone = cobbleTile.setData(SoundType::stone, 1.0f);
+const Tile* Tile::wood = woodTile.setData(SoundType::wood, 1.0f);
+const Tile* Tile::bush = bushTile.setData(SoundType::none, 1.0f);
+const Tile* Tile::unbreakable = unbreakableTile.setData(SoundType::stone, 1.0f);
+const Tile* Tile::water = waterTile.setData(SoundType::none, 1.0f);
+const Tile* Tile::calmWater = calmWaterTile.setData(SoundType::none, 1.0f);
+const Tile* Tile::lava = lavaTile.setData(SoundType::none, 1.0f);
+const Tile* Tile::calmLava = calmLavaTile.setData(SoundType::none, 1.0f);
+const Tile* Tile::gravel = gravelTile.setData(SoundType::gravel, 1.0f);
+const Tile* Tile::sand = sandTile.setData(SoundType::gravel, 1.0f);
+const Tile* Tile::log = logTile.setData(SoundType::wood, 1.0f);
+const Tile* Tile::leaves = leavesTile.setData(SoundType::leaves, 0.4f);
+const Tile* Tile::goldOre = goldOreTile.setData(SoundType::stone, 1.0f);
+const Tile* Tile::ironOre = ironOreTile.setData(SoundType::stone, 1.0f);
+const Tile* Tile::coalOre = coalOreTile.setData(SoundType::stone, 1.0f);
+const Tile* Tile::sponge = spongeTile.setData(SoundType::cloth, 0.9f);
+const Tile* Tile::glass = glassTile.setData(SoundType::metal, 1.0f);
+const Tile* Tile::wool1 = woolTile1.setData(SoundType::cloth, 1.0f);
+const Tile* Tile::wool2 = woolTile2.setData(SoundType::cloth, 1.0f);
+const Tile* Tile::wool3 = woolTile3.setData(SoundType::cloth, 1.0f);
+const Tile* Tile::wool4 = woolTile4.setData(SoundType::cloth, 1.0f);
+const Tile* Tile::wool5 = woolTile5.setData(SoundType::cloth, 1.0f);
+const Tile* Tile::wool6 = woolTile6.setData(SoundType::cloth, 1.0f);
+const Tile* Tile::wool7 = woolTile7.setData(SoundType::cloth, 1.0f);
+const Tile* Tile::wool8 = woolTile8.setData(SoundType::cloth, 1.0f);
+const Tile* Tile::wool9 = woolTile9.setData(SoundType::cloth, 1.0f);
+const Tile* Tile::wool10 = woolTile10.setData(SoundType::cloth, 1.0f);
+const Tile* Tile::wool11 = woolTile11.setData(SoundType::cloth, 1.0f);
+const Tile* Tile::wool12 = woolTile12.setData(SoundType::cloth, 1.0f);
+const Tile* Tile::wool13 = woolTile13.setData(SoundType::cloth, 1.0f);
+const Tile* Tile::wool14 = woolTile14.setData(SoundType::cloth, 1.0f);
+const Tile* Tile::wool15 = woolTile15.setData(SoundType::cloth, 1.0f);
+const Tile* Tile::wool16 = woolTile16.setData(SoundType::cloth, 1.0f);
+const Tile* Tile::redFlower = redFlowerTile.setData(SoundType::none, 1.0f);
+const Tile* Tile::yellowFlower = yellowFlowerTile.setData(SoundType::none, 1.0f);
+const Tile* Tile::redMushroom = redMushroomTile.setData(SoundType::none, 1.0f);
+const Tile* Tile::brownMushroom = brownMushroomTile.setData(SoundType::none, 1.0f);
+const Tile* Tile::goldBlock = goldBlockTile.setData(SoundType::metal, 1.0f);
 
 Tile::Tile(int id) {
     tiles[id] = this;
@@ -107,6 +107,12 @@ Tile::Tile(int id) {
 
 Tile::Tile(int id, int texture) : Tile(id) {
     this->textureId = texture;
+}
+
+Tile* Tile::setData(const SoundType& st, float particleGravity) {
+    this->st = &st;
+    this->particleGravity = particleGravity;
+    return this;
 }
 
 bool Tile::shouldRenderFace(Level* level, int x, int y, int z, int layer, int face) {
@@ -132,7 +138,7 @@ void Tile::setShape(float x0, float y0, float z0, float x1, float y1, float z1) 
 
 bool Tile::render(Tessellator& t, Level* level, int layer, int x, int y, int z) {
     bool rendered = false;
-    float c1 = 1.0f;
+    float c1 = 0.5f;
     float c2 = 0.8f;
     float c3 = 0.6f;
 
@@ -144,7 +150,7 @@ bool Tile::render(Tessellator& t, Level* level, int layer, int x, int y, int z) 
     }
     if (this->shouldRenderFace(level, x, y + 1, z, layer, 1)) {
         float brightness = this->getBrightness(level, x, y + 1, z);
-        t.color(brightness * c1, brightness * c1, brightness * c1);
+        t.color(brightness * 1.0f, brightness * 1.0f, brightness * 1.0f);
         this->renderFace(t, x, y, z, 1);
         rendered = true;
     }
@@ -349,8 +355,6 @@ void Tile::onDestroy(Level* level, int x, int y, int z, ParticleEngine* engine, 
     }
     int spread = 4;
 
-    bool isLeaves = (this->id == 15); 
-
     for (int offsetX = 0; offsetX < spread; offsetX++) {
         for (int offsetY = 0; offsetY < spread; offsetY++) {
             for (int offsetZ = 0; offsetZ < spread; offsetZ++) {
@@ -362,13 +366,7 @@ void Tile::onDestroy(Level* level, int x, int y, int z, ParticleEngine* engine, 
                 float motionY = targetY - y - 0.5f;
                 float motionZ = targetZ - z - 0.5f;
 
-                Particle* p = new Particle(level, targetX, targetY, targetZ, motionX, motionY, motionZ, this->textureId);
-                if (isLeaves) {
-                    p->gravity = 0.005f;
-                    p->xd *= 0.6f;
-                    p->yd *= 0.6f;
-                    p->zd *= 0.6f;
-                }
+                Particle* p = (new Particle(level, targetX, targetY, targetZ, motionX, motionY, motionZ, this));
                 engine->add(p);
             }
         }

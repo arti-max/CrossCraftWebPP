@@ -226,6 +226,15 @@ void LevelGen::carve() {
             }
         }
     }
+
+    listener->levelLoadUpdate("Adding minerals..");
+    listener->levelLoadProgress(25);
+    addVeins(Tile::coalOre->id, 90);
+    listener->levelLoadProgress(50);
+    addVeins(Tile::ironOre->id, 75);
+    listener->levelLoadProgress(75);
+    addVeins(Tile::goldOre->id, 50);
+    listener->levelLoadProgress(100);
 }
 
 void LevelGen::addWaterAndLava() {

@@ -18,6 +18,7 @@ CrossCraft::CrossCraft(const char* canvas, int w, int h, bool fs) :
     }
 
     this->textures = new Textures();
+    this->sound = new SoundManager();
 
     textureEffects.push_back(new WaterTextureFX());
     textureEffects.push_back(new LavaTextureFX());
@@ -81,11 +82,13 @@ void CrossCraft::init() {
     glLoadIdentity();
     glMatrixMode(GL_MODELVIEW);
     this->checkGlError("Startup");
+    this->sound->initOpenAL();
     this->font = new Font("default", this->textures);
     this->chatGui = new ChatGui();
     this->hud = new Hud(this->textures, this->width*240/this->height, this->height*240/this->height);
     glViewport(0, 0, this->width, this->height);
     this->level = new Level();
+    this->level->cc = this;
     this->particleEngine = new ParticleEngine(this->level);
 
     if (!this->mpMode) {
@@ -275,6 +278,9 @@ void CrossCraft::handleMouseClick() {
                         0, false);
                     client->sendPacket(packet);
                 }
+                if (previousTile->st != &SoundType::none) {
+                    this->level->playSound("step." + previousTile->st->name, (float)this->hitResult->x, (float)this->hitResult->y, (float)this->hitResult->z, (previousTile->st->getVolume() + 1.0f) / 2.0f, previousTile->st->getPitch() * 0.8f);
+                }
                 previousTile->onDestroy(this->level, this->hitResult->x, this->hitResult->y, this->hitResult->z, this->particleEngine, this->isDrop);
             }
         }
@@ -310,6 +316,12 @@ void CrossCraft::handleMouseClick() {
 }
 
 void CrossCraft::tick() {
+    if (this->sound != nullptr) {
+        if (emscripten_get_now() > this->sound->lastMusic && this->sound->playMusic("calm")) {
+            this->sound->lastMusic = emscripten_get_now() + this->level->random->nextInt(900000) + 300000;
+        }
+    }
+
     if (this->attackTime > 0) {
         this->attackTime--;
     }
@@ -395,6 +407,10 @@ void CrossCraft::tick() {
                     this->setScreen(new BlockSelectScreen());
                     this->releaseMouse();
                     break;
+                }
+
+                if (Keyboard::getEventKey() == GLFW_KEY_M) {
+                    this->sound->toggleMute();
                 }
 
                 if (Keyboard::getEventKey() == GLFW_KEY_ENTER && !this->mpMode) {
@@ -499,6 +515,7 @@ update_world:
     this->particleEngine->tick();
 
     this->player->tick();
+    this->sound->updateListener(this->player->x, this->player->y, this->player->z, this->player->xRot, this->player->yRot);
 
     for (auto const& [id, net_player] : this->level->networkPlayers) {
         if (net_player != nullptr) {

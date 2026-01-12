@@ -1,6 +1,7 @@
 #include "level/Level.hpp"
 #include "level/tile/Tile.hpp"
 #include "Entity.hpp"
+#include "CrossCraft.hpp"
 #include <iostream>
 #include <algorithm>
 
@@ -557,4 +558,18 @@ bool Level::isBanned(int x, int y, int z) {
 
 void Level::addEntity(Entity* entity) {
     this->entities.push_back(entity);
+}
+
+void Level::playSound(const std::string& name, Entity* entity, float volume, float pitch) {
+    CrossCraft* cc = this->cc;
+    if (this->cc != nullptr && cc->sound != nullptr) {
+        cc->sound->playAt(name, entity->x, entity->y, entity->z, pitch, volume);
+    }
+}
+
+void Level::playSound(const std::string& name, float x, float y, float z, float volume, float pitch) {
+    CrossCraft* cc = this->cc;
+    if (this->cc != nullptr && cc->sound != nullptr) {
+        cc->sound->playAt(name, x, y, z, pitch, volume);
+    }
 }

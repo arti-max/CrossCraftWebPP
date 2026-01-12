@@ -15,8 +15,10 @@ private:
     int len;
     float u, v;
     float r, g, b;
+    float nx, ny, nz;
     bool hasTexture;
     bool hasColor;
+    bool hasNormal;
     bool noColor;
 public:
     static const int MAX_FLOATS = 524288;
@@ -30,6 +32,7 @@ public:
     void vertex(float x, float y, float z);
     void texture(float u, float v);
     void color (float r, float g, float b);
+    void normal(float x, float y, float z);
     void vertexUV(float x, float y, float z, float u, float v);
     void _noColor();
 };
