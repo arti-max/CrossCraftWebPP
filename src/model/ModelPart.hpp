@@ -136,7 +136,7 @@ public:
         if (!this->compiled) {
             compileDisplayList(scale);
         }
-
+                
         if (pitch == 0.0f && yaw == 0.0f && roll == 0.0f) {
             if (x == 0.0f && y == 0.0f && z == 0.0f) {
                 glCallList(displayList);
@@ -160,30 +160,44 @@ public:
 
 private:
     void compileDisplayList(float scale) {
+
         displayList = glGenLists(1);
         glNewList(displayList, GL_COMPILE);
-        // glBegin(GL_QUADS);
 
-        Tessellator& t = Tessellator::getInstance();
-        t.begin();
+        glBegin(GL_TRIANGLES);
 
-        for (const auto& quad : quads) {
+        for (size_t i = 0; i < quads.size(); ++i) {
+            const auto& quad = quads[i];
+
+            if (quad.vertices.size() != 4) continue;
+
             Vec3D v1 = quad.vertices[1].vector.subtract(quad.vertices[0].vector).normalize();
             Vec3D v2 = quad.vertices[1].vector.subtract(quad.vertices[2].vector).normalize();
             Vec3D normal = v1.cross(v2).normalize();
 
-            t.normal(normal.x, normal.y, normal.z);
+            if (std::isnan(normal.x)) normal = Vec3D(0.0f, 1.0f, 0.0f);
 
-            for (const auto& v : quad.vertices) {
-                t.vertexUV(v.vector.x * scale, v.vector.y * scale, v.vector.z * scale, v.u, v.v);
-                // glTexCoord2f(v.u, v.v);
-                // glVertex3f(v.vector.x * scale, v.vector.y * scale, v.vector.z * scale);
+            int triIndices[6] = {0, 1, 2, 2, 3, 0};
+
+            for (int k = 0; k < 6; k++) {
+                int idx = triIndices[k];
+                const auto& v = quad.vertices[idx];
+                
+                float vx = v.vector.x * scale;
+                float vy = v.vector.y * scale;
+                float vz = v.vector.z * scale;
+                
+                if (std::isnan(vx)) vx = 0.0f;
+                if (std::isnan(vy)) vy = 0.0f;
+                if (std::isnan(vz)) vz = 0.0f;
+                
+                glNormal3f(normal.x, normal.y, normal.z);
+                glTexCoord2f(v.u, v.v);
+                glVertex3f(vx, vy, vz);
             }
         }
 
-        t.end();
-
-        // glEnd();
+        glEnd();
         glEndList();
         this->compiled = true;
     }

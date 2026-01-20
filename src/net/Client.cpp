@@ -71,6 +71,11 @@ void Client::sendPacket(Packet* packet) {
         return;
     }
 
+    if (!loggedIn && packet->getType() != PacketType::LOGIN) {
+        delete packet;
+        return;
+    }
+
     packet->serialize();
     std::vector<uint8_t> bytes = packet->toBytes();
     

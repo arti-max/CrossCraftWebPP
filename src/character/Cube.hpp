@@ -22,5 +22,5 @@ public:
     
     void addBox(float x0, float y0, float z0, int w, int h, int d);
     void setPos(float x, float y, float z);
-    void render();
+    void render(float scale);
 };

@@ -1,6 +1,7 @@
 #pragma once
 #include "Entity.hpp"
 #include "player/Inventory.hpp"
+#include "Settings.hpp"
 
 class Player : public Entity {
 public:
@@ -12,9 +13,10 @@ public:
 
 private:
     bool keys[10] = {false};
+    Settings* settings;
 
 public:
-    Player(Level* level);
+    Player(Level* level, Settings* settings);
     
     Inventory* inventory = new Inventory(this);
 

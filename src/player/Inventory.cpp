@@ -1,7 +1,10 @@
 #include "player/Player.hpp"
 #include "level/tile/Tile.hpp"
 #include "player/Inventory.hpp"
+#include "Data.hpp"
+#include "util/Logger.hpp"
 
+#include <algorithm>
 
 Inventory::Inventory(Player* p) {
     this->player = p;
@@ -35,4 +38,29 @@ int Inventory::inInventory(int id, int ignore) {
         if (i != ignore && this->slots[i] == id) return i;
     }
     return -1;
+}
+
+void Inventory::pickTile(int tileId) {
+    int inInv = this->inInventory(tileId, -1);
+    if (inInv >= 0) {
+        this->selectedSlot = inInv;
+    } else {
+        Tile* targetTile = Tile::tiles[tileId];
+        bool isAllowed = std::find(Data::allowedTiles.begin(), Data::allowedTiles.end(), targetTile) != Data::allowedTiles.end();
+        // Logger::logf(PREFIX_DEBUG, "PickTile: ID=%d, Allowed=%d\n", tileId, isAllowed);
+        if (tileId > 0 && isAllowed) {
+            this->replaceSlot(targetTile);
+        }
+    }
+} 
+
+void Inventory::replaceSlot(Tile* tile) {
+    if (tile != nullptr) {
+        int slot = this->inInventory(tile->id, -1);
+        if (slot >= 0) {
+            this->slots[slot] = this->slots[this->selectedSlot];
+        }
+
+        this->slots[this->selectedSlot] = tile->id;
+    }
 }

@@ -36,24 +36,29 @@ ZombieModel::~ZombieModel() {
     delete leg1;
 }
 
-void ZombieModel::render(float time, float headYRot, float headXRot) {
+void ZombieModel::render(float time, float speed, float tick, float headYRot, float headXRot, float scale) {
     
-    head->yRot = headYRot / 57.29578f;
-    head->xRot = headXRot / 57.29578f;
+    this->head->yRot = headYRot / 57.29578f;
+    this->head->xRot = headXRot / 57.29578f;
     
-    arm0->xRot = std::sin(time * 0.6662f + M_PI) * 2.0f;
-    arm0->zRot = (std::sin(time * 0.2312f) + 1.0f);
+    this->arm0->xRot = std::cos(time * 0.6662f + M_PI) * 2.0f * speed;
+    this->arm0->zRot = (std::cos(time * 0.2312f) + 1.0f) * speed;
     
-    arm1->xRot = std::sin(time * 0.6662f) * 2.0f;
-    arm1->zRot = (std::sin(time * 0.2812f) - 1.0f);
+    this->arm1->xRot = std::cos(time * 0.6662f) * 2.0f * speed;
+    this->arm1->zRot = (std::cos(time * 0.2812f) - 1.0f) * speed;
+
+    this->leg0->xRot = std::cos(time * 0.6662f) * 1.4f * speed;
+    this->leg1->xRot = std::cos(time * 0.6662f + M_PI) * 1.4f * speed;
     
-    leg0->xRot = std::sin(time * 0.6662f) * 1.4f;
-    leg1->xRot = std::sin(time * 0.6662f + M_PI) * 1.4f;
+    this->arm0->zRot += std::cos(tick * 0.09f) * 0.05f + 0.05f;
+    this->arm1->zRot -= std::cos(tick * 0.09f) * 0.05f + 0.05f;
+    this->arm0->xRot += std::sin(tick * 0.067f) * 0.05f;
+    this->arm1->xRot -= std::sin(tick * 0.067f) * 0.05f;
     
-    head->render();
-    body->render();
-    arm0->render();
-    arm1->render();
-    leg0->render();
-    leg1->render();
+    this->head->render(scale);
+    this->body->render(scale);
+    this->arm0->render(scale);
+    this->arm1->render(scale);
+    this->leg0->render(scale);
+    this->leg1->render(scale);
 }

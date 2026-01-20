@@ -2,6 +2,7 @@
 #include <vector>
 #include <map>
 class Player;
+class Tile;
 
 class Inventory {
 private:
@@ -16,4 +17,6 @@ public:
     int getCurrentBlock();
     int getInSlot(int slot);
     int inInventory(int id, int ignore);
+    void pickTile(int id);
+    void replaceSlot(Tile* tile);
 };

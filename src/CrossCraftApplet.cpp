@@ -18,6 +18,7 @@ CrossCraftApplet::CrossCraftApplet() {
     width = 0;
     height = 0;
     isMultiplayer = false;
+    this->initFS();
 }
 
 CrossCraftApplet::~CrossCraftApplet() {
@@ -67,7 +68,7 @@ void CrossCraftApplet::start() {
         game->appletMode = true;
         
         if (!username.empty() && !sessionid.empty()) {
-            game->user = new User(username, sessionid);
+            game->userData = new Data(username, sessionid);
         }
 
         if (isMultiplayer && !serverAddress.empty() && serverPort > 0) {
@@ -111,6 +112,19 @@ void CrossCraftApplet::destroy() {
         game = nullptr;
         std::cout << "CrossCraft applet destroyed" << std::endl;
     }
+}
+
+void CrossCraftApplet::initFS() {
+    mkdir("/.crosscraft", 0777);
+
+    EM_ASM(
+        FS.mount(IDBFS, {}, '/.crosscraft');
+
+        FS.syncfs(true, function (err) {
+            if (err) console.error('Error loading filesystem:', err);
+            else console.log('IndexedDB initialized');
+        });
+    );
 }
 
 extern "C" {

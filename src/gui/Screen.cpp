@@ -14,17 +14,31 @@ void Screen::render(int xMouse, int yMouse) {
     for (int i = 0; i < this->buttons.size(); ++i) {
         Button* btn = this->buttons[i];
         if (!btn->visible) continue;
-        this->fill(btn->x - 1, btn->y - 1, btn->x + btn->w + 1, btn->y + btn->h + 1, BLACK);
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, this->cc->textures->loadTexture("gui", GL_NEAREST));
+        glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+
+        bool mouseInButton = xMouse >= btn->x && yMouse >= btn->y && xMouse < btn->x + btn->w && yMouse < btn->y + btn->h;
+        
+        int hoverState = 1;
         if (!btn->enabled) {
-            this->fill(btn->x, btn->y, btn->x + btn->w, btn->y + btn->h, GRAY_1);
-            this->drawCenteredString(btn->msg.c_str(), btn->x + btn->w / 2, btn->y + (btn->h - 8) / 2, BLACK_GRAY);
-        } else if (xMouse >= btn->x && yMouse >= btn->y && xMouse < btn->x + btn->w && yMouse < btn->y + btn->h) {
-            this->fill(btn->x, btn->y, btn->x + btn->w, btn->y + btn->h, BLUE_GRAY);
-            this->drawCenteredString(btn->msg.c_str(), btn->x + btn->w / 2, btn->y + (btn->h - 8) / 2, LIGHT_YELLOW);
-        } else {
-            this->fill(btn->x, btn->y, btn->x + btn->w, btn->y + btn->h, GRAY_2);
-            this->drawCenteredString(btn->msg.c_str(), btn->x + btn->w / 2, btn->y + (btn->h - 8) / 2, WHITE);
+            hoverState = 0;
+        } else if (mouseInButton) {
+            hoverState = 2;
         }
+
+        int textureY = 46 + hoverState * 20;
+        this->drawImage(btn->x, btn->y, 0, textureY, btn->w / 2, btn->h);
+        this->drawImage(btn->x + btn->w / 2, btn->y, 200 - btn->w / 2, textureY, btn->w / 2, btn->h);
+
+        int textColor = 14737632;
+        if (!btn->enabled) {
+            textColor = -6250336;
+        } else if (mouseInButton) {
+            textColor = 16777120;
+        }
+        this->drawCenteredString(btn->msg.c_str(), btn->x + btn->w / 2, btn->y + (btn->h - 8) / 2, textColor);
+        glDisable(GL_TEXTURE_2D);
     }
 }
 
@@ -128,7 +142,21 @@ void Screen::updateEvents() {
     }
 }
 
-void Screen::keyPressed(char eventCharacter, int eventKey) {
+void Screen::drawImage(int x, int y, int u, int v, int w, int h) {
+    float pu = 0.00390625f;
+    float pv = 0.00390625f;
+
+    Tessellator& t = Tessellator::getInstance();
+
+    t.begin();
+    t.vertexUV((float)x, (float)(y+h), this->imgZOrder, (float)u*pu, (float)(v+h)*pv);
+    t.vertexUV((float)(x+w), (float)(y+h), this->imgZOrder, (float)(u+w)*pu, (float)(v+h)*pv);
+    t.vertexUV((float)(x+w), (float)(y), this->imgZOrder, (float)(u+w)*pu, (float)v*pv);
+    t.vertexUV((float)x, (float)(y), this->imgZOrder, (float)u*pu, (float)v*pv);
+    t.end();
+}
+
+void Screen::keyPressed(char eventCharacter, int eventKey) {float vScale = 1.0f / 256.0f;
     // no implementation
 }
 

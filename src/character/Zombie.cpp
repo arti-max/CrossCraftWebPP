@@ -92,14 +92,13 @@ glEnable(GL_TEXTURE_2D);
     
     glTranslatef(interpX, interpY, interpZ);
     glScalef(1.0f, -1.0f, 1.0f);
-    glScalef(scale, scale, scale);
-    glTranslatef(0.0f, offsetY, 0.0f);
+    glTranslatef(0.0f, offsetY * scale, 0.0f);
     
     const float radToDeg = 180.0f / M_PI;
     glRotatef(this->rot * radToDeg + 180.0f, 0.0f, 1.0f, 0.0f);
     
     glColor3f(brightness, brightness, brightness);
-    zombieModel->render((float)(time), 0.0f, 0.0f);
+    zombieModel->render((float)(time), 1.0f, 0.0f, 0.0f, 0.0f, scale);
     
     glPopMatrix();
     glDisable(GL_TEXTURE_2D);

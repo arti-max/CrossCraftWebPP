@@ -33,7 +33,7 @@ CrossCraft::~CrossCraft() {
         delete this->level;
     }
 }
-
+ 
 void CrossCraft::destroy() {
     if (window) {
         glfwDestroyWindow(window);
@@ -82,7 +82,7 @@ void CrossCraft::init() {
     glLoadIdentity();
     glMatrixMode(GL_MODELVIEW);
     this->checkGlError("Startup");
-    this->sound->initOpenAL();
+    this->sound->initOpenAL(this->settings);
     this->font = new Font("default", this->textures);
     this->chatGui = new ChatGui();
     this->hud = new Hud(this->textures, this->width*240/this->height, this->height*240/this->height);
@@ -93,8 +93,8 @@ void CrossCraft::init() {
 
     if (!this->mpMode) {
         if (this->loadMapUser.empty() || this->loadMapId == -1) {
-            if (this->user != nullptr) {
-                this->levelGen->generateLevel(this->level, this->user->username.c_str(), 256, 256, 64);
+            if (this->userData != nullptr) {
+                this->levelGen->generateLevel(this->level, this->userData->username.c_str(), 256, 256, 64);
             } else {
                 this->levelGen->generateLevel(this->level, "noname", 256, 256, 64);
             }
@@ -111,11 +111,12 @@ void CrossCraft::init() {
     }
 
     this->levelRenderer = new LevelRenderer(this->level, this->textures);
-    this->player = new Player(this->level);
+    this->player = new Player(this->level, this->settings);
 
     Mouse::init(window);
     Keyboard::init(window);
     Item::initModels();
+    Data::initAllowedTiles();
 
     Keyboard::enableRepeatEvents(false);
     
@@ -175,19 +176,19 @@ void CrossCraft::releaseMouse() {
         }
     }
 }
-
+ 
 void CrossCraft::stop() {
     this->running = false;
     emscripten_cancel_main_loop();
 }
 
 void CrossCraft::run() {
-    if (this->user != nullptr) {
+    if (this->userData != nullptr) {
         Logger::logf(PREFIX_CC, "CrossCraft started! canvas=%s, size=%dx%d, user=%s\n", 
             this->parent.c_str(), 
             this->width, 
             this->height, 
-            this->user->username.c_str());
+            this->userData->username.c_str());
     } else {
         Logger::logf(PREFIX_CC, "CrossCraft started! canvas=%s, size=%dx%d, guest mode\n", 
             this->parent.c_str(), 
@@ -317,9 +318,11 @@ void CrossCraft::handleMouseClick() {
 
 void CrossCraft::tick() {
     if (this->sound != nullptr) {
-        if (emscripten_get_now() > this->sound->lastMusic && this->sound->playMusic("calm")) {
-            this->sound->lastMusic = emscripten_get_now() + this->level->random->nextInt(900000) + 300000;
-        }
+        this->sound->tick();
+    }
+
+    if (this->settings) {
+        this->levelRenderer->drawDistance = this->settings->renderDistance;
     }
 
     if (this->attackTime > 0) {
@@ -330,6 +333,25 @@ void CrossCraft::tick() {
     }
 
     bool isActuallyGrabbed = Mouse::isGrabbed();
+
+    double dWheel = Mouse::getDWheel();
+    if (dWheel != 0.0) {
+        const double threshold = 5.0; 
+        
+        int scrollDirection = 0;
+        if (dWheel > threshold) scrollDirection = 1;
+        else if (dWheel < -threshold) scrollDirection = -1;
+
+        if (scrollDirection != 0) {
+            int steps = static_cast<int>(dWheel / 100.0);
+            if (steps == 0) steps = scrollDirection;
+
+            this->player->inventory->selectedSlot += steps;
+            int numSlots = this->player->inventory->slots.size();
+            this->player->inventory->selectedSlot = (this->player->inventory->selectedSlot % numSlots + numSlots) % numSlots;
+            // this->selectedTile = this->hotbarSlots[this->hotbarIndex];
+        }
+    }
 
     if (this->mouseGrabbed && !isActuallyGrabbed) {
         printf("CrossCraft: Pointer lock lost\n");
@@ -346,7 +368,7 @@ void CrossCraft::tick() {
         this->mouseGrabbed = true;
         
         if (this->screen != nullptr && dynamic_cast<PauseScreen*>(this->screen)) {
-             this->setScreen(nullptr);
+            this->setScreen(nullptr);
         }
     }
 
@@ -392,9 +414,10 @@ void CrossCraft::tick() {
                     break;
                 }
 
-                if (Keyboard::getEventKey() == GLFW_KEY_T) {
+                if (Keyboard::getEventKey() == this->settings->key_chat->keyCode && this->mpMode == true) {
                     this->player->releaseAllKeys();
                     this->setScreen(new ChatScreen());
+                    this->releaseMouse();
                     break;
                 }
 
@@ -402,23 +425,19 @@ void CrossCraft::tick() {
                     this->isDrop == true ? this->isDrop = false : this->isDrop = true;
                 }
 
-                if (Keyboard::getEventKey() == GLFW_KEY_B) {
+                if (Keyboard::getEventKey() == this->settings->key_build->keyCode) {
                     this->player->releaseAllKeys();
                     this->setScreen(new BlockSelectScreen());
                     this->releaseMouse();
                     break;
                 }
 
-                if (Keyboard::getEventKey() == GLFW_KEY_M) {
-                    this->sound->toggleMute();
-                }
-
-                if (Keyboard::getEventKey() == GLFW_KEY_ENTER && !this->mpMode) {
+                if (Keyboard::getEventKey() == this->settings->key_save->keyCode) {
                     this->level->setSpawnPos((int)this->player->x, (int)this->player->y, (int)this->player->z, (int)this->player->yRot);
                     this->player->resetPos();
                 }
 
-                if (Keyboard::getEventKey() == GLFW_KEY_R) {
+                if (Keyboard::getEventKey() == this->settings->key_load->keyCode) {
                     this->player->resetPos();
                 }
                 if (Keyboard::getEventKey() >= GLFW_KEY_1 && Keyboard::getEventKey() <= GLFW_KEY_9) {
@@ -428,11 +447,8 @@ void CrossCraft::tick() {
                         // this->selectedTile = this->hotbarSlots[this->hotbarIndex];
                     }
                 }
-                if (Keyboard::getEventKey() == GLFW_KEY_F) {
-                    this->levelRenderer->toggleDrawDistance();
-                }
-                if (Keyboard::getEventKey() == GLFW_KEY_Y) {
-                    this->yMouseAxis *= -1;
+                if (Keyboard::getEventKey() == this->settings->key_fog->keyCode) {
+                    this->settings->toggleSetting(4, 1);
                 }
                 if (Keyboard::getEventKey() == GLFW_KEY_G && !this->mpMode && this->level->entities.size() < 256) {
                     this->level->entities.push_back(new Zombie(this->level, this->textures, this->player->x, this->player->y, this->player->z));
@@ -464,36 +480,23 @@ void CrossCraft::tick() {
                             pickedID = Tile::dirt->id;
                         }
 
-                        if (pickedID > 0 && Tile::tiles[pickedID] != nullptr && Tile::tiles[pickedID]->mayPick()) {
-                            for (int i = 0; i < this->player->inventory->slots.size(); ++i) {
-                                if (this->player->inventory->slots[i] == pickedID) {
-                                    this->player->inventory->selectedSlot = i;
-                                    // this->selectedTile = this->hotbarSlots[this->hotbarIndex];
-                                    break;
-                                }
-                            }
+                        if (pickedID == Tile::unbreakable->id) {
+                            pickedID = Tile::rock->id;
                         }
+
+                        this->player->inventory->pickTile(pickedID);
+
+                        // if (pickedID > 0 && Tile::tiles[pickedID] != nullptr && Tile::tiles[pickedID]->mayPick()) {
+                        //     for (int i = 0; i < this->player->inventory->slots.size(); ++i) {
+                        //         if (this->player->inventory->slots[i] == pickedID) {
+                        //             this->player->inventory->selectedSlot = i;
+                        //             // this->selectedTile = this->hotbarSlots[this->hotbarIndex];
+                        //             break;
+                        //         }
+                        //     }
+                        // }
                     }
                 }
-            }
-        }
-
-        double dWheel = Mouse::getDWheel();
-        if (dWheel != 0.0) {
-            const double threshold = 5.0; 
-            
-            int scrollDirection = 0;
-            if (dWheel > threshold) scrollDirection = 1;
-            else if (dWheel < -threshold) scrollDirection = -1;
-
-            if (scrollDirection != 0) {
-                int steps = static_cast<int>(dWheel / 100.0);
-                if (steps == 0) steps = scrollDirection;
-
-                this->player->inventory->selectedSlot += steps;
-                int numSlots = this->player->inventory->slots.size();
-                this->player->inventory->selectedSlot = (this->player->inventory->selectedSlot % numSlots + numSlots) % numSlots;
-                // this->selectedTile = this->hotbarSlots[this->hotbarIndex];
             }
         }
 
@@ -531,7 +534,7 @@ update_world:
         client->sendPacket(pos_packet);
     }
 }
-
+ 
 void CrossCraft::raycast() {
     if (this->hitResult != nullptr) {
         delete this->hitResult;
@@ -548,7 +551,9 @@ void CrossCraft::render(float partialTicks) {
         glViewport(0, 0, this->width, this->height);
         float xo = Mouse::getDX();
         float yo = Mouse::getDY();
-        this->player->turn(xo, yo * static_cast<float>(this->yMouseAxis));
+        int iy = -1;
+        if (this->settings->invertYMouse) iy = 1;
+        this->player->turn(xo, yo * static_cast<float>(iy));
     }
     
     this->checkGlError("Set viewport");
@@ -669,7 +674,8 @@ void CrossCraft::drawGui(float partialTicks) {
     glPopMatrix();
     this->checkGlError("GUI: Draw selected");
     this->font->drawShadow(VERSION_STRING, 2, 2, 0xFFFFFF);
-    this->font->drawShadow(this->fpsString, 2, 12, 0xFFFFFF);
+    if (this->settings->showFPS)
+        this->font->drawShadow(this->fpsString, 2, 12, 0xFFFFFF);
     this->checkGlError("GUI: Draw text");
     int wc = screenWidth / 2;
     int hc = screenHeight / 2;
@@ -884,11 +890,11 @@ bool CrossCraft::loadLevel(const char username[], int levelid) {
 }
 
 void CrossCraft::saveLevel(int levelId, const char levelname[]) {
-    this->levelIO->saveOnline(this->level, this->serverHost, this->user->username, this->user->sessionid, levelname, levelId);
+    this->levelIO->saveOnline(this->level, this->serverHost, this->userData->username, this->userData->sessionid, levelname, levelId);
 }
 
 void CrossCraft::generateNewLevel(int width, int height, int depth) {
-    const char* username = (this->user != nullptr) ? this->user->username.c_str() : "noname";
+    const char* username = (this->userData != nullptr) ? this->userData->username.c_str() : "noname";
     this->levelGen->generateLevel(this->level, username, width, height, depth);
     this->player->resetPos();
     for (int i = static_cast<int>(this->level->entities.size()) - 1; i >= 0; --i) {
@@ -999,8 +1005,8 @@ void CrossCraft::handleNetworkPacket(Packet* packet) {
             
             Logger::logf(PREFIX_NETWORK, "Sending login packet...\n");
             this->levelLoadProgress(40);
-            if (this->user != nullptr) {
-                    LoginPacket* loginPacket = new LoginPacket(this->user->username, this->user->sessionid); // тут так-же ещё внутри отправляется версия протокола, главное не забывать менять, хд.
+            if (this->userData != nullptr) {
+                    LoginPacket* loginPacket = new LoginPacket(this->userData->username, this->userData->sessionid); // тут так-же ещё внутри отправляется версия протокола, главное не забывать менять, хд.
                     client->sendPacket(loginPacket);
                 } else {
                     Logger::logf(PREFIX_WARNING, "User is null, sending guest login\n");
@@ -1014,10 +1020,11 @@ void CrossCraft::handleNetworkPacket(Packet* packet) {
             LoginResponsePacket* p = static_cast<LoginResponsePacket*>(packet);
             Logger::logf(PREFIX_NETWORK, "Login successful! Server assigned name: %s\n", p->username.c_str());
             this->playerId = p->playerId;
-            if (this->user == nullptr) {
-                this->user = new User(p->username, ""); 
+            this->client->loggedIn = true;
+            if (this->userData == nullptr) {
+                this->userData = new Data(p->username, ""); 
             } else {
-                this->user->username = p->username;
+                this->userData->username = p->username;
             }
             this->levelLoadProgress(60);
             break;

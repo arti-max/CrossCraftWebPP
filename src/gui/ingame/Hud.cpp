@@ -6,7 +6,7 @@ Hud::Hud(Textures* textures, int width, int height) :
 
 void Hud::drawTexturedModalRect(int x, int y, int u, int v, int w, int h) {
     float uScale = 1.0f / 256.0f;
-    float vScale = 1.0f / 64.0f;
+    float vScale = 1.0f / 256.0f;
     Tessellator& t = Tessellator::getInstance();
     
     t.begin();

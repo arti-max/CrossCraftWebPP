@@ -1,6 +1,10 @@
 #pragma once
 #include "CrossCraft.hpp"
 #include <string>
+#include <sys/stat.h>
+#include <emscripten.h>
+#include <emscripten/html5.h>
+#include <iostream>
 
 class CrossCraftApplet {
 private:
@@ -31,6 +35,8 @@ public:
     void pause();
     void resume(); 
     void destroy();
+
+    void initFS();
     
     const std::string& getUsername() const { return username; }
     const std::string& getSessionId() const { return sessionid; }

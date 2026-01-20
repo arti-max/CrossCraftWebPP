@@ -17,7 +17,7 @@ void SpongeTile::checkSpongeEffect(Level* level, int x, int y, int z) {
         for (int dx = -2; dx <= 2; dx++) {
             for (int dy = -2; dy <= 2; dy++) {
                 for (int dz = -2; dz <= 2; dz++) {
-                    if (level->getTile(x + dx, y + dy, z + dz) == Tile::water->id || level->getTile(x + dx, y + dy, z + dz) == Tile::calmWater->id) {
+                    if ((level->getTile(x + dx, y + dy, z + dz) == Tile::water->id || level->getTile(x + dx, y + dy, z + dz) == Tile::calmWater->id) && (x+dx > 0 && z+dz > 0 && x+dx < level->width && z+dz < level->height)) {
                         level->setTile(x + dx, y + dy, z + dz, 0);
                     }
                 }

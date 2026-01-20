@@ -8,6 +8,7 @@
 #include "util/Logger.hpp"
 #include "util/Random.hpp"
 #include <emscripten.h>
+#include "Settings.hpp"
 
 struct SoundData {
     ALuint bufferId;
@@ -30,6 +31,7 @@ private:
     Random random;
 
     bool muted = false;
+    Settings* settings;
 
     std::map<std::string, SoundGroup> soundLibrary;
     std::map<std::string, MusicGroup> musicLibrary;
@@ -42,8 +44,10 @@ private:
 public:
     SoundManager();
     ~SoundManager();
-    void initOpenAL();
+    void initOpenAL(Settings* settings);
     
+
+    bool mutedSound = false;
     double lastMusic = emscripten_get_now() + 20000;
 
     bool loadSound(const std::string& name, const std::string& filepath);
@@ -63,5 +67,6 @@ public:
     bool isMuted() const { return muted; }
     void toggleMute();
 
+    void tick();
     void cleanup();
 };

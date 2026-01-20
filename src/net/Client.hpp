@@ -39,6 +39,8 @@ public:
     Client();
     ~Client();
 
+    bool loggedIn = false;
+
     bool connect(const std::string& url);
     void disconnect();
     bool isConnected() const { return connected; }

@@ -2,12 +2,14 @@
 #include "sound/ResourceDownloader.hpp"
 #include <emscripten/html5.h>
 #include "stb_vorbis.h"
+#include "Random.hpp"
 
 SoundManager::SoundManager() {}
 SoundManager::~SoundManager() {}
 
 
-void SoundManager::initOpenAL() {
+void SoundManager::initOpenAL(Settings* settings) {
+    this->settings = settings;
     this->device = alcOpenDevice(nullptr);
     this->context = alcCreateContext(this->device, nullptr);
     alcMakeContextCurrent(this->context);
@@ -155,7 +157,7 @@ void SoundManager::play(const std::string& name, float pitch, float gain) {
 }
 
 bool SoundManager::playMusic(const std::string& name) {
-    if (this->muted) return false;
+    if (this->muted || this->settings->music == false) return false;
 
     ALint state;
     alGetSourcei(this->musicSource, AL_SOURCE_STATE, &state);
@@ -183,7 +185,7 @@ bool SoundManager::playMusic(const std::string& name) {
 }
 
 void SoundManager::playAt(const std::string& name, float x, float y, float z, float pitch, float gain) {
-    if (this->muted) return;
+    if (this->muted || this->settings->sound == false) return;
 
     auto it = this->soundLibrary.find(name);
     if (it == this->soundLibrary.end() || it->second.variants.empty()) {
@@ -252,6 +254,30 @@ ALuint SoundManager::getFreeSource() {
 
 void SoundManager::toggleMute() {
     this->setMuted(!this->muted);
+}
+
+void SoundManager::tick() {
+    Random* random = new Random();
+
+    if (emscripten_get_now() > this->lastMusic && this->playMusic("calm") && this->settings->music) {
+        this->lastMusic = emscripten_get_now() + random->nextInt(900000) + 300000;
+    }
+
+    if (this->settings->music == false) {
+        alSourceStop(this->musicSource);
+    }
+
+    if (this->settings->sound == false) {
+        for (ALuint src : this->sources) {
+            ALint state;
+            alGetSourcei(src, AL_SOURCE_STATE, &state);
+            if (state == AL_PLAYING) {
+                alSourceStop(src);
+            }
+        }
+    }
+
+    delete random;
 }
 
 void SoundManager::setMuted(bool mute) {

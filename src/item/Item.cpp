@@ -41,11 +41,11 @@ void Item::tick() {
 
 void Item::render(float partialTicks, Textures* textures) {
     Tessellator& t = Tessellator::getInstance();
-    glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, textures->loadTexture("terrain", GL_NEAREST));
     float brightness = this->level->getBrightness((int)this->x, (int)this->y, (int)this->z);
     float rotation = this->rot + ((float)this->hoverAnim + partialTicks) * 3.0f;
     glPushMatrix();
+    glEnable(GL_TEXTURE_2D);
     glColor4f(brightness, brightness, brightness, 1.0f);
     float levitation = sin(this->hoverAnim / 10.0) * 0.1 + 0.1f;
     float interpX = this->xo + (this->x - this->xo) * partialTicks;
@@ -59,18 +59,38 @@ void Item::render(float partialTicks, Textures* textures) {
     glDisable(GL_TEXTURE_2D);
     float glow;
     glow = (glow = (glow = std::sin(rotation / 10.0F) * 0.5F + 0.5F) * glow) * glow;
-    glColor4f(1.0f, 1.0f, 1.0f, glow * 0.4f);
-    glDisable(GL_TEXTURE_2D);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE); 
-    glDisable(GL_ALPHA_TEST);
-    // glDepthMask(GL_FALSE);
-    models[this->resourceId]->generateList();
-    // glDepthMask(GL_TRUE);
-    glEnable(GL_ALPHA_TEST);
-    glDisable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+
+        glDisable(GL_TEXTURE_2D); // Чтобы рисовало сплошным цветом
+        glEnable(GL_BLEND);
+        glDisable(GL_LIGHTING);   // Выключаем свет (чтобы свечение было "чистым")
+        glDisable(GL_ALPHA_TEST); // ВАЖНО! Отключаем отсечение прозрачности
+        
+        // Аддитивный блендинг (лучше всего для свечения)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE); 
+        
+        // КЛЮЧЕВОЙ МОМЕНТ: Запрещаем писать в буфер глубины!
+        // Это значит, что свечение нарисуется ПОВЕРХ, но не будет перекрывать сам предмет.
+        glDepthMask(GL_FALSE); 
+        
+        // Устанавливаем цвет (ModelPart теперь его подхватит)
+        // Попробуйте Красный цвет для теста, чтобы убедиться что блендинг работает
+        // glColor4f(1.0f, 0.0f, 0.0f, glow * 0.4f); 
+        glColor4f(1.0f, 1.0f, 1.0f, glow * 0.4f); 
+
+        // Чуть-чуть увеличиваем масштаб, чтобы избежать Z-fighting на гранях
+        glPushMatrix();
+        
+        models[this->resourceId]->generateList();
+        
+        glPopMatrix();
+        
+        // Восстанавливаем стейт
+        glDepthMask(GL_TRUE);
+        glEnable(GL_ALPHA_TEST);
+        glEnable(GL_ALPHA_TEST);
+        glDisable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     glPopMatrix();
     glEnable(GL_TEXTURE_2D);
 }

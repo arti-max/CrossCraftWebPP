@@ -17,46 +17,89 @@
     <link rel="preload" as="image" href="gui.png">
     
     <style>
+        /* === ГЛОБАЛЬНЫЙ ФИКС ПРОКРУТКИ === */
+        * {
+            box-sizing: border-box; /* Паддинги не увеличивают ширину блоков */
+        }
+
+        /* === ОРИГИНАЛЬНЫЙ СТИЛЬ MINECRAFT (2010) === */
+        
         body, html {
+            border: none;
             margin: 0;
             padding: 0;
-            width: 100%;
-            height: 100%; /* Фиксируем высоту, чтобы убрать скролл */
-            overflow: hidden; /* Полностью убираем скролл */
-            background-color: #000;
-        }
-
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: flex-start; /* Прижимаем к верху */
-            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('rock.png');
+            background-color: #222;
+            color: #e0d0d0;
+            /* Используем твой rock.png с затемнением */
+            background-image: linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.75)), url('rock.png');
             background-repeat: repeat;
-            background-size: 64px 64px; 
+            /* Увеличиваем текстуру */
+            background-size: 96px 96px; 
             image-rendering: pixelated;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: white;
-            text-shadow: 2px 2px 2px #000;
+            
+            font-weight: normal;
+            font-family: sans-serif;
+            height: 100%;
+            overflow-x: hidden; /* Убираем горизонтальный скролл */
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* Убирает скроллбар совсем */
+            position: fixed;  /* Жестко фиксирует контент, браузер не сможет скроллить */
         }
 
-        #game-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 1024px; /* Фиксированная базовая ширина */
-            padding-top: 20px;
-            transform-origin: top center; /* Скейлим от верха центра */
-            /* transform будет задаваться через JS */
+        a:link { color: #aaf; }
+        a:hover { color: #fff; }
+        a:visited { color: #aaa; }
+        a:active { color: #ff0; }
+
+        #content {
+            margin-left: auto;
+            margin-right: auto;
+            /* Ставим ширину чуть больше канваса, чтобы текст не прилипал к краям на узких экранах */
+            max-width: 1024px; 
+            width: 100%;
+            text-align: left;
+            padding: 0 10px; /* Безопасные отступы по краям */
         }
 
+        #footer {
+            text-align: center;
+            font-size: 10px;
+            /* Убираем фиксированную высоту, пусть тянется по тексту */
+            padding: 5px;
+            width: 100%;
+            /* Если хочешь прибить к низу страницы, но лучше просто в потоке */
+            margin-top: 20px;
+            color: #888;
+        }
+
+        /* Если нужен фиксированный футер (как у тебя было), раскомментируй это:
+        #footer {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            background: rgba(0,0,0,0.5); 
+        }
+        */
+
+        /* === ТЕХНИЧЕСКИЕ СТИЛИ ДЛЯ ВЕБ-КЛИЕНТА === */
+        
         #app {
-            margin-bottom: 20px; 
-            border: 2px solid #555;
-            box-shadow: 0 0 20px rgba(0,0,0,0.7);
-            background-color: black;
-            position: relative;
             width: 1024px;
             height: 576px;
+            background-color: #000;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            display: block;
+            margin: 0 auto; /* Центрируем сам канвас */
+            max-width: 100%; /* Чтобы не вылезал на мобилках */
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            outline: none;
         }
 
         #loading-screen {
@@ -84,83 +127,8 @@
             100% { transform: rotate(360deg); }
         }
 
-        canvas {
-            display: block;
-            width: 100%; /* Растягиваем canvas на ширину контейнера */
-            height: 100%; /* Высота авто для сохранения пропорций */
-            outline: none;
-        }
-
-        #text { 
-            text-align: center; 
-            width: 100%;
-             margin-bottom: 10px; 
-        }
-        
-        #text h2 {
-            color: #fff; /* Белый заголовок вместо зелёного */
-            margin-bottom: 10px;
-        }
-        
-        #nologin-warning {
-            color: #ff4444 !important;
-        }
-        
-        #controls-container {
-            text-align: left;
-            padding: 10px;
-            background-color: rgba(20, 20, 20, 0.8);
-            border: 1px solid #444;
-            width: 550px; /* Фикс ширина внутри wrapper */
-            font-size: 13px;
-        }
-
-
-        #back-link {
-            position: fixed; /* Фиксируем ссылку, чтобы она не улетала при зуме */
-            top: 10px; left: 10px;
-            color: #5555ff;
-            text-decoration: underline;
-            font-size: 16px;
-            z-index: 1000;
-            cursor: pointer;
-        }
-
-        #back-link:hover {
-            color: #aaaaff;
-        }
-        
-        #controls-container h3 {
-            margin-top: 0;
-            margin-bottom: 10px;
-            text-align: center;
-            font-weight: normal;
-            color: #ccc;
-        }
-
-        .controls-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr; /* Две равные колонки */
-            grid-row-gap: 6px;
-            grid-column-gap: 20px;
-        }
-
-        .control-item kbd {
-            display: inline-block;
-            width: 80px; /* Чуть меньше для мобил */
-            font-weight: bold;
-            color: #fff;
-            text-align: right;
-            margin-right: 10px;
-        }
-
-        #texture-atlases {
-            display: none;
-        }
-        
         #output {
             width: 100%;
-            max-width: 1024px;
             height: 100px;
             background-color: #2d2d2d;
             color: #00ff00;
@@ -170,52 +138,167 @@
             overflow-y: auto;
             border: 1px solid #555;
             font-size: 12px;
+            display: none;
         }
+
+        #toppanel {
+            height: 48px;
+            width: 100%;
+            background-color: #555;
+            border-bottom: 3px solid #000;
+            /* Фон панели: градиент + текстура земли (как на главной) */
+            background-image: 
+                linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 100%), 
+                url('dirt.png');
+            background-repeat: repeat-x, repeat;
+            background-size: auto, 64px 64px;
+            image-rendering: pixelated;
+            
+            position: relative;
+            z-index: 2000; /* Выше чем игра */
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif; /* Шрифт интерфейса, а не игры */
+        }
+
+        #toppanel .logo-container {
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        #toppanel .links {
+            font-size: 13px;
+            line-height: 1.4;
+            color: #ddd;
+            text-shadow: 1px 1px 0 #000;
+            flex-grow: 1;
+        }
+        
+        #toppanel .login-panel {
+            font-size: 13px;
+            font-weight: bold;
+            text-shadow: 1px 1px 0 #000;
+            text-align: right;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+        }
+
+        #toppanel a { text-decoration: underline; cursor: pointer; }
+        #toppanel a:link { color: #aaf; }
+        #toppanel a:hover { color: #fff; }
+        
+        #toppanel .donate-btn { margin-left: 10px; }
+
+        /* Скрываем ресурсы */
+        #texture-atlases { display: none; }
     </style>
 </head>
 <body>
-    <a id="back-link" href="http://crosscraftweb.ddns.net/">Back to home</a>
-    <!-- Контейнер для игры с атрибутами размера -->
-    <div id="game-wrapper">
+    <div id="toppanel">
+        <!-- Логотип -->
+        <div class="logo-container">
+            <a href="{{ url_for('index') }}">
+                <img src="{{ url_for('static', filename='img/crosscraftlogo.png') }}" 
+                     alt="CrossCraft" 
+                     style="height: 40px; image-rendering: pixelated; vertical-align: middle; border: none;">
+            </a>
+        </div>
+
+        <!-- Статистика и ссылки -->
+        <div class="links">
+            <span>
+                {{ total_servers }} servers, {{ total_registered }} registered, {{ total_purchased }} purchases.
+            </span> 
+            <br>
+            <a href="{{ url_for('index') }}">Home</a>, 
+            <a href="{{ url_for('about') }}">About</a>, 
+            <a href="#">Dev blog</a>, 
+            <a href="{{ url_for('server_list_page') }}">Community</a>
+        </div>
+
+        <!-- Профиль пользователя -->
+        <div class="login-panel">
+            {% if current_user.is_authenticated %}
+                Logged in as&nbsp;<a href="{{ url_for('profile') }}" style="color: #ffffaa;">{{ current_user.username }}</a>. 
+                [ <a href="{{ url_for('logout') }}"> Log out </a> ]
+            {% else %}
+                Not logged in. 
+                [ <a href="{{ url_for('login') }}"> Log in </a> ]
+            {% endif %}
+            
+            <span class="donate-btn">
+                <a href="https://dalink.to/poly9a" target="_blank">
+                    <img src="{{ url_for('static', filename='img/btn_donate_SM.gif') }}" border="0" alt="Donate">
+                </a>
+            </span>
+        </div>
+    </div>
+    
+    
+    <div id="content">
+        
+        <br><br>
+
+        <!-- Предупреждение о логине -->
+        <center>
+            <font color="#ff0000" id="nologin-warning" style="display:none;">
+                You won't be able to save unless you log in.
+            </font>
+        </center>
+        
+        <br>
+
+        <!-- ИГРОВОЙ КОНТЕЙНЕР (Заменяет Applet) -->
         <div id="app">
             <div id="loading-screen">
                 <div class="loader"></div>
                 <div style="color: #aaa; font-size: 14px;">Loading resources...</div>
             </div>
-            <!-- tabindex="0" позволяет канвасу принимать фокус для клавиатуры -->
-            <canvas id="canvas" tabindex="0"></canvas>
+            <canvas id="canvas" tabindex="0" oncontextmenu="event.preventDefault()"></canvas>
         </div>
         
-        <div id="text">
-            <h2 id="nologin-warning" style="display:none;">You won't be able to save unless you log in.</h2>
-            <h4>About:</h4>
-            <a>CrossCraftWeb is being developed by arti.</a>
-            <hr>
-        </div>
+        <br>
+
+        <center>
+            <font size="-1">
+                This game requires a browser with WebGL and WASM. Press escape to release the mouse.
+            </font>
+        </center>
+        <center><font size="+1">Press B!</font></center>
         
-        <div id="controls-container">
-            <h3>Controls</h3>
-            <div class="controls-grid">
-                <div class="control-item"><kbd>WASD</kbd> - Movement</div>
-                <div class="control-item"><kbd>Space</kbd> - Jump</div>
-                <div class="control-item"><kbd>L-Click</kbd> - Place/Destroy</div>
-                <div class="control-item"><kbd>R-Click</kbd> - Edit Mode</div>
-                <div class="control-item"><kbd>M-Click</kbd> - Pick Block</div>
-                <div class="control-item"><kbd>1-9</kbd> - Select Block</div>
-                <div class="control-item"><kbd>Y</kbd> - Invert Y-axis</div>
-                <div class="control-item"><kbd>T</kbd> - Open Chat</div>
-                <div class="control-item"><kbd>Esc</kbd> - Pause/Menu</div>
-                <div class="control-item"><kbd>R</kbd> - Respawn</div>
-                <div class="control-item"><kbd>F</kbd> - Toggle Fog</div>
-                <div class="control-item"><kbd>G</kbd> - Spawn Mob</div>
-                <div class="control-item"><kbd>TAB</kbd> - Player List</div>
-                <div class="control-item"><kbd>B</kbd> - Build Menu</div>
-                <div class="control-item"><kbd>M</kbd> - Toggle Sounds</div>
-                
-            </div>
-        </div>
+        <br>
         
-        <div id="output" style="display:none;"></div>
+        <h2>Controls:</h2>
+        WASD to move<br>
+        Space to jump<br>
+        R to respawn at the spawn point.<br>
+        Enter to set a new spawn point.<br>
+        B to open the inventory<br>
+        F to toggle fog distance<br>
+        Escape to release mouse and open game menu<br>
+        1-9 or scrollwheel to change building block type<br>
+        Left mouse button to add a block<br>
+        Right mouse button to remove a block<br>
+        Middle mouse button to copy block type<br>
+        
+        <h2>In multiplayer:</h2>
+        Tab to list players<br>
+        T to chat<br>
+        
+        <!-- Консоль отладки (скрыта) -->
+        <div id="output"></div>
+
+    </div>
+
+    <div id="footer">
+        Copyright 2025-2026 CrossCraft. 
+        <a href="#">Terms and conditions</a>. 
+        <a href="#">Credits</a>. 
+        For support, dm<a href="#">artinzz_ in discord</a>
     </div>
 
     <!-- Скрытые текстуры для загрузки -->
@@ -233,32 +316,21 @@
 
     <script type='text/javascript'>
         function resizeGame() {
-            const wrapper = document.getElementById('game-wrapper');
-            const windowWidth = window.innerWidth;
-            const windowHeight = window.innerHeight;
-            
-            // Базовая ширина контента (игра + отступы)
-            const baseWidth = 1064; // 1024 + 20px padding * 2 roughly
-            const baseHeight = 850; // Примерная высота всего контента
-
-            // Вычисляем коэффициент масштабирования
-            let scaleX = windowWidth / baseWidth;
-            let scaleY = windowHeight / baseHeight;
-            
-            // Берем минимальный, чтобы всё влезло, но ограничиваем максимумом 1 (не увеличиваем больше оригинала)
-            let scale = Math.min(scaleX, scaleY);
-            if (scale > 1) scale = 1;
-
-            // Если экран очень узкий (телефон в портрете), скейлим по ширине
-            if (windowWidth < baseWidth) {
-                scale = windowWidth / (baseWidth - 40); // Чуть больше отступа
-            }
-
+        const wrapper = document.getElementById('content');
+        const windowWidth = window.innerWidth;
+        
+        // Если экран меньше 1024px, масштабируем весь контент вниз
+        if (windowWidth < 1044) { // 1024 + margin
+            let scale = windowWidth / 1044;
+            // Используем zoom для старых браузеров или transform origin
             wrapper.style.transform = `scale(${scale})`;
-            
-            // Центрируем, если контент меньше окна
-            // (flexbox в body уже делает это, но scale может сместить визуально)
+            wrapper.style.transformOrigin = `top center`;
+            wrapper.style.marginTop = "0px";
+        } else {
+            wrapper.style.transform = "none";
+            wrapper.style.marginTop = "";
         }
+    }
 
         window.addEventListener('resize', resizeGame);
         // Вызываем сразу
@@ -271,6 +343,7 @@
         const sessionid = urlParams.get('sessionid');
         const loadmapUser = urlParams.get('loadmap_user');
         const loadmapId = urlParams.get('loadmap_id');
+        const fullscreen = urlParams.get('fullscreen');
         const server = urlParams.get('server') || '';
         const port = parseInt(urlParams.get('port') || '0');
 
@@ -279,7 +352,7 @@
         }
 
         if (!username || !sessionid) {
-            document.getElementById('nologin-warning').style.display = "block";
+            document.getElementById('nologin-warning').style.display = "inline";
         }
 
         const appContainer = document.getElementById('app');
@@ -373,7 +446,7 @@
                     console.log(`Setting params: ${targetWidth}x${targetHeight}`);
                     Module.ccall('setAppletParams', 'void', 
                         ['string', 'string', 'string', 'number', 'number', 'number'],
-                        [username || "", sessionid || "", loadmapUser || "", parseInt(loadmapId) || -1, targetWidth, targetHeight]
+                        [username || "", sessionid || "", loadmapUser || "", (parseInt(loadmapId) >= 0 && parseInt(loadmapId) <= 4 ? parseInt(loadmapId) : -1 ), targetWidth, targetHeight]
                     );
                     
                     if (server && port > 0) {
@@ -459,6 +532,7 @@
             
             return true;
         };
+
     </script>
 
     <script async type="text/javascript" src="game.js"></script>

@@ -34,4 +34,5 @@ public:
     
     static void clearStuckKeys();
     static void clearEvents();
+    static const char* getKeyName(int key);
 };

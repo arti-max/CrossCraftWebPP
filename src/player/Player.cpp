@@ -3,16 +3,17 @@
 #include "util/Logger.hpp"
 #include <GLFW/glfw3.h>
 
-Player::Player(Level* level) : Entity(level) {
+Player::Player(Level* level, Settings* settings) : Entity(level) {
     this->heightOffset = 1.62f;
+    this->settings = settings;
 }
 
 void Player::setKey() {
-    keys[KEY_UP] = Keyboard::isKeyDown(GLFW_KEY_W);
-    keys[KEY_DOWN] = Keyboard::isKeyDown(GLFW_KEY_S);
-    keys[KEY_LEFT] = Keyboard::isKeyDown(GLFW_KEY_A);
-    keys[KEY_RIGHT] = Keyboard::isKeyDown(GLFW_KEY_D);
-    keys[KEY_JUMP] = Keyboard::isKeyDown(GLFW_KEY_SPACE);
+    keys[KEY_UP] = Keyboard::isKeyDown(this->settings->key_forward->keyCode);
+    keys[KEY_DOWN] = Keyboard::isKeyDown(this->settings->key_back->keyCode);
+    keys[KEY_LEFT] = Keyboard::isKeyDown(this->settings->key_left->keyCode);
+    keys[KEY_RIGHT] = Keyboard::isKeyDown(this->settings->key_right->keyCode);
+    keys[KEY_JUMP] = Keyboard::isKeyDown(this->settings->key_jump->keyCode);
 }
 
 void Player::releaseAllKeys() {

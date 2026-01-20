@@ -38,10 +38,12 @@
 #include "item/Item.hpp"
 #include "sound/SoundManager.hpp"
 #include "sound/SoundType.hpp"
+#include "Settings.hpp"
+#include "Data.hpp"
 
 class CrossCraft : public LevelLoaderListener {
 private:
-    const std::string VERSION_STRING = "0.0.12a";
+    const std::string VERSION_STRING = "0.0.13a";
     int lastFpsTime = 0;
     int frames = 0;
     int lastProgress = -1;
@@ -55,7 +57,6 @@ private:
     int currentUrlIndex = 0;
     int playerId = -1;
     
-
     std::array<float, 4> fogColor0;
     std::array<float, 4> fogColor1;
     std::array<int, 16> viewportBuffer;
@@ -133,6 +134,7 @@ public:
     ChatGui* chatGui;
     PlayerListScreen* playerListScreen = new PlayerListScreen();
     SoundManager* sound;
+    Settings* settings = new Settings();
 
     CrossCraft(const char* parent, int width, int height, bool fullscreen);
     ~CrossCraft();
@@ -144,7 +146,7 @@ public:
     int serverPort;
     std::string serverAddress;
 
-    User* user = nullptr;
+    Data* userData = nullptr;
     int loadMapId = 0;
     std::string loadMapUser = "";
     std::string serverHost = "crosscraftweb.ddns.net";

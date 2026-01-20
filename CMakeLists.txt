@@ -45,18 +45,21 @@ if(EMSCRIPTEN)
             -s FULL_ES2=1 \
             -s ALLOW_MEMORY_GROWTH=1 \
             -s ASYNCIFY \
-            -s ASYNCIFY_STACK_SIZE=262144 \
+            -s ASYNCIFY_STACK_SIZE=2097152 \
             -s ASYNCIFY_IMPORTS=[emscripten_sleep,emscripten_wget_data] \
             -s USE_ZLIB=1 \
             -s FETCH=1 \
+            -s LEGACY_GL_EMULATION=0 \
+            -s GL_FFP_ONLY=0 \
             -s ASSERTIONS=1 \
             -s EXPORTED_FUNCTIONS=['_main','_setAppletParams','_startApplet','_testAsyncify','_setServerParams','_showCrashScreen'] \
             -s EXPORTED_RUNTIME_METHODS=['ccall','cwrap','allocate','intArrayFromString','UTF8ToString'] \
             -s ERROR_ON_UNDEFINED_SYMBOLS=0 \
-            -s STACK_SIZE=2097152 \
-            -s INITIAL_MEMORY=67108864 \
+            -s STACK_SIZE=67108864 \
+            -s INITIAL_MEMORY=134217728 \
             -s NO_EXIT_RUNTIME=1 \
             -l openal \
+            -lidbfs.js \
             --allow-multiple-definition \
             --shell-file ${CMAKE_CURRENT_SOURCE_DIR}/index.html \
             --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/terrain.png@terrain.png \

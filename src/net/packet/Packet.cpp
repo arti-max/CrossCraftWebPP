@@ -177,9 +177,8 @@ Packet* Packet::fromBytes(const uint8_t* bytes, size_t length) {
     }
     
     if (packet) {
-        for (size_t i = 1; i < length; i++) {
-            packet->data.push_back(bytes[i]);
-        }
+        packet->data.reserve(length - 1);
+        packet->data.insert(packet->data.end(), bytes + 1, bytes + length);
         
         packet->deserialize();
     }

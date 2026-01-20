@@ -34,21 +34,20 @@ bool Bush::render(Tessellator& t, Level* level, int layer, int x, int y, int z) 
     t.color(1.0f, 1.0f, 1.0f);
 
     for (int i = 0; i < 2; ++i) {
-        float angle = i * M_PI / 2.0f + M_PI / 4.0f;
-        float sin = std::sin(angle) * 0.5f;
-        float cos = std::cos(angle) * 0.5f;
+        float xOffset = (float)((double)std::sin((float)i * 3.1415927F / 2.0F + 0.7853982F) * 0.5f);
+        float zOffset = (float)((double)std::cos((float)i * 3.1415927F / 2.0F + 0.7853982F) * 0.5f);
 
-        float x0 = x + 0.5f - sin;
-        float x1 = x + 0.5f + sin;
+        float x0 = x + 0.5f - xOffset;
+        float x1 = x + 0.5f + xOffset;
         float y0 = y + 0.0f;
         float y1 = y + 1.0f;
-        float z0 = z + 0.5f - cos;
-        float z1 = z + 0.5f + cos;
+        float z0 = z + 0.5f - zOffset;
+        float z1 = z + 0.5f + zOffset;
 
-        t.vertexUV(x0, y1, z0, u0, v0);
-        t.vertexUV(x1, y1, z1, u1, v0);
-        t.vertexUV(x1, y0, z1, u1, v1);
-        t.vertexUV(x0, y0, z0, u0, v1);
+        t.vertexUV(x0, y1, z0, u1, v0);
+        t.vertexUV(x1, y1, z1, u0, v0);
+        t.vertexUV(x1, y0, z1, u0, v1);
+        t.vertexUV(x0, y0, z0, u1, v1);
 
         t.vertexUV(x1, y1, z1, u1, v0);
         t.vertexUV(x0, y1, z0, u0, v0);

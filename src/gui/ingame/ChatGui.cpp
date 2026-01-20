@@ -8,7 +8,7 @@ ChatGui::ChatGui() {}
 void ChatGui::addMessage(const std::string& text) {
     messages.insert(messages.begin(), {text, MESSAGE_LIFETIME});
 
-    if (messages.size() > 10) {
+    if (messages.size() > 18) {
         messages.pop_back();
     }
 }
@@ -18,26 +18,21 @@ void ChatGui::tick() {
         messages[i].lifetime--;
     }
 
-    messages.erase(
-        std::remove_if(messages.begin(), messages.end(), 
-            [](const ChatMessage& msg) {
-                return msg.lifetime <= 0;
-            }
-        ),
-        messages.end()
-    );
 }
 
 void ChatGui::render(Font* font, int width, int height) {
     for (int i = 0; i < messages.size(); ++i) {
         const auto& msg = messages[i];
         
-        float alpha = 1.0f;
+        if (msg.lifetime > 0) {
 
-        int yPos = height - 30 - (i * 10);
-        // this->fill(2, yPos - 1, width - 2, yPos + 9, (int)(alpha * 128) << 24);
+            float alpha = 1.0f;
 
-        font->drawShadow(msg.text, 2, yPos, 0xFFFFFF | (static_cast<int>(alpha * 255) << 24));
+            int yPos = height - 30 - (i * 10);
+            // this->fill(2, yPos - 1, width - 2, yPos + 9, (int)(alpha * 128) << 24);
+
+            font->drawShadow(msg.text, 2, yPos, 0xFFFFFF | (static_cast<int>(alpha * 255) << 24));
+        }
     }
 }
 

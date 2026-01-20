@@ -10,9 +10,9 @@ struct ChatMessage {
 
 class ChatGui {
 private:
+public:
     std::vector<ChatMessage> messages;
 
-public:
     ChatGui();
 
     void addMessage(const std::string& text);

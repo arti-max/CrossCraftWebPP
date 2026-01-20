@@ -35,16 +35,24 @@ void NetworkPlayer::tick() {
     
     this->animStepO = this->animStep;
     
-    int i = 5;
-    do {
-        if (this->moveQueue.size() > 0) {
-            NetworkPosition pos = this->moveQueue.front();
-            this->moveQueue.pop_front();
-            this->setPos(pos.x, pos.y, pos.z);
-            this->yRot = pos.yaw;
-            this->xRot = pos.pitch;
-        }
-    } while (i-- > 0 && this->moveQueue.size() > 10);
+    if (this->moveQueue.size() > 50) {
+        NetworkPosition pos = this->moveQueue.back();
+        this->moveQueue.clear();
+        this->setPos(pos.x, pos.y, pos.z);
+        this->yRot = pos.yaw;
+        this->xRot = pos.pitch;
+    } else {
+        int i = 5;
+        do {
+            if (this->moveQueue.size() > 0) {
+                NetworkPosition pos = this->moveQueue.front();
+                this->moveQueue.pop_front();
+                this->setPos(pos.x, pos.y, pos.z);
+                this->yRot = pos.yaw;
+                this->xRot = pos.pitch;
+            }
+        } while (i-- > 0 && this->moveQueue.size() > 10);
+    }
 
     float dx = this->x - this->xo;
     float dz = this->z - this->zo;
@@ -58,15 +66,13 @@ void NetworkPlayer::tick() {
     this->oRun = this->run;
     float runSpeed = 0.0f;
 
-    if (dist == 0.0f) {
-        this->animStep = 0.0f;
-    } else {
+    if (dist != 0.0f) {
         runSpeed = 1.0f;
         speed = dist * 3.0f;
         targetBodyRot = -((float)std::atan2(dz, dx) * 180.0f / 3.1415927f + 90.0f);
     }
 
-    this->run += (runSpeed - this->run) * 0.1f;
+    this->run += (runSpeed - this->run) * 0.3f;
 
     float rotDiff = targetBodyRot - this->yBodyRot;
     while (rotDiff < -180.0f) rotDiff += 360.0f;
@@ -128,13 +134,14 @@ void NetworkPlayer::render(Textures* textures, float partialTicks, Font* font, P
     glColor3f(brightness, brightness, brightness);
     float bob = -std::abs(std::sin(interpAnimStep * 0.6662f)) * 5.0f * interpRun - 23.0f;
     
+    float scale = 0.0625f;
+
     glTranslatef(interpX, interpY - this->heightOffset, interpZ);
     glScalef(1.0f, -1.0f, 1.0f);
-    glScalef(0.0625f, 0.0625f, 0.0625f);
     
-    glTranslatef(0.0f, bob, 0.0f);
+    glTranslatef(0.0f, bob * scale, 0.0f);
     glRotatef(-interpYBodyRot, 0.0f, 1.0f, 0.0f);
-    this->model->render(interpAnimStep, -modelHeadRot, interpXRot); 
+    this->model->render(interpAnimStep, interpRun, (float)this->ticks + partialTicks, -modelHeadRot, interpXRot, scale); 
 
     glPopMatrix();
 
@@ -165,12 +172,18 @@ void NetworkPlayer::render(Textures* textures, float partialTicks, Font* font, P
         glDisable(GL_TEXTURE_2D);
         glDisable(GL_FOG);
         
+        int color = 0xFFFFFF;
+
+        if (this->username == "arti") {
+            color = 16776960;
+        }
+        
         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-        font->drawCentered(this->username, 0, 0, 0xFFFFFF);
+        font->drawCentered(this->username, 0, 0, color);
 
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
         glDisable(GL_DEPTH_TEST);
-        font->drawCentered(this->username, 0, 0, 0xFFFFFF);
+        font->drawCentered(this->username, 0, 0, color);
         glEnable(GL_DEPTH_TEST);
 
         glEnable(GL_BLEND);

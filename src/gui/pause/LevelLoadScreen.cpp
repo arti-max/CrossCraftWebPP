@@ -70,7 +70,7 @@ void fetchErrorCallback(emscripten_fetch_t* fetch) {
 void LevelLoadScreen::loadLevelList() {
     statusMessage = "Getting level list..";
     
-    std::string url = "http://" + this->cc->serverHost + "/listmaps.jsp?user=" + cc->user->username;
+    std::string url = "http://" + this->cc->serverHost + "/listmaps.jsp?user=" + cc->userData->username;
     std::cout << "Fetching: " << url << std::endl;
     
     emscripten_fetch_attr_t attr;
@@ -108,7 +108,7 @@ void LevelLoadScreen::buttonClicked(Button* btn) {
 }
 
 void LevelLoadScreen::loadLevel(int levelId) {
-    this->cc->loadLevel(this->cc->user->username.c_str(), levelId);
+    this->cc->loadLevel(this->cc->userData->username.c_str(), levelId);
     
     cc->grabMouse();
     cc->setScreen(nullptr);

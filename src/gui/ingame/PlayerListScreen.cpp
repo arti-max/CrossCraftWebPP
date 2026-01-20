@@ -26,7 +26,7 @@ void PlayerListScreen::render(int xMouse, int yMouse) {
         int currentY = y0 + 24;
         int columnX = x0 + 10;
         
-        drawString(this->cc->user->username.c_str(), columnX, currentY, 0xFFFFFF);
+        drawString(this->cc->userData->username.c_str(), columnX, currentY, 0xFFFFFF);
         currentY += 12;
 
         for (auto const& [id, netPlayer] : this->cc->level->networkPlayers) {

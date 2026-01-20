@@ -1,4 +1,5 @@
 #include "gui/ingame/ChatScreen.hpp"
+#include "gui/ingame/ChatGui.hpp"
 #include "CrossCraft.hpp"
 #include "net/packet/ChatMessagePacket.hpp"
 #include <GLFW/glfw3.h>
@@ -28,6 +29,18 @@ void ChatScreen::onClose() {
 
 void ChatScreen::render(int xMouse, int yMouse) {
     this->fill(2, this->height - 14, this->width - 2, this->height - 2, -2147483648);
+
+    ChatGui* chat = this->cc->chatGui;
+
+    if (chat) {
+        int yPos = this->height - 30;
+
+        for (int i = 0; i < chat->messages.size() && i <= 18; ++i) {
+            this->cc->font->drawShadow(chat->messages[i].text.c_str(), 2, yPos, 0xFFFFFFFF);
+
+            yPos -= 10;
+        }
+    }
 
     std::string textToDraw = "> " + this->message;
 

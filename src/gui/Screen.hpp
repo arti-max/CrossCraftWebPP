@@ -10,6 +10,7 @@ protected:
     CrossCraft* cc;
     int width;
     int height;
+    float imgZOrder = 0.0f;
     std::vector<Button*> buttons;
     virtual void fill(int x0, int y0, int x1, int y1, int col);
     virtual void fillGradient(int x0, int y0, int x1, int y1, int col1, int col2);
@@ -25,4 +26,5 @@ public:
     virtual void drawString(const char str[], int x, int y, int color);
     void updateEvents();
     virtual void tick();
+    virtual void drawImage(int x, int y, int u, int v, int w, int h);
 };

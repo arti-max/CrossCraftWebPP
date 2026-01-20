@@ -61,7 +61,7 @@ void Cube::addBox(float x0, float y0, float z0, int w, int h, int d) {
     }
 }
 
-void Cube::render() {
+void Cube::render(float scale) {
     if (!compiled) {
         compile();
     }
@@ -69,10 +69,11 @@ void Cube::render() {
     float radToDeg = 57.29578f;
     
     glPushMatrix();
-    glTranslatef(x, y, z);
+    glTranslatef(x * scale, y * scale, z * scale);
     glRotatef(zRot * radToDeg, 0.0f, 0.0f, 1.0f);
     glRotatef(yRot * radToDeg, 0.0f, 1.0f, 0.0f);
     glRotatef(xRot * radToDeg, 1.0f, 0.0f, 0.0f);
+    glScalef(scale, scale, scale);
     glCallList(list);
     glPopMatrix();
 }
