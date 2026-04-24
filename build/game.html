@@ -344,8 +344,13 @@
         const loadmapUser = urlParams.get('loadmap_user');
         const loadmapId = urlParams.get('loadmap_id');
         const fullscreen = urlParams.get('fullscreen');
-        const server = urlParams.get('server') || '';
-        const port = parseInt(urlParams.get('port') || '0');
+        var server_ip = "{{ server_ip }}";
+        var server_port = {{ server_port }};
+        if (!server_ip && !server_port) {
+            const urlParams = new URLSearchParams(window.location.search);
+            server_ip = urlParams.get('server') || '';
+            server_port = parseInt(urlParams.get('port') || '0');
+        }
 
         if (DEBUG) {
             document.getElementById('output').style.display = "block";

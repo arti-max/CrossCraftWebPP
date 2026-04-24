@@ -1,0 +1,35 @@
+{
+  "name": "model",
+  "texture": "D:/!jsproj/CrossCraftWebPP/char.png",
+  "regions": [
+    {
+      "name": "head",
+      "x": 0,
+      "y": 0,
+      "w": 32,
+      "h": 16
+    }
+  ],
+  "cubes": [
+    {
+      "name": "head",
+      "pos": [
+        -4.0,
+        -8.0,
+        -4.0
+      ],
+      "size": [
+        8,
+        8,
+        8
+      ],
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mirror": false,
+      "region": "head"
+    }
+  ]
+}

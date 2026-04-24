@@ -95,3 +95,7 @@ void Player::tick() {
         }
     }
 }
+
+bool Player::isPlayer() {
+    return true;
+}

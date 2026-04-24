@@ -8,6 +8,8 @@
 #include "util/Random.hpp"
 #include "phys/AABB.hpp"
 #include "level/render/LevelListener.hpp"
+#include "level/EntityMesh.hpp"
+#include "level/EntityMeshSlot.hpp"
 
 class NetworkPlayer;
 class Entity;
@@ -28,6 +30,8 @@ private:
     std::set<int> ticking;
     std::deque<TickEntry> tickNextTickList;
     std::vector<TickEntry> bannedTiles;
+    std::vector<Entity*> pendingAdd;
+
     static const int maxBits = 10;
     int randValue;
     int unprocessed = 0;
@@ -53,6 +57,8 @@ public:
     Random* random;
     CrossCraft* cc = nullptr;
 
+    EntityMesh* emesh;
+
     int xSpawn;
     int ySpawn;
     int zSpawn;
@@ -67,6 +73,7 @@ public:
     float getGroundLevel() const;
     float getWaterLevel() const;
     void tick();
+    void tickEntities();
     bool isTile(int x, int y, int z);
     bool isSolidTile(int x, int y, int z);
     bool isLightBlocker(int x, int y, int z);
@@ -93,10 +100,11 @@ public:
     void addBanned(int x, int y, int z, int id);
     void removeBanned(int x, int y, int z, int id);
     bool isBanned(int x, int y, int z);
-    void addEntity(Entity* entity);
     void playSound(const std::string& name, Entity* entity, float volume, float pitch);
     void playSound(const std::string& name, float x, float y, float z, float volume, float pitch);
-
+    void playSound(const std::string& name, float volume, float pitch);
+    void addEntity(Entity* e);
+    void removeEntity(Entity* e);
 
 private:
     void generateMap();

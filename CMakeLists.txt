@@ -55,10 +55,11 @@ if(EMSCRIPTEN)
             -s EXPORTED_FUNCTIONS=['_main','_setAppletParams','_startApplet','_testAsyncify','_setServerParams','_showCrashScreen'] \
             -s EXPORTED_RUNTIME_METHODS=['ccall','cwrap','allocate','intArrayFromString','UTF8ToString'] \
             -s ERROR_ON_UNDEFINED_SYMBOLS=0 \
-            -s STACK_SIZE=67108864 \
-            -s INITIAL_MEMORY=134217728 \
+            -s STACK_SIZE=134217728 \
+            -s INITIAL_MEMORY=536870912 \
             -s NO_EXIT_RUNTIME=1 \
             -l openal \
+            -fsanitize=undefined \
             -lidbfs.js \
             --allow-multiple-definition \
             --shell-file ${CMAKE_CURRENT_SOURCE_DIR}/index.html \

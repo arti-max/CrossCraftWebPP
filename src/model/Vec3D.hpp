@@ -25,7 +25,7 @@ public:
         return Vec3D(this->x / n, this->y / n, this->z / n);
     }
 
-    Vec3D add (float x, float y, float z) {
+    Vec3D add(float x, float y, float z) {
         return Vec3D(this->x + x, this->y + y, this->z + z);
     }
 

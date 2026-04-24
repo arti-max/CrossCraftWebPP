@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}CrossCraft - Main{% endblock %}
+
+{% block content %}
+    <div style="text-align: center;">
+        <!-- Логотип игры по центру -->
+        <img src="{{ url_for('static', filename='img/crosscraftlogo.png') }}" 
+             alt="CrossCraft Logo" 
+             style="margin-top: 40px; margin-bottom: 40px; width: 600px; image-rendering: pixelated;">
+        
+        <br>
+
+        <!-- Одиночная игра -->
+        <div style="margin-bottom: 40px;">
+            {% if current_user.is_authenticated %}
+                {% set session_id = current_user.current_session_id %}
+                <a href="{{ url_for('serve_play_page', username=current_user.username, sessionid=session_id) }}" 
+                   style="font-size: 24px; font-weight: bold; color: #fff; text-shadow: 2px 2px 0 #000; text-decoration: none;">
+                   Singleplayer
+                </a>
+                <div style="color: #aaa; margin-top: 5px;">(You can save your levels!)</div>
+            {% else %}
+                <a href="{{ url_for('serve_play_page') }}" 
+                   style="font-size: 24px; font-weight: bold; color: #fff; text-shadow: 2px 2px 0 #000; text-decoration: none;">
+                   Singleplayer
+                </a>
+                <div style="color: #aaa; margin-top: 5px;">
+                    (Log in to save levels)
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Мультиплеер -->
+        <div style="margin-bottom: 40px;">
+            <div style="font-size: 20px; font-weight: bold; color: #ddd; margin-bottom: 10px;">Multiplayer</div>
+            <div><a href="{{ url_for('server_list_page') }}">List all public servers</a></div>
+            <div><a href="{{ url_for('download_server_software') }}">Download server software</a></div>
+        </div>
+
+        <!-- Ссылки -->
+        <div>
+            <div style="font-size: 20px; font-weight: bold; color: #ddd; margin-bottom: 10px;">Links</div>
+            <div>Discord: <a href="https://discord.gg/E3eQT2MY2g">#crosscraft</a></div>
+            <div>Telegram: <a href="https://t.me/crosscraftweb">@crosscraftweb</a></div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,7 +1,9 @@
 #include "Entity.hpp"
+#include "level/Level.hpp"
 #include "util/Logger.hpp"
 #include "sound/SoundType.hpp"
 #include "level/tile/Tile.hpp"
+#include "level/EntityMesh.hpp"
 #include <random>
 
 std::mt19937 Entity::randomGenerator(std::random_device{}());
@@ -210,5 +212,21 @@ float Entity::getBrightness() {
 }
 
 void Entity::playSound(const std::string& name, float volume, float pitch) {
-    this->level->playSound(name, this, volume, pitch);
+    if (this->isPlayer()) {
+        this->level->playSound(name, volume, pitch);
+    } else {
+        this->level->playSound(name, this, volume, pitch);
+    }
+}
+
+bool Entity::isPlayer() {
+    return false;
+}
+
+bool Entity::intersects(float x0, float y0, float z0, float x1, float y1, float z1) {
+    return this->bb.intersects(x0, y0, z0, x1, y1, z1);
+}
+
+void Entity::setLevel(Level* level) {
+    this->level = level;
 }

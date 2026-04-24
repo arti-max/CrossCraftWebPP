@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - CrossCraft{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="header-links">
+        <a href="{{ url_for('index') }}">Home</a>
+    </div>
+
+    <div class="main-container">
+        <h2>{{ current_user.username }}'s Profile</h2>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div style="color: yellow; margin-bottom: 15px;">
+                    {% for message in messages %}
+                        {{ message }}<br>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div style="display: flex; align-items: flex-start; gap: 20px; justify-content: center; text-align: left;">
+            
+            <!-- Блок предпросмотра скина -->
+            <div style="text-align: center;">
+                <h3>Current Skin</h3>
+                <div style="background: #555; padding: 10px; border: 2px solid #222; display: inline-block;">
+                    <!-- Показываем скин игрока. force_reload для обновления кэша браузера -->
+                    <img src="{{ url_for('get_skin', username=current_user.username) }}?t={{ range(1, 10000) | random }}" 
+                         alt="Skin" 
+                         style="width: 128px; image-rendering: pixelated; background-color: #888;">
+                </div>
+            </div>
+
+            <!-- Блок загрузки -->
+            <div style="max-width: 300px;">
+                <h3>Upload New Skin</h3>
+                
+                {% if current_user.has_license %}
+                    <p>Select a PNG or JPG image (64x32 recommended).</p>
+                    
+                    <form action="{{ url_for('profile') }}" method="post" enctype="multipart/form-data">
+                        <div style="margin-bottom: 10px;">
+                            <input type="file" name="skin" accept=".png,.jpg,.jpeg" required>
+                        </div>
+                        <button type="submit" style="padding: 5px 15px; font-weight: bold;">Upload Skin</button>
+                    </form>
+                {% else %}
+                    <p style="color: #ffaaaa;">
+                        You need a <strong>Premium License</strong> to upload custom skins.
+                    </p>
+                    <p>Please contact an administrator to obtain a license.</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div style="margin-top: 30px; text-align: center;">
+            <p><a href="{{ url_for('logout') }}">Log out</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

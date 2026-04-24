@@ -15,6 +15,9 @@ private:
     bool keys[10] = {false};
     Settings* settings;
 
+protected:
+    bool isPlayer() override;
+
 public:
     Player(Level* level, Settings* settings);
     

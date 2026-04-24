@@ -4,6 +4,10 @@
 #include "stb_vorbis.h"
 #include "Random.hpp"
 
+#define AL_SOURCE_SPATIALIZE_SOFT  0x1214
+#define AL_AUTO_SOFT               0x0002
+
+
 SoundManager::SoundManager() {}
 SoundManager::~SoundManager() {}
 
@@ -13,39 +17,42 @@ void SoundManager::initOpenAL(Settings* settings) {
     this->device = alcOpenDevice(nullptr);
     this->context = alcCreateContext(this->device, nullptr);
     alcMakeContextCurrent(this->context);
+    alcIsExtensionPresent(device, "ALC_SOFT_HRTF");
     this->sources.resize(32);
     alGenSources(32, this->sources.data());
+
+    alDistanceModel(AL_INVERSE_DISTANCE_CLAMPED);
 
     alGenSources(1, &this->musicSource);
     alSourcei(this->musicSource, AL_SOURCE_RELATIVE, AL_TRUE);
     alSourcef(this->musicSource, AL_ROLLOFF_FACTOR, 0.0f);
     alSource3f(this->musicSource, AL_POSITION, 0.0f, 0.0f, 0.0f);
     // Sounds
-    this->downloadAndRegister("http://crosscraftweb.ddns.net/resources/steps/grass1.ogg", "step.grass");
-    this->downloadAndRegister("http://crosscraftweb.ddns.net/resources/steps/grass2.ogg", "step.grass");
-    this->downloadAndRegister("http://crosscraftweb.ddns.net/resources/steps/grass3.ogg", "step.grass");
-    this->downloadAndRegister("http://crosscraftweb.ddns.net/resources/steps/grass4.ogg", "step.grass");
-    this->downloadAndRegister("http://crosscraftweb.ddns.net/resources/steps/stone1.ogg", "step.stone");
-    this->downloadAndRegister("http://crosscraftweb.ddns.net/resources/steps/stone2.ogg", "step.stone");
-    this->downloadAndRegister("http://crosscraftweb.ddns.net/resources/steps/stone3.ogg", "step.stone");
-    this->downloadAndRegister("http://crosscraftweb.ddns.net/resources/steps/stone4.ogg", "step.stone");
-    this->downloadAndRegister("http://crosscraftweb.ddns.net/resources/steps/wood1.ogg", "step.wood");
-    this->downloadAndRegister("http://crosscraftweb.ddns.net/resources/steps/wood2.ogg", "step.wood");
-    this->downloadAndRegister("http://crosscraftweb.ddns.net/resources/steps/wood3.ogg", "step.wood");
-    this->downloadAndRegister("http://crosscraftweb.ddns.net/resources/steps/wood4.ogg", "step.wood");
-    this->downloadAndRegister("http://crosscraftweb.ddns.net/resources/steps/gravel1.ogg", "step.gravel");
-    this->downloadAndRegister("http://crosscraftweb.ddns.net/resources/steps/gravel2.ogg", "step.gravel");
-    this->downloadAndRegister("http://crosscraftweb.ddns.net/resources/steps/gravel3.ogg", "step.gravel");
-    this->downloadAndRegister("http://crosscraftweb.ddns.net/resources/steps/gravel4.ogg", "step.gravel");
-    this->downloadAndRegister("http://crosscraftweb.ddns.net/resources/steps/leaves1.ogg", "step.leaves");
-    this->downloadAndRegister("http://crosscraftweb.ddns.net/resources/steps/leaves2.ogg", "step.leaves");
-    this->downloadAndRegister("http://crosscraftweb.ddns.net/resources/steps/leaves3.ogg", "step.leaves");
-    this->downloadAndRegister("http://crosscraftweb.ddns.net/resources/steps/leaves4.ogg", "step.leaves");
+    this->downloadAndRegister("https://crosscraftweb.ddns.net/resources/steps/grass1.ogg", "step.grass");
+    this->downloadAndRegister("https://crosscraftweb.ddns.net/resources/steps/grass2.ogg", "step.grass");
+    this->downloadAndRegister("https://crosscraftweb.ddns.net/resources/steps/grass3.ogg", "step.grass");
+    this->downloadAndRegister("https://crosscraftweb.ddns.net/resources/steps/grass4.ogg", "step.grass");
+    this->downloadAndRegister("https://crosscraftweb.ddns.net/resources/steps/stone1.ogg", "step.stone");
+    this->downloadAndRegister("https://crosscraftweb.ddns.net/resources/steps/stone2.ogg", "step.stone");
+    this->downloadAndRegister("https://crosscraftweb.ddns.net/resources/steps/stone3.ogg", "step.stone");
+    this->downloadAndRegister("https://crosscraftweb.ddns.net/resources/steps/stone4.ogg", "step.stone");
+    this->downloadAndRegister("https://crosscraftweb.ddns.net/resources/steps/wood1.ogg", "step.wood");
+    this->downloadAndRegister("https://crosscraftweb.ddns.net/resources/steps/wood2.ogg", "step.wood");
+    this->downloadAndRegister("https://crosscraftweb.ddns.net/resources/steps/wood3.ogg", "step.wood");
+    this->downloadAndRegister("https://crosscraftweb.ddns.net/resources/steps/wood4.ogg", "step.wood");
+    this->downloadAndRegister("https://crosscraftweb.ddns.net/resources/steps/gravel1.ogg", "step.gravel");
+    this->downloadAndRegister("https://crosscraftweb.ddns.net/resources/steps/gravel2.ogg", "step.gravel");
+    this->downloadAndRegister("https://crosscraftweb.ddns.net/resources/steps/gravel3.ogg", "step.gravel");
+    this->downloadAndRegister("https://crosscraftweb.ddns.net/resources/steps/gravel4.ogg", "step.gravel");
+    this->downloadAndRegister("https://crosscraftweb.ddns.net/resources/steps/leaves1.ogg", "step.leaves");
+    this->downloadAndRegister("https://crosscraftweb.ddns.net/resources/steps/leaves2.ogg", "step.leaves");
+    this->downloadAndRegister("https://crosscraftweb.ddns.net/resources/steps/leaves3.ogg", "step.leaves");
+    this->downloadAndRegister("https://crosscraftweb.ddns.net/resources/steps/leaves4.ogg", "step.leaves");
 
     // Music
-    this->downloadAndRegisterMusic("http://crosscraftweb.ddns.net/resources/music/calm1.ogg", "calm");
-    this->downloadAndRegisterMusic("http://crosscraftweb.ddns.net/resources/music/calm2.ogg", "calm");
-    this->downloadAndRegisterMusic("http://crosscraftweb.ddns.net/resources/music/calm3.ogg", "calm");
+    this->downloadAndRegisterMusic("https://crosscraftweb.ddns.net/resources/music/calm1.ogg", "calm");
+    this->downloadAndRegisterMusic("https://crosscraftweb.ddns.net/resources/music/calm2.ogg", "calm");
+    this->downloadAndRegisterMusic("https://crosscraftweb.ddns.net/resources/music/calm3.ogg", "calm");
 }
 
 void SoundManager::downloadAndRegister(const std::string& path, const std::string& name) {
@@ -201,6 +208,10 @@ void SoundManager::playAt(const std::string& name, float x, float y, float z, fl
     ALuint source = this->getFreeSource();
     if (source == 0) return;
 
+    if (alcIsExtensionPresent(device, "AL_SOFT_source_spatialize")) {
+        alSourcei(source, AL_SOURCE_SPATIALIZE_SOFT, AL_FALSE);
+    }
+
     alSourcei(source, AL_BUFFER, 0);
 
     alSourcei(source, AL_BUFFER, bufferId);
@@ -210,9 +221,43 @@ void SoundManager::playAt(const std::string& name, float x, float y, float z, fl
     alSourcei(source, AL_LOOPING, AL_FALSE);
     alSourcei(source, AL_SOURCE_RELATIVE, AL_FALSE);
 
-    alSourcef(source, AL_REFERENCE_DISTANCE, 2.0f);
-    alSourcef(source, AL_MAX_DISTANCE, 10.0f);
-    alSourcef(source, AL_ROLLOFF_FACTOR, 1.0f);
+    alSourcef(source, AL_REFERENCE_DISTANCE, 5.0f);
+    alSourcef(source, AL_MAX_DISTANCE, 20.0f);
+    alSourcef(source, AL_ROLLOFF_FACTOR, 0.5f);
+
+    alSourcePlay(source);
+
+    ALenum err = alGetError();
+    if (err != AL_NO_ERROR) {
+        Logger::logf(PREFIX_ERROR, "OpenAL play error: %d\n", err);
+    }
+}
+
+void SoundManager::playCentered(const std::string& name, float pitch, float gain) {
+    if (this->muted || this->settings->sound == false) return;
+
+    auto it = this->soundLibrary.find(name);
+    if (it == this->soundLibrary.end() || it->second.variants.empty()) {
+        return;
+    }
+
+    const std::vector<SoundData>& variants = it->second.variants;
+    int index = 0;
+    if (variants.size() > 1) {
+        index = rand() % variants.size();
+    }
+    ALuint bufferId = variants[index].bufferId;
+    ALuint source = this->getFreeSource();
+    if (source == 0) return;
+
+    alSourcei(source, AL_BUFFER, 0);
+
+    alSourcei(source, AL_BUFFER, bufferId);
+    alSourcef(source, AL_PITCH, pitch);
+    alSourcef(source, AL_GAIN, gain);
+    alSource3f(source, AL_POSITION, 0, 0, 0);
+    alSourcei(source, AL_LOOPING, AL_FALSE);
+    alSourcei(source, AL_SOURCE_RELATIVE, AL_TRUE);
 
     alSourcePlay(source);
 

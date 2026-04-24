@@ -71,7 +71,7 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: D:\Temp\tmp31xfsfzf.js
+// include: D:\Temp\tmpkciuncps.js
 
   if (!Module['expectedDataFileDownloads']) Module['expectedDataFileDownloads'] = 0;
   Module['expectedDataFileDownloads']++;
@@ -203,21 +203,21 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
 
   })();
 
-// end include: D:\Temp\tmp31xfsfzf.js
-// include: D:\Temp\tmpwr715jvm.js
+// end include: D:\Temp\tmpkciuncps.js
+// include: D:\Temp\tmp7tgz6z7y.js
 
     // All the pre-js content up to here must remain later on, we need to run
     // it.
     if ((typeof ENVIRONMENT_IS_WASM_WORKER != 'undefined' && ENVIRONMENT_IS_WASM_WORKER) || (typeof ENVIRONMENT_IS_PTHREAD != 'undefined' && ENVIRONMENT_IS_PTHREAD) || (typeof ENVIRONMENT_IS_AUDIO_WORKLET != 'undefined' && ENVIRONMENT_IS_AUDIO_WORKLET)) Module['preRun'] = [];
     var necessaryPreJSTasks = Module['preRun'].slice();
-  // end include: D:\Temp\tmpwr715jvm.js
-// include: D:\Temp\tmpljy1q9gu.js
+  // end include: D:\Temp\tmp7tgz6z7y.js
+// include: D:\Temp\tmpx9td0sae.js
 
     if (!Module['preRun']) throw 'Module.preRun should exist because file support used it; did a pre-js delete it?';
     necessaryPreJSTasks.forEach((task) => {
       if (Module['preRun'].indexOf(task) < 0) throw 'All preRun tasks that exist before user pre-js code should remain after; did you replace Module or modify Module.preRun?';
     });
-  // end include: D:\Temp\tmpljy1q9gu.js
+  // end include: D:\Temp\tmpx9td0sae.js
 
 
 var arguments_ = [];
@@ -1669,8 +1669,17 @@ async function createWasm() {
   };
   
   
+  var zeroMemory = (ptr, size) => HEAPU8.fill(0, ptr, ptr + size);
+  
+  var alignMemory = (size, alignment) => {
+      assert(alignment, "alignment argument is required");
+      return Math.ceil(size / alignment) * alignment;
+    };
   var mmapAlloc = (size) => {
-      abort('internal error: mmapAlloc called but `emscripten_builtin_memalign` native symbol not exported');
+      size = alignMemory(size, 65536);
+      var ptr = _emscripten_builtin_memalign(65536, size);
+      if (ptr) zeroMemory(ptr, size);
+      return ptr;
     };
   var MEMFS = {
   ops_table:null,
@@ -4667,7 +4676,7 @@ async function createWasm() {
       checkStackCookie();
       if (e instanceof WebAssembly.RuntimeError) {
         if (_emscripten_stack_get_current() <= 0) {
-          err('Stack overflow detected.  You can try increasing -sSTACK_SIZE (currently set to 67108864)');
+          err('Stack overflow detected.  You can try increasing -sSTACK_SIZE (currently set to 134217728)');
         }
       }
       quit_(1, e);
@@ -6264,6 +6273,10 @@ async function createWasm() {
       }
     };
 
+  var _alDistanceModel = (model) => {
+      AL.setGlobalParam('alDistanceModel', 53248, model);
+    };
+
   var _alGenBuffers = (count, pBufferIds) => {
       if (!AL.currentCtx) {
         return;
@@ -6662,6 +6675,13 @@ async function createWasm() {
       }
   
       return ctx.id;
+    };
+
+  
+  var _alcIsExtensionPresent = (deviceId, pExtName) => {
+      var name = UTF8ToString(pExtName);
+  
+      return AL.ALC_EXTENSIONS[name] ? 1 : 0;
     };
 
   var _alcMakeContextCurrent = (contextId) => {
@@ -8011,7 +8031,39 @@ async function createWasm() {
       return exts;
     };
   
-  var _emscripten_glGetString = (name_) => {
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  /** @suppress{checkTypes} */
+  var withBuiltinMalloc = (func) => {
+      var prev_malloc = typeof _malloc != 'undefined' ? _malloc : undefined;
+      var prev_calloc = typeof _calloc != 'undefined' ? _calloc : undefined;
+      var prev_memalign = typeof _memalign != 'undefined' ? _memalign : undefined;
+      var prev_free = typeof _free != 'undefined' ? _free : undefined;
+      var prev_realloc = typeof _realloc != 'undefined' ? _realloc : undefined;
+      _malloc = _emscripten_builtin_malloc;
+      _calloc = _emscripten_builtin_calloc;
+      _memalign = _emscripten_builtin_memalign;
+      _free = _emscripten_builtin_free;
+      _realloc = _emscripten_builtin_realloc;
+      try {
+        return func();
+      } finally {
+        _malloc = prev_malloc;
+        _calloc = prev_calloc;
+        _memalign = prev_memalign;
+        _free = prev_free;
+        _realloc = prev_realloc;
+      }
+    };
+  var _emscripten_glGetString = (name_) => withBuiltinMalloc(() => {
       var ret = GL.stringCache[name_];
       if (!ret) {
         switch (name_) {
@@ -8053,7 +8105,7 @@ async function createWasm() {
         GL.stringCache[name_] = ret;
       }
       return ret;
-    };
+    });
 
   var _emscripten_glGetTexParameterfv = (target, pname, params) => {
       if (!params) {
@@ -8870,10 +8922,6 @@ async function createWasm() {
       // casing all heap size related code to treat 0 specially.
       2147483648;
   
-  var alignMemory = (size, alignment) => {
-      assert(alignment, "alignment argument is required");
-      return Math.ceil(size / alignment) * alignment;
-    };
   
   var growMemory = (size) => {
       var oldHeapSize = wasmMemory.buffer.byteLength;
@@ -9122,7 +9170,8 @@ async function createWasm() {
       return domElement;
     };
   
-  var registerMouseEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
+  
+  var registerMouseEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => withBuiltinMalloc(() => {
       var eventSize = 64;
       JSEvents.mouseEvent ||= _malloc(eventSize);
       target = findEventTarget(target);
@@ -9145,7 +9194,7 @@ async function createWasm() {
         useCapture
       };
       return JSEvents.registerOrRemoveHandler(eventHandler);
-    };
+    });
   var _emscripten_set_click_callback_on_thread = (target, userData, useCapture, callbackfunc, targetThread) =>
       registerMouseEventCallback(target, userData, useCapture, callbackfunc, 4, "click", targetThread);
 
@@ -9177,7 +9226,8 @@ async function createWasm() {
       stringToUTF8(id, eventStruct + 129, 128);
     };
   
-  var registerPointerlockChangeEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
+  
+  var registerPointerlockChangeEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => withBuiltinMalloc(() => {
       var eventSize = 257;
       JSEvents.pointerlockChangeEvent ||= _malloc(eventSize);
   
@@ -9198,7 +9248,7 @@ async function createWasm() {
         useCapture
       };
       return JSEvents.registerOrRemoveHandler(eventHandler);
-    };
+    });
   
   var _emscripten_set_pointerlockchange_callback_on_thread = (target, userData, useCapture, callbackfunc, targetThread) => {
       if (!document.body?.requestPointerLock) {
@@ -9241,7 +9291,8 @@ async function createWasm() {
 
   
   
-  var registerWheelEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
+  
+  var registerWheelEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => withBuiltinMalloc(() => {
       var eventSize = 96;
       JSEvents.wheelEvent ||= _malloc(eventSize)
   
@@ -9267,7 +9318,7 @@ async function createWasm() {
         useCapture
       };
       return JSEvents.registerOrRemoveHandler(eventHandler);
-    };
+    });
   
   var _emscripten_set_wheel_callback_on_thread = (target, userData, useCapture, callbackfunc, targetThread) => {
       target = findEventTarget(target);
@@ -12296,7 +12347,6 @@ if (Module['wasmBinary']) wasmBinary = Module['wasmBinary'];
   'convertU32PairToI53',
   'getTempRet0',
   'setTempRet0',
-  'zeroMemory',
   'withStackSave',
   'inetPton4',
   'inetNtop4',
@@ -12426,6 +12476,7 @@ missingLibrarySymbols.forEach(missingLibrarySymbol)
   'stackAlloc',
   'createNamedFunction',
   'ptrToString',
+  'zeroMemory',
   'exitJS',
   'getHeapMax',
   'growMemory',
@@ -12437,6 +12488,7 @@ missingLibrarySymbols.forEach(missingLibrarySymbol)
   'Sockets',
   'timers',
   'warnOnce',
+  'withBuiltinMalloc',
   'readEmAsmArgsArray',
   'readEmAsmArgs',
   'runEmAsmFunction',
@@ -12704,15 +12756,15 @@ function checkIncomingModuleAPI() {
   ignoredModuleProp('fetchSettings');
 }
 var ASM_CONSTS = {
-  67245392: () => { FS.mount(IDBFS, {}, '/.crosscraft'); FS.syncfs(true, function (err) { if (err) console.error('Error loading filesystem:', err); else console.log('IndexedDB initialized'); }); },  
- 67245567: () => { FS.syncfs(false, function (err) { if (err) console.error('Error saving config:', err); }); },  
- 67245658: ($0) => { var name = UTF8ToString($0); var img = document.getElementById(name); if (!img || !img.complete || img.naturalWidth === 0) { console.error('Font constructor: Image element not found or not loaded:', name); throw new Error('Font image not available: ' + name); } var w = img.width; var h = img.height; var canvas = document.createElement('canvas'); canvas.width = w; canvas.height = h; var ctx = canvas.getContext('2d'); if (!ctx) { throw new Error('Could not get 2D context for font processing.'); } ctx.drawImage(img, 0, 0); var imageData = ctx.getImageData(0, 0, w, h); var rawPixels = imageData.data; Module.fontImageWidth = w; Module.fontImageHeight = h; Module.fontPixelData = rawPixels; },  
- 67246355: () => { return Module.fontImageWidth; },  
- 67246389: () => { return Module.fontImageHeight; },  
- 67246424: ($0, $1, $2) => { var pixelIndex = ($0 + $1 * $2) * 4 + 3; return Module.fontPixelData[pixelIndex]; },  
- 67246510: () => { delete Module.fontImageWidth; delete Module.fontImageHeight; delete Module.fontPixelData; },  
- 67246604: () => { console.log('🎯 EM_ASM: Requesting pointer lock...'); const canvas = document.getElementById('canvas'); if (canvas) { const requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock || canvas.webkitRequestPointerLock; if (requestPointerLock) { try { const result = requestPointerLock.call(canvas); if (result && typeof result.then === 'function') { result.then(function() { console.log('✅ Pointer lock request SUCCESS (Promise)'); }).catch(function(err) { console.error('❌ Pointer lock request FAILED (Promise):', err); }); } else { console.log('✅ Pointer lock request sent (Legacy API)'); } } catch (error) { console.error('❌ Exception during pointer lock request:', error); } } else { console.error('❌ Pointer lock API not available'); } } else { console.error('❌ Canvas element not found'); } },  
- 67247439: () => { const exitPointerLock = document.exitPointerLock || document.mozExitPointerLock || document.webkitExitPointerLock; if (exitPointerLock) { exitPointerLock.call(document); console.log('✅ Exit pointer lock called'); } else { console.error('❌ Exit pointer lock not available'); } }
+  134354352: () => { FS.mount(IDBFS, {}, '/.crosscraft'); FS.syncfs(true, function (err) { if (err) console.error('Error loading filesystem:', err); else console.log('IndexedDB initialized'); }); },  
+ 134354527: () => { FS.syncfs(false, function (err) { if (err) console.error('Error saving config:', err); }); },  
+ 134354618: ($0) => { var name = UTF8ToString($0); var img = document.getElementById(name); if (!img || !img.complete || img.naturalWidth === 0) { console.error('Font constructor: Image element not found or not loaded:', name); throw new Error('Font image not available: ' + name); } var w = img.width; var h = img.height; var canvas = document.createElement('canvas'); canvas.width = w; canvas.height = h; var ctx = canvas.getContext('2d'); if (!ctx) { throw new Error('Could not get 2D context for font processing.'); } ctx.drawImage(img, 0, 0); var imageData = ctx.getImageData(0, 0, w, h); var rawPixels = imageData.data; Module.fontImageWidth = w; Module.fontImageHeight = h; Module.fontPixelData = rawPixels; },  
+ 134355315: () => { return Module.fontImageWidth; },  
+ 134355349: () => { return Module.fontImageHeight; },  
+ 134355384: ($0, $1, $2) => { var pixelIndex = ($0 + $1 * $2) * 4 + 3; return Module.fontPixelData[pixelIndex]; },  
+ 134355470: () => { delete Module.fontImageWidth; delete Module.fontImageHeight; delete Module.fontPixelData; },  
+ 134355564: () => { console.log('🎯 EM_ASM: Requesting pointer lock...'); const canvas = document.getElementById('canvas'); if (canvas) { const requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock || canvas.webkitRequestPointerLock; if (requestPointerLock) { try { const result = requestPointerLock.call(canvas); if (result && typeof result.then === 'function') { result.then(function() { console.log('✅ Pointer lock request SUCCESS (Promise)'); }).catch(function(err) { console.error('❌ Pointer lock request FAILED (Promise):', err); }); } else { console.log('✅ Pointer lock request sent (Legacy API)'); } } catch (error) { console.error('❌ Exception during pointer lock request:', error); } } else { console.error('❌ Pointer lock API not available'); } } else { console.error('❌ Canvas element not found'); } },  
+ 134356399: () => { const exitPointerLock = document.exitPointerLock || document.mozExitPointerLock || document.webkitExitPointerLock; if (exitPointerLock) { exitPointerLock.call(document); console.log('✅ Exit pointer lock called'); } else { console.error('❌ Exit pointer lock not available'); } }
 };
 function js_getImageData(elementId,buffer,bufferSize,width,height) { try { const img = document.getElementById(UTF8ToString(elementId)); if (!img) { console.error('Image element not found:', UTF8ToString(elementId)); return 0; } if (!img.complete || img.naturalWidth === 0) { console.error('Image not loaded:', UTF8ToString(elementId)); return 0; } const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); canvas.width = img.width; canvas.height = img.height; ctx.drawImage(img, 0, 0); const imageData = ctx.getImageData(0, 0, img.width, img.height); const data = imageData.data; if (data.length > bufferSize) { console.error('Buffer too small for image:', UTF8ToString(elementId), 'need:', data.length, 'have:', bufferSize); return 0; } setValue(width, img.width, 'i32'); setValue(height, img.height, 'i32'); for (let i = 0; i < data.length; i++) { setValue(buffer + i, data[i], 'i8'); } console.log('Successfully loaded image:', UTF8ToString(elementId), 'size:', img.width, 'x', img.height); return 1; } catch (e) { console.error('Error in js_getImageData:', e); return 0; } }
 function js_loadTextureFromUrl(url,textureId,mode) { var img = new Image(); img.crossOrigin = "Anonymous"; img.onload = function() { console.log("Skin loaded from URL:", UTF8ToString(url)); var canvas = document.createElement('canvas'); canvas.width = img.width; canvas.height = img.height; var ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0); var imageData = ctx.getImageData(0, 0, img.width, img.height); var data = imageData.data; var bufferPtr = _malloc(data.length); writeArrayToMemory(data, bufferPtr); Module['_updateTextureFromJs'](textureId, bufferPtr, img.width, img.height, mode); _free(bufferPtr); }; img.onerror = function() { console.warn("Failed to load skin from URL:", UTF8ToString(url), "Keeping default."); }; img.src = UTF8ToString(url); }
@@ -12728,10 +12780,17 @@ var _updateTextureFromJs = Module['_updateTextureFromJs'] = makeInvalidEarlyAcce
 var _malloc = makeInvalidEarlyAccess('_malloc');
 var _free = makeInvalidEarlyAccess('_free');
 var _realloc = makeInvalidEarlyAccess('_realloc');
+var _calloc = makeInvalidEarlyAccess('_calloc');
 var _fflush = makeInvalidEarlyAccess('_fflush');
+var _emscripten_builtin_malloc = makeInvalidEarlyAccess('_emscripten_builtin_malloc');
 var _emscripten_stack_get_end = makeInvalidEarlyAccess('_emscripten_stack_get_end');
 var _emscripten_stack_get_base = makeInvalidEarlyAccess('_emscripten_stack_get_base');
 var _strerror = makeInvalidEarlyAccess('_strerror');
+var _emscripten_builtin_free = makeInvalidEarlyAccess('_emscripten_builtin_free');
+var _emscripten_builtin_realloc = makeInvalidEarlyAccess('_emscripten_builtin_realloc');
+var _emscripten_builtin_memalign = makeInvalidEarlyAccess('_emscripten_builtin_memalign');
+var _emscripten_builtin_calloc = makeInvalidEarlyAccess('_emscripten_builtin_calloc');
+var _memalign = makeInvalidEarlyAccess('_memalign');
 var _emscripten_stack_init = makeInvalidEarlyAccess('_emscripten_stack_init');
 var _emscripten_stack_get_free = makeInvalidEarlyAccess('_emscripten_stack_get_free');
 var __emscripten_stack_restore = makeInvalidEarlyAccess('__emscripten_stack_restore');
@@ -12801,10 +12860,17 @@ function assignWasmExports(wasmExports) {
   assert(typeof wasmExports['malloc'] != 'undefined', 'missing Wasm export: malloc');
   assert(typeof wasmExports['free'] != 'undefined', 'missing Wasm export: free');
   assert(typeof wasmExports['realloc'] != 'undefined', 'missing Wasm export: realloc');
+  assert(typeof wasmExports['calloc'] != 'undefined', 'missing Wasm export: calloc');
   assert(typeof wasmExports['fflush'] != 'undefined', 'missing Wasm export: fflush');
+  assert(typeof wasmExports['emscripten_builtin_malloc'] != 'undefined', 'missing Wasm export: emscripten_builtin_malloc');
   assert(typeof wasmExports['emscripten_stack_get_end'] != 'undefined', 'missing Wasm export: emscripten_stack_get_end');
   assert(typeof wasmExports['emscripten_stack_get_base'] != 'undefined', 'missing Wasm export: emscripten_stack_get_base');
   assert(typeof wasmExports['strerror'] != 'undefined', 'missing Wasm export: strerror');
+  assert(typeof wasmExports['emscripten_builtin_free'] != 'undefined', 'missing Wasm export: emscripten_builtin_free');
+  assert(typeof wasmExports['emscripten_builtin_realloc'] != 'undefined', 'missing Wasm export: emscripten_builtin_realloc');
+  assert(typeof wasmExports['emscripten_builtin_memalign'] != 'undefined', 'missing Wasm export: emscripten_builtin_memalign');
+  assert(typeof wasmExports['emscripten_builtin_calloc'] != 'undefined', 'missing Wasm export: emscripten_builtin_calloc');
+  assert(typeof wasmExports['memalign'] != 'undefined', 'missing Wasm export: memalign');
   assert(typeof wasmExports['emscripten_stack_init'] != 'undefined', 'missing Wasm export: emscripten_stack_init');
   assert(typeof wasmExports['emscripten_stack_get_free'] != 'undefined', 'missing Wasm export: emscripten_stack_get_free');
   assert(typeof wasmExports['_emscripten_stack_restore'] != 'undefined', 'missing Wasm export: _emscripten_stack_restore');
@@ -12871,10 +12937,17 @@ function assignWasmExports(wasmExports) {
   _malloc = createExportWrapper('malloc', 1);
   _free = createExportWrapper('free', 1);
   _realloc = createExportWrapper('realloc', 2);
+  _calloc = createExportWrapper('calloc', 2);
   _fflush = createExportWrapper('fflush', 1);
+  _emscripten_builtin_malloc = createExportWrapper('emscripten_builtin_malloc', 1);
   _emscripten_stack_get_end = wasmExports['emscripten_stack_get_end'];
   _emscripten_stack_get_base = wasmExports['emscripten_stack_get_base'];
   _strerror = createExportWrapper('strerror', 1);
+  _emscripten_builtin_free = createExportWrapper('emscripten_builtin_free', 1);
+  _emscripten_builtin_realloc = createExportWrapper('emscripten_builtin_realloc', 2);
+  _emscripten_builtin_memalign = createExportWrapper('emscripten_builtin_memalign', 2);
+  _emscripten_builtin_calloc = createExportWrapper('emscripten_builtin_calloc', 2);
+  _memalign = createExportWrapper('memalign', 2);
   _emscripten_stack_init = wasmExports['emscripten_stack_init'];
   _emscripten_stack_get_free = wasmExports['emscripten_stack_get_free'];
   __emscripten_stack_restore = wasmExports['_emscripten_stack_restore'];
@@ -12965,6 +13038,8 @@ var wasmImports = {
   /** @export */
   alBufferData: _alBufferData,
   /** @export */
+  alDistanceModel: _alDistanceModel,
+  /** @export */
   alGenBuffers: _alGenBuffers,
   /** @export */
   alGenSources: _alGenSources,
@@ -12988,6 +13063,8 @@ var wasmImports = {
   alSourcei: _alSourcei,
   /** @export */
   alcCreateContext: _alcCreateContext,
+  /** @export */
+  alcIsExtensionPresent: _alcIsExtensionPresent,
   /** @export */
   alcMakeContextCurrent: _alcMakeContextCurrent,
   /** @export */

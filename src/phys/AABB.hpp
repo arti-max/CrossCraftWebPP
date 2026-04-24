@@ -21,6 +21,7 @@ public:
     float clipZCollide(const AABB& c, float za) const;
 
     bool intersects(const AABB& c) const;
+    bool intersects(float x0, float y0, float z0, float x1, float y1, float z1) const;
 
     void move(float xa, float ya, float za);
 };

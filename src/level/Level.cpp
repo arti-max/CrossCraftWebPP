@@ -1,5 +1,6 @@
 #include "level/Level.hpp"
 #include "level/tile/Tile.hpp"
+#include "util/Utils.hpp"
 #include "Entity.hpp"
 #include "CrossCraft.hpp"
 #include <iostream>
@@ -17,8 +18,14 @@ void Level::initTransient() {
     this->calcLightDepths(0, 0, this->width, this->height);
     this->tickNextTickList.clear();
 
+
+
     if (this->xSpawn == 0 && this->ySpawn == 0 && this->zSpawn == 0) { 
         findSpawn(); 
+    }
+
+    if (this->emesh == nullptr) {
+        this->emesh = new EntityMesh(this->width, this->height, this->depth);
     }
 }
 
@@ -157,6 +164,11 @@ void Level::setData(int w, int d, int h, const std::vector<uint8_t>& newBlocks) 
     lightDepths.resize(w * h);
     calcLightDepths(0, 0, w, h);
     
+    if (this->emesh != nullptr) {
+        delete this->emesh;
+    }
+    this->emesh = new EntityMesh(w, h, d);
+
     for (LevelListener* listener : levelListeners) {
         listener->allChanged();
     }
@@ -190,17 +202,59 @@ void Level::calcLightDepths(int x0, int z0, int x1, int z1) {
     }
 }
 
+void Level::tickEntities() {
+    for (int i = 0; i < this->emesh->all.size(); ++i) {
+        if (this->emesh->all[i]) {
+            Entity* e = this->emesh->all[i];
+            e->tick();
+
+            if (e->removed) {
+                utils::remove_at(this->emesh->all, i);
+                i--;
+                this->emesh->slotStart->init(e->xo, e->yo, e->zo).remove(e);
+                delete e;
+            } else {
+                int oldX = (int)(e->xo / 16.0f);
+                int oldY = (int)(e->yo / 16.0f);
+                int oldZ = (int)(e->zo / 16.0f);
+                int X = (int)(e->x / 16.0f);
+                int Y = (int)(e->y / 16.0f);
+                int Z = (int)(e->z / 16.0f);
+                if (oldX != X || oldY != Y || oldZ != Z) {
+                    EntityMeshSlot& s1 = this->emesh->slotStart->init(e->xo, e->yo, e->zo);
+                    EntityMeshSlot& s2 = this->emesh->slotEnd->init(e->x, e->y, e->z);
+                    if (s1 != s2) {
+                        s1.remove(e);
+                        s2.add(e);
+                        e->xo = e->x;
+                        e->yo = e->y;
+                        e->zo = e->z;
+                    }
+
+                }
+
+            }
+        }
+    }
+}
+
 void Level::tick() {
     tickCount++;
 
-    for (int i = 0; i < entities.size(); ++i) {
-        entities[i]->tick();
-        if (entities[i]->removed) {
-            delete entities[i];
-            entities.erase(entities.begin() + i);
-            i--;
-        }
+    // for (int i = 0; i < entities.size(); ++i) {
+    //     entities[i]->tick();
+    //     if (entities[i]->removed) {
+    //         delete entities[i];
+    //         entities.erase(entities.begin() + i);
+    //         i--;
+    //     }
+    // }
+
+    this->tickEntities();
+    for (Entity* e : pendingAdd) {
+        this->emesh->addEntity(e);
     }
+    pendingAdd.clear();
 
     if (!isRemote) {
         if (tickCount % 5 == 0) {
@@ -556,10 +610,6 @@ bool Level::isBanned(int x, int y, int z) {
     return false;
 }
 
-void Level::addEntity(Entity* entity) {
-    this->entities.push_back(entity);
-}
-
 void Level::playSound(const std::string& name, Entity* entity, float volume, float pitch) {
     CrossCraft* cc = this->cc;
     if (this->cc != nullptr && cc->sound != nullptr) {
@@ -572,4 +622,20 @@ void Level::playSound(const std::string& name, float x, float y, float z, float 
     if (this->cc != nullptr && cc->sound != nullptr) {
         cc->sound->playAt(name, x, y, z, pitch, volume);
     }
+}
+
+void Level::playSound(const std::string& name, float volume, float pitch) {
+    CrossCraft* cc = this->cc;
+    if (this->cc != nullptr && cc->sound != nullptr) {
+        cc->sound->playCentered(name, pitch, volume);
+    }
+}
+
+void Level::addEntity(Entity* e) {
+    pendingAdd.push_back(e);
+    e->setLevel(this);
+}
+
+void Level::removeEntity(Entity* e) {
+    this->emesh->removeEntity(e);
 }

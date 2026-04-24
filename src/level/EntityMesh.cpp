@@ -1,0 +1,92 @@
+#include "level/EntityMesh.hpp"
+#include "util/Utils.hpp"
+
+EntityMesh::EntityMesh(int w, int h, int d) {
+    this->width = w / 16;
+    this->height = h / 16;
+    this->depth = d / 16;
+
+    if (this->width == 0) this->width = 1;
+    if (this->height == 0) this->height = 1;
+    if (this->depth == 0) this->depth = 1;
+
+    this->grid.resize(this->width * this->height * this->depth);
+    this->all.resize(this->width * this->height * this->depth);
+    this->tmp.resize(this->width * this->height * this->depth);
+}
+
+
+void EntityMesh::addEntity(Entity* e) {
+    this->all.push_back(e);
+    this->slotStart->init(e->x, e->y, e->z).add(e);
+    e->xo = e->x;
+    e->yo = e->y;
+    e->zo = e->z;
+    e->emesh = this;
+}
+
+void EntityMesh::removeEntity(Entity* e) {
+    this->slotStart->init(e->x, e->y, e->z).remove(e);
+    utils::remove_all(this->all, e);
+}
+
+std::vector<Entity*> EntityMesh::getEntities(Entity* ignore, float x0, float y0, float z0, float x1, float y1, float z1, std::vector<Entity*> result) {
+    EntityMeshSlot& ss = this->slotStart->init(x0, y0, z0);
+    EntityMeshSlot& se = this->slotEnd->init(x1, y1, z1);
+
+    for (int x = ss.xSlot - 1; x <= se.xSlot + 1; ++x) {
+        for (int y = ss.ySlot - 1; y <= se.ySlot + 1; ++y) {
+            for (int z = ss.zSlot - 1; z <= se.zSlot + 1; ++z) {
+                if (x >= 0 && y >= 0 && z >= 0 && x < this->width && y < this->depth && z < this->height) {
+                    std::vector<Entity*> entityList = this->grid[(y * this->height + z) * this->width + x];
+
+                    for (int i = 0; i < entityList.size(); ++i) {
+                        Entity* e = entityList[i];
+                        if (e != ignore && e->intersects(x0, y0, z0, x1, y1, z1)) {
+                            result.push_back(e);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return result;
+}
+
+std::vector<Entity*> EntityMesh::getEntities(Entity* ignore, const AABB& box) {
+    this->tmp.clear();
+    return this->getEntities(ignore, box.x0, box.y0, box.z0, box.x1, box.y1, box.z1, this->tmp);
+}
+
+void EntityMesh::render(Frustum& frustum, Textures* textures, float partialTicks) {
+    for (int x = 0; x < this->width; ++x) {
+        float minX = (float)((x << 4) - 2);
+        float maxX = (float)((x + 1 << 4) + 2);
+
+        for (int y = 0; y < this->depth; ++y) {
+            float minY = (float)((y << 4) - 2);
+            float maxY = (float)((y + 1 << 4) + 2);
+
+            for (int z = 0; z < this->height; ++z) {
+                std::vector<Entity*> entityRow = this->grid[(y * this->height + z) * this->width + x];
+                if (entityRow.size() != 0) {
+                    float minZ = (float)((z << 4) - 2);
+                    float maxZ = (float)(((z + 1) << 4) + 2);
+
+                    bool isVisible = frustum.cubeInFrustum(minX, minY, minZ, maxX, maxY, maxZ);
+                    bool isFullyVisible = isVisible && frustum.cubeFullyInFrustum(minX, minY, minZ, maxX, maxY, maxZ);
+
+                    if (isVisible) {
+                        for (int i = 0; i < entityRow.size(); ++i) {
+                            Entity* e = entityRow[i];
+                            if (isFullyVisible || frustum.isVisible(e->bb)) {
+                                e->render(partialTicks, textures);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

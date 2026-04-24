@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrossCraft</title>
+    
+    <!-- Предзагрузка текстур -->
+    <link rel="preload" as="image" href="terrain.png">
+    <link rel="preload" as="image" href="char.png">
+    <link rel="preload" as="image" href="rock.png">
+    <link rel="preload" as="image" href="rock2.png">
+    <link rel="preload" as="image" href="dirt.png">
+    <link rel="preload" as="image" href="water.png">
+    <link rel="preload" as="image" href="default.png">
+    <link rel="preload" as="image" href="clouds.png">
+    
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #000;
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('rock.png');
+            background-repeat: repeat;
+            background-size: 64px 64px; 
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+            text-shadow: 2px 2px 2px #000;
+        }
+
+        #app {
+            margin-bottom: 20px; 
+            border: 2px solid #555; /* Серая рамка вместо зелёной */
+            box-shadow: 0 0 20px rgba(0,0,0,0.7);
+            background-color: black;
+        }
+
+        canvas {
+            display: block;
+        }
+        
+        #text h2 {
+            color: #fff; /* Белый заголовок вместо зелёного */
+            margin-bottom: 10px;
+        }
+        
+        #nologin-warning {
+            color: #ff4444 !important;
+        }
+        
+        #controls {
+            text-align: left;
+            padding: 15px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 8px;
+            border: 1px solid #444;
+            max-width: 400px;
+        }
+
+        #controls ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #controls li {
+            margin-bottom: 5px;
+        }
+
+        #controls li kbd {
+            display: inline-block;
+            width: 90px;
+            font-weight: bold;
+            font-family: monospace;
+            color: #ccc; /* Светло-серый вместо зелёного */
+        }
+
+        #texture-atlases {
+            display: none;
+        }
+        
+        #output {
+            width: 100%;
+            max-width: 854px;
+            height: 100px;
+            background-color: #2d2d2d;
+            color: #00ff00;
+            font-family: monospace;
+            margin-top: 10px;
+            padding: 5px;
+            overflow-y: auto;
+            border: 1px solid #555;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Контейнер для игры с атрибутами размера -->
+    <div id="app" width="854" height="480">
+        <canvas id="canvas"></canvas>
+    </div>
+    
+    <div id="text">
+        <h2 id="nologin-warning" style="display:none;">You won't be able to save unless you log in.</h2>
+        <h4>About:</h4>
+        <a>CrossCraftWeb is being developed by arti.</a>
+        <hr>
+    </div>
+    
+    <div id="controls">
+        <ul>
+            <li><kbd>1 - 9 / Wheel Scroll</kbd> - Changing building block type</li>
+            <li><kbd>Right click</kbd> - Change edit mode</li>
+            <li><kbd>Left click</kbd> - Place/Destroy block</li>
+            <li><kbd>Wheel Click</kbd> - Pick block</li>
+            <li><kbd>Enter</kbd> - Change respawn position</li>
+            <li><kbd>R</kbd> - Respawn</li>
+            <li><kbd>F</kbd> - Toggle rendering distance</li>
+            <li><kbd>G</kbd> - Spawn mob</li>
+            <li><kbd>Y</kbd> - Invert Y-Axis</li>
+            <li><kbd>T</kbd> - Open Chat</li>
+            <li><kbd>WASD</kbd> - Movement</li>
+            <li><kbd>SPACE</kbd> - Jump</li>
+            <li><kbd>ESC</kbd> - Pause screen</li>
+        </ul>
+    </div>
+    
+    <div id="output" style="display:none;"></div>
+
+    <!-- Скрытые текстуры для загрузки -->
+    <div id="texture-atlases">
+        <img id="terrain" src="terrain.png" crossorigin="anonymous" />
+        <img id="default" src="default.png" crossorigin="anonymous" />
+        <img id="char" src="char.png" crossorigin="anonymous" />
+        <img id="dirt" src="dirt.png" crossorigin="anonymous" />
+        <img id="rock" src="rock.png" crossorigin="anonymous" />
+        <img id="rock2" src="rock2.png" crossorigin="anonymous" />
+        <img id="water" src="water.png" crossorigin="anonymous" />
+        <img id="clouds" src="clouds.png" crossorigin="anonymous" />
+    </div>
+
+    <script type='text/javascript'>
+        const DEBUG = false;
+        // Получаем URL параметры
+        const urlParams = new URLSearchParams(window.location.search);
+        const username = urlParams.get('username');
+        const sessionid = urlParams.get('sessionid');
+        const loadmapUser = urlParams.get('loadmap_user');
+        const loadmapId = urlParams.get('loadmap_id');
+        const server = urlParams.get('server') || '';
+        const port = parseInt(urlParams.get('port') || '0');
+
+        if (DEBUG) {
+            document.getElementById('output').style.display = "block";
+        }
+
+        // Показываем предупреждение о логине
+        if (!username || !sessionid) {
+            document.getElementById('nologin-warning').style.display = "block";
+        }
+
+        // Настройка canvas из атрибутов контейнера
+        const appContainer = document.getElementById('app');
+        const canvas = document.getElementById('canvas');
+        
+        const widthAttr = appContainer.getAttribute('width');
+        const heightAttr = appContainer.getAttribute('height');
+        const width = widthAttr ? parseInt(widthAttr, 10) : 854;
+        const height = heightAttr ? parseInt(heightAttr, 10) : 480;
+
+        // Устанавливаем размеры
+        appContainer.style.width = `${width}px`;
+        appContainer.style.height = `${height}px`;
+        canvas.width = width;
+        canvas.height = height;
+
+        console.log(`CrossCraft: Canvas initialized ${width}x${height}`);
+        if (username && sessionid) {
+            console.log(`Game started with username: ${username}, sessionid: ${sessionid}`);
+        }
+
+        // Ждем загрузки всех изображений
+        let imagesToLoad = ['terrain', 'char', 'dirt', 'rock', 'rock2', 'water', 'default'];
+        let loadedCount = 0;
+        
+        function checkAllImagesLoaded() {
+            loadedCount++;
+            console.log(`Loaded image ${loadedCount}/${imagesToLoad.length}`);
+            if (loadedCount === imagesToLoad.length) {
+                console.log('All images loaded, starting game...');
+                // Игра запустится через Module.onRuntimeInitialized
+            }
+        }
+
+        imagesToLoad.forEach(id => {
+            const img = document.getElementById(id);
+            if (img.complete) {
+                checkAllImagesLoaded();
+            } else {
+                img.onload = checkAllImagesLoaded;
+                img.onerror = () => console.error(`Failed to load image: ${id}`);
+            }
+        });
+
+        // Настройка Emscripten Module
+        var Module = {
+            canvas: canvas,
+            preRun: [],
+            postRun: [],
+            
+            print: (function() {
+                var element = document.getElementById('output');
+                if (element) element.innerHTML = '';
+                return function(text) {
+                    if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+                    console.log(text);
+                    if (element) {
+                        element.innerHTML += text + "<br>";
+                        element.scrollTop = element.scrollHeight;
+                    }
+                };
+            })(),
+            
+            printErr: function(text) {
+                if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+                console.error(text);
+            },
+
+            onRuntimeInitialized: async function() {
+                console.log('WebAssembly runtime initialized');
+                
+                console.log('Testing Asyncify...');
+                try {
+                    await Module.ccall('testAsyncify', 'void', [], [], {async: true});
+                    console.log('Asyncify test PASSED!');
+                } catch (e) {
+                    console.error('Asyncify test FAILED:', e);
+                    return;
+                }
+                
+                console.log('Calling setAppletParams with:', username, sessionid);
+                try {
+                    Module.ccall('setAppletParams', 'void', 
+                        ['string', 'string', 'string', 'number', 'number', 'number'],
+                        [username || "", sessionid || "", loadmapUser || "", parseInt(loadmapId) || -1, width, height]
+                    );
+                    if (server && port > 0) {
+                        console.log('Setting multiplayer server:', server + ':' + port);
+                        Module.ccall('setServerParams', null, ['string', 'number'], [server, port]);
+                    }
+                } catch (e) {
+                    console.error('Error calling setAppletParams:', e);
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                console.log('Starting applet...');
+                try {
+                    await Module.ccall('startApplet', 'void', [], [], {async: true});
+                    console.log('Applet started successfully');
+                } catch (e) {
+                    console.error('Error calling startApplet:', e);
+                }
+            }
+        };
+
+        function debugInfo() {
+            if (typeof Module !== 'undefined' && Module.ccall) {
+                try {
+                    // Можешь добавить debug функцию в C++
+                    console.log('Debug info requested');
+                } catch(e) {
+                    console.error('Debug error:', e);
+                }
+            }
+        }
+    </script>
+
+    <script async type="text/javascript" src="game.js"></script>
+</body>
+</html>

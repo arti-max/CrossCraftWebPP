@@ -14,6 +14,7 @@ public:
     }
 
     static std::vector<const Tile*> allowedTiles;
+    static bool survival;
 
     static void initAllowedTiles();
 

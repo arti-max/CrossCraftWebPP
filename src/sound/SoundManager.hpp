@@ -61,6 +61,7 @@ public:
 
     bool playMusic(const std::string& name);
     void playAt(const std::string& name, float x, float y, float z, float pitch = 1.0f, float gain = 1.0f);
+    void playCentered(const std::string& name, float pitch = 1.0f, float gain = 1.0f);
     void updateListener(float x, float y, float z, float yaw, float pitch);
 
     void setMuted(bool mute);

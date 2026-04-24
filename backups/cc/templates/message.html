@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ title }} - CrossCraft</title>
+    <style>
+        body { font-family: Arial; text-align: center; padding: 50px; }
+        .message-box { 
+            max-width: 500px; margin: 0 auto; 
+            padding: 30px; border: 2px solid #ccc; 
+            border-radius: 10px; 
+        }
+        h1 { color: #333; }
+        a { color: #007bff; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="message-box">
+        <h1>{{ title }}</h1>
+        <p>{{ message }}</p>
+        <p><a href="{{ url_for('index') }}">Back to Home</a></p>
+    </div>
+</body>
+</html>

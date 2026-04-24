@@ -124,6 +124,15 @@ bool AABB::intersects(const AABB& c) const {
     return false;
 }
 
+bool AABB::intersects(float x0, float y0, float z0, float x1, float y1, float z1) const {
+    if (x1 > this->x0 && x0 < this->x1) {
+        if (y1 > this->y0 && y0 < this->y1) {
+            return z1 > this->z0 && z0 < this->z1;
+        }
+    }
+    return false;
+}
+
 void AABB::move(float xa, float ya, float za) {
     this->x0 += xa;
     this->y0 += ya;

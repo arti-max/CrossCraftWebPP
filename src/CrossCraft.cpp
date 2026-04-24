@@ -282,7 +282,7 @@ void CrossCraft::handleMouseClick() {
                 if (previousTile->st != &SoundType::none) {
                     this->level->playSound("step." + previousTile->st->name, (float)this->hitResult->x, (float)this->hitResult->y, (float)this->hitResult->z, (previousTile->st->getVolume() + 1.0f) / 2.0f, previousTile->st->getPitch() * 0.8f);
                 }
-                previousTile->onDestroy(this->level, this->hitResult->x, this->hitResult->y, this->hitResult->z, this->particleEngine, this->isDrop);
+                previousTile->onDestroy(this->level, this->hitResult->x, this->hitResult->y, this->hitResult->z, this->particleEngine, Data::survival);
             }
         }
     } else if (this->hitResult != nullptr) {
@@ -421,9 +421,9 @@ void CrossCraft::tick() {
                     break;
                 }
 
-                if (Keyboard::getEventKey() == GLFW_KEY_C) {
-                    this->isDrop == true ? this->isDrop = false : this->isDrop = true;
-                }
+                // if (Keyboard::getEventKey() == GLFW_KEY_C) {
+                //     this->isDrop == true ? this->isDrop = false : this->isDrop = true;
+                // }
 
                 if (Keyboard::getEventKey() == this->settings->key_build->keyCode) {
                     this->player->releaseAllKeys();
@@ -451,7 +451,7 @@ void CrossCraft::tick() {
                     this->settings->toggleSetting(4, 1);
                 }
                 if (Keyboard::getEventKey() == GLFW_KEY_G && !this->mpMode && this->level->entities.size() < 256) {
-                    this->level->entities.push_back(new Zombie(this->level, this->textures, this->player->x, this->player->y, this->player->z));
+                    this->level->addEntity(new Zombie(this->level, this->textures, this->player->x, this->player->y, this->player->z));
                 }
             }
         }
@@ -575,14 +575,15 @@ void CrossCraft::render(float partialTicks) {
     glEnable(GL_FOG);
     this->levelRenderer->render(this->player, 0);
     this->checkGlError("Rendered level");
-    int i;
-    Entity* entity;
-    for (i = 0; i < this->level->entities.size(); ++i) {
-        entity = this->level->entities[i];
-        if (frustum.isVisible(entity->bb)) {
-            this->level->entities[i]->render(partialTicks, this->textures);
-        }
-    }
+    // int i;
+    // Entity* entity;
+    this->level->emesh->render(frustum, this->textures, partialTicks);
+    // for (i = 0; i < this->level->entities.size(); ++i) {
+    //     entity = this->level->entities[i];
+    //     if (frustum.isVisible(entity->bb)) {
+    //         this->level->entities[i]->render(partialTicks, this->textures);
+    //     }
+    // }
     for (auto const& [id, net_player] : this->level->networkPlayers) {
         if (net_player != nullptr) {
             net_player->render(this->textures, partialTicks, this->font, this->player);

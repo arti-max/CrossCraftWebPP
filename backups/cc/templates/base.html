@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CrossCraft{% endblock %}</title>
+    
+    <!-- Предзагрузка основных текстур -->
+    <link rel="preload" as="image" href="{{ url_for('static', filename='img/dirt.png') }}">
+    
+    <style>
+        /* === ГЛОБАЛЬНЫЕ СТИЛИ (Reset & Base) === */
+        * {
+            box-sizing: border-box;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            border: none;
+            width: 100%;
+            height: 100%;
+            background-color: #222; /* Цвет фона подложки */
+            color: #e0d0d0;
+            font-family: Arial, sans-serif;
+            font-weight: normal;
+            overflow-x: hidden;
+        }
+
+        /* Фон страницы (камень с затемнением) */
+        body {
+            /* Градиент затемнения + Текстура камня */
+            background-image: 
+                linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.75)), 
+                url("{{ url_for('static', filename='img/rock.png') }}");
+            background-repeat: repeat;
+            background-size: 96px 96px; /* Масштаб текстуры */
+            image-rendering: pixelated; /* Пикселизация */
+        }
+
+        /* === ССЫЛКИ === */
+        a { text-decoration: underline; cursor: pointer; }
+        a:link { color: #aaf; }
+        a:hover { color: #fff; }
+        a:visited { color: #aaa; }
+        a:active { color: #ff0; }
+
+        /* === ВЕРХНЯЯ ПАНЕЛЬ (Top Panel) === */
+        #toppanel {
+            height: 48px;
+            width: 100%;
+            /* Твой фон... */
+            background-color: #555;
+            border-bottom: 3px solid #000;
+            background-image: 
+                linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 100%), 
+                url("{{ url_for('static', filename='img/dirt.png') }}");
+            background-repeat: repeat-x, repeat;
+            background-size: auto, 64px 64px;
+            image-rendering: pixelated;
+            
+            position: relative;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            /* Убираем space-between, чтобы контролировать отступы вручную */
+            padding: 0 10px;
+            box-sizing: border-box;
+        }
+
+        /* Логотип в панели */
+        #toppanel .logo-container {
+            margin-right: 15px; /* Отступ до текста */
+            display: flex;
+            align-items: center;
+        }
+        #toppanel .logo-container a {
+            text-decoration: none;
+            color: white;
+        }
+
+        /* Ссылки по центру (статистика и меню) */
+        #toppanel .links {
+            font-size: 13px;
+            line-height: 1.4;
+            color: #ddd;
+            text-shadow: 1px 1px 0 #000;
+            text-align: left; /* Выравнивание по левому краю */
+            flex-grow: 1; /* Занимает всё свободное место, толкая логин вправо */
+        }
+        
+        /* Панель логина справа */
+        #toppanel .login-panel {
+            font-size: 13px;
+            font-weight: bold;
+            text-shadow: 1px 1px 0 #000;
+            text-align: right;
+            white-space: nowrap; /* Чтобы не переносилось */
+            display: flex;
+            align-items: center;
+        }
+
+        /* Кнопка доната (плавающая справа, как в оригинале) */
+        #toppanel .donate-btn {
+            margin-left: 10px;
+        }
+
+        /* === КОНТЕНТ === */
+        #content {
+            margin: 0 auto;
+            width: 1024px; /* Ширина под игру */
+            max-width: 100%;
+            padding-top: 20px;
+            padding-bottom: 40px; /* Место под футер */
+        }
+
+        /* === ФУТЕР === */
+        #footer {
+            text-align: center;
+            font-size: 11px;
+            padding: 5px;
+            width: 100%;
+            color: #888;
+            margin-top: 20px;
+        }
+        
+        /* === FLASH СООБЩЕНИЯ === */
+        .flash-messages {
+            width: 100%;
+            text-align: center;
+            margin-top: 10px;
+        }
+        .flash {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .flash.success { background: rgba(0, 128, 0, 0.6); border: 1px solid lime; color: white; }
+        .flash.error { background: rgba(128, 0, 0, 0.6); border: 1px solid red; color: white; }
+
+        /* === СТИЛИ ДЛЯ ФОРМ (LOGIN / REGISTER) === */
+        .login-form label, 
+        .register-form label, 
+        .login-form input, 
+        .register-form input {
+            display: block;
+        }
+
+        .login-form input, 
+        .register-form input {
+            margin-bottom: 10px;
+        }
+        
+        /* Кнопку тоже можно спустить чуть ниже, если нужно */
+        .login-form button, 
+        .register-form button {
+            margin-top: 5px;
+        }
+
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body>
+    {% if config.get('APRIL_FOOLS_ENABLED', False) %}
+    <!-- Баннер с поздравлением -->
+    <div id="april-fools-banner" style="position: fixed; top: 0; left: 0; right: 0; background: #ff0; color: #000; text-align: center; padding: 8px; z-index: 10000; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">
+        Ща развалится
+    </div>
+
+    <!-- Наложение трещин -->
+    <div id="crack-overlay"></div>
+
+    <style>
+        /* Лёгкий наклон всей страницы */
+        body {
+            transform: rotate(-0.7deg);
+            transition: transform 0.2s ease;
+        }
+
+        /* Эффект «глюка» при наведении на ссылки */
+        a:hover {
+            animation: glitch 0.15s infinite;
+            display: inline-block;
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0, 0); }
+            25% { transform: translate(-1px, 1px); }
+            50% { transform: translate(1px, -1px); }
+            75% { transform: translate(-1px, -1px); }
+            100% { transform: translate(0, 0); }
+        }
+
+        /* Отступ сверху для баннера */
+        body {
+            padding-top: 40px;
+        }
+        #toppanel {
+            margin-top: 0;
+        }
+
+        /* Стили для наложения трещин */
+        #crack-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Чтобы не мешать кликам */
+            z-index: 9999;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: cover;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+            /* SVG с трещинами (можно заменить на PNG, но SVG весит меньше) */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 600'%3E%3Cpath fill='none' stroke='rgba(0,0,0,0.6)' stroke-width='4' d='M150,50 L180,80 L210,70 L240,100 L270,90 L300,120 L330,110 L360,140 L390,130 L420,160 L450,150 L480,180 L510,170 L540,200 L570,190 L600,220 L630,210 L660,240 L690,230 L720,260 L750,250 L780,280' /%3E%3Cpath fill='none' stroke='rgba(0,0,0,0.5)' stroke-width='3' d='M80,200 L110,230 L140,220 L170,250 L200,240 L230,270 L260,260 L290,290 L320,280 L350,310 L380,300 L410,330 L440,320 L470,350 L500,340 L530,370 L560,360 L590,390 L620,380 L650,410 L680,400 L710,430 L740,420 L770,450' /%3E%3Cpath fill='none' stroke='rgba(0,0,0,0.4)' stroke-width='2' d='M400,500 L420,530 L440,520 L460,550 L480,540 L500,570 L520,560 L540,590 L560,580 L580,610 L600,600 L620,630 L640,620 L660,650 L680,640 L700,670 L720,660 L740,690 L760,680' /%3E%3C/svg%3E");
+        }
+
+        /* Анимация сотрясения страницы */
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(-0.7deg); }
+            10% { transform: translate(-1px, -2px) rotate(-0.7deg); }
+            20% { transform: translate(-3px, 0px) rotate(-0.7deg); }
+            30% { transform: translate(3px, 2px) rotate(-0.7deg); }
+            40% { transform: translate(1px, -1px) rotate(-0.7deg); }
+            50% { transform: translate(-1px, 2px) rotate(-0.7deg); }
+            60% { transform: translate(-3px, 1px) rotate(-0.7deg); }
+            70% { transform: translate(3px, 1px) rotate(-0.7deg); }
+            80% { transform: translate(-1px, -1px) rotate(-0.7deg); }
+            90% { transform: translate(1px, 2px) rotate(-0.7deg); }
+            100% { transform: translate(1px, -2px) rotate(-0.7deg); }
+        }
+        .shake-active {
+            animation: shake 0.2s ease-in-out 0s 2;
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Подмигивание элементов (оставляем как было)
+            const elements = document.querySelectorAll('h1, h2, h3, .server-entry a');
+            setInterval(() => {
+                const randomElement = elements[Math.floor(Math.random() * elements.length)];
+                if (randomElement) {
+                    randomElement.style.opacity = '0.7';
+                    setTimeout(() => {
+                        randomElement.style.opacity = '';
+                    }, 150);
+                }
+            }, 2000);
+
+            // Показываем трещины через 1.5 секунды
+            setTimeout(() => {
+                const overlay = document.getElementById('crack-overlay');
+                if (overlay) {
+                    overlay.style.opacity = '0.6';
+                }
+            }, 1500);
+
+            // Периодическое сотрясение страницы (имитация разрушения)
+            let shakeCount = 0;
+            const shakeInterval = setInterval(() => {
+                if (shakeCount >= 8) { // 8 раз потрясём, потом прекратим
+                    clearInterval(shakeInterval);
+                    return;
+                }
+                document.body.classList.add('shake-active');
+                setTimeout(() => {
+                    document.body.classList.remove('shake-active');
+                }, 400);
+                shakeCount++;
+            }, 3000); // каждые 3 секунды
+        });
+    </script>
+{% endif %}
+
+    <!-- ВЕРХНЯЯ ПАНЕЛЬ -->
+    <div id="toppanel">
+        <!-- Логотип (текстом или картинкой) -->
+        <div class="logo-container">
+            <a href="{{ url_for('index') }}">
+                <img src="{{ url_for('static', filename='img/crosscraftlogo.png') }}" 
+                    alt="CrossCraft Logo" 
+                    style="height: 40px; image-rendering: pixelated; vertical-align: middle;">
+            </a>
+        </div>
+
+        <!-- Ссылки и статистика -->
+        <div class="links">
+            <span>
+                {{ total_servers }} servers, {{ total_registered }} registered, {{ total_purchased }} purchases.
+            </span> 
+            <br>
+            <a href="{{ url_for('index') }}">Home</a>, 
+            <a href="{{ url_for('about') }}">About</a>, 
+            <a href="#">Dev blog</a>, 
+            <a href="{{ url_for('server_list_page') }}">Community</a>
+        </div>
+
+        <!-- Логин / Профиль -->
+        <div class="login-panel">
+            {% if current_user.is_authenticated %}
+                Logged in as&nbsp;<a href="{{ url_for('profile') }}" style="color: #ffffaa; font-weight: bold; text-decoration: none;"> {{ current_user.username }} </a>. 
+
+
+                {% if current_user.id == 1 %}
+                     | <a href="{{ url_for('admin_panel') }}" style="color: #ffaaaa;"> Admin </a>
+                {% endif %}
+
+                [ <a href="{{ url_for('logout') }}"> Log out </a> ]
+            {% else %}
+                Not logged in. 
+                [ <a href="{{ url_for('login') }}"> Log in </a> | <a href="{{ url_for('register') }}"> Register </a> ]
+            {% endif %}
+            
+            <!-- Донат кнопка -->
+            <span class="donate-btn">
+                <a href="https://dalink.to/poly9a" target="_blank">
+                    <img src="{{ url_for('static', filename='img/btn_donate_SM.gif') }}" border="0" alt="Donate">
+                </a>
+            </span>
+        </div>
+    </div>
+
+    <!-- FLASH СООБЩЕНИЯ -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-messages">
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- ОСНОВНОЙ КОНТЕНТ -->
+    <div id="content">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- ФУТЕР -->
+    <div id="footer">
+        Copyright 2025-2026 CrossCraft - Online. 
+        <a href="{{ url_for('about') }}">Terms and conditions</a>. 
+        <a href="{{ url_for('about') }}">Credits</a>. 
+        For support, dm <a href="#">artinzz_ in discord</a>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,109 @@
+/* static/css/style.css */
+
+body {
+    /* ЗАДАЧА 1: Затемняем фон.
+       Добавляем полупрозрачный черный слой (0.6 - степень прозрачности) поверх картинки. */
+    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('../img/rock.png');
+    background-repeat: repeat;
+    background-size: 64px 64px; 
+
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+    
+    background-color: #222;
+    color: #FFF;
+    font-family: "Tahoma", "Verdana", sans-serif;
+    font-size: 14px;
+    margin: 40px;
+}
+
+a {
+    color: #89B3F1;
+    text-decoration: underline;
+}
+
+a:hover {
+    color: #A9C3F1;
+}
+
+/* ЗАДАЧА 3: Центрирование элементов.
+   Этот контейнер отвечает за центрирование всего содержимого на главной странице. */
+.main-container {
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center; /* Это свойство центрирует логотип, форму и ссылки внутри контейнера */
+}
+
+/* ЗАДАЧА 2: Уменьшаем логотип. */
+.logo {
+    max-width: 800px; /* Можешь поменять это значение, если нужно еще меньше/больше */
+    margin-bottom: 20px;
+}
+
+/* Формы */
+form {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    text-align: left; /* Текст внутри самой формы (лейблы) остается слева */
+    display: inline-block; /* Позволяет форме отцентрироваться как единому блоку */
+}
+
+form label {
+    display: block;
+    margin-top: 10px;
+}
+
+form input {
+    display: block;
+    border: 1px solid #000;
+    padding: 3px;
+    width: 200px;
+}
+
+form button {
+    margin-top: 15px;
+}
+
+/* Контент на главной */
+.content-box {
+    margin-top: 30px;
+    padding-top: 20px;
+    /* border-top: 1px solid #555; */
+    /* Текст внутри этого блока тоже будет отцентрирован благодаря text-align: center у родителя */
+}
+
+/* Шапка на внутренних страницах */
+.header-text {
+    font-size: 24px;
+    font-weight: bold;
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+.sub-header-links {
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+.flash-messages {
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+}
+.flash {
+    padding: 10px 20px;
+    margin-bottom: 10px;
+    border: 1px solid #000;
+    background-color: #555;
+    color: #fff;
+    min-width: 300px;
+    text-align: center;
+}
+.flash.success { background-color: #28a745; }
+.flash.danger { background-color: #dc3545; }
+.flash.warning { background-color: #ffc107; color: #000; }
+.flash.info { background-color: #17a2b8; }

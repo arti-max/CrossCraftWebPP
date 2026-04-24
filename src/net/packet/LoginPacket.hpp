@@ -5,7 +5,7 @@ class LoginPacket : public Packet {
 public:
     std::string username;
     std::string sessionId;
-    uint8_t protocolVersion = 3;
+    uint8_t protocolVersion = 4;
 
     LoginPacket() : Packet(PacketType::LOGIN) {}
     

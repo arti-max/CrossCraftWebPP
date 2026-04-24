@@ -1,5 +1,4 @@
 #pragma once
-#include "level/Level.hpp"
 #include "phys/AABB.hpp"
 #include <vector>
 #include <cmath>
@@ -7,6 +6,8 @@
 #include <string>
 
 class Textures;
+class EntityMesh;
+class Level;
 
 class Entity {
 protected:
@@ -27,6 +28,7 @@ public:
     float walkDist = 0.0f;
 
     AABB bb;
+    EntityMesh* emesh = nullptr;
     
     bool onGround = false;
     bool horizontalCollision = false;
@@ -38,6 +40,7 @@ public:
 
 protected:
     void setSize(float w, float h);
+    virtual bool isPlayer();
 
 public:
     void resetPos();
@@ -56,6 +59,9 @@ public:
     float getBrightness();
     virtual void render(float a, Textures* textures);
     virtual void playSound(const std::string& name, float volume, float pitch);
+    bool intersects(float x0, float y0, float z0, float x1, float y1, float z1);
+    void setLevel(Level* level);
+
 
 private:
     float randomFloat();
