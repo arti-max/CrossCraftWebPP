@@ -142,6 +142,21 @@ void Screen::updateEvents() {
     }
 }
 
+void Screen::updateMouseEvents() {
+    if (Mouse::getEventButtonState()) {
+        float xm = Mouse::getEventX() * this->width / this->cc->width;
+        float ym = Mouse::getEventY() * this->height / this->cc->height;
+        this->mouseClicked(xm, ym, Mouse::getEventButton());
+        return;
+    }
+}
+
+void Screen::updateKeyboardEvents() {
+    if (Keyboard::getEventKeyState()) {
+        this->keyPressed(Keyboard::getEventCharacter(), Keyboard::getEventKey());
+    }
+}
+
 void Screen::drawImage(int x, int y, int u, int v, int w, int h) {
     float pu = 0.00390625f;
     float pv = 0.00390625f;

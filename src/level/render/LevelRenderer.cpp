@@ -319,28 +319,30 @@ void LevelRenderer::renderHit(HitResult* h, Player* player, int mode, int tileTy
 
         t.end();
     } else {
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        float br = (float)std::sin((double)emscripten_get_now() / 100.0f) * 0.2f + 0.8f;
-        glColor4f(br, br, br, (float)std::sin((double)emscripten_get_now() / 200.0f) * 0.2f + 0.5f);
-        glEnable(GL_TEXTURE_2D);
-        int id = this->textures->loadTexture("terrain", GL_NEAREST);
-        glBindTexture(GL_TEXTURE_2D, id);
-        int x = h->x;
-        int y = h->y;
-        int z = h->z;
-        if (h->f == 0) y--;
-        if (h->f == 1) y++;
-        if (h->f == 2) z--;
-        if (h->f == 3) z++;
-        if (h->f == 4) x--;
-        if (h->f == 5) x++;
+        if (tileType != -1) {
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            float br = (float)std::sin((double)emscripten_get_now() / 100.0f) * 0.2f + 0.8f;
+            glColor4f(br, br, br, (float)std::sin((double)emscripten_get_now() / 200.0f) * 0.2f + 0.5f);
+            glEnable(GL_TEXTURE_2D);
+            int id = this->textures->loadTexture("terrain", GL_NEAREST);
+            glBindTexture(GL_TEXTURE_2D, id);
+            int x = h->x;
+            int y = h->y;
+            int z = h->z;
+            if (h->f == 0) y--;
+            if (h->f == 1) y++;
+            if (h->f == 2) z--;
+            if (h->f == 3) z++;
+            if (h->f == 4) x--;
+            if (h->f == 5) x++;
 
-        t.begin();
-        t._noColor();
-        Tile::tiles[tileType]->render(t, this->level, 0, x, y, z);
-        Tile::tiles[tileType]->render(t, this->level, 1, x, y, z);
-        t.end();
-        glDisable(GL_TEXTURE_2D);
+            t.begin();
+            t._noColor();
+            Tile::tiles[tileType]->render(t, this->level, 0, x, y, z);
+            Tile::tiles[tileType]->render(t, this->level, 1, x, y, z);
+            t.end();
+            glDisable(GL_TEXTURE_2D);
+        }
     }
 
     glDisable(GL_BLEND);

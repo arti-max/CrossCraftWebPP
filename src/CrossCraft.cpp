@@ -85,7 +85,7 @@ void CrossCraft::init() {
     this->sound->initOpenAL(this->settings);
     this->font = new Font("default", this->textures);
     this->chatGui = new ChatGui();
-    this->hud = new Hud(this->textures, this->width*240/this->height, this->height*240/this->height);
+    this->hud = new Hud(this, this->textures, this->width*240/this->height, this->height*240/this->height);
     glViewport(0, 0, this->width, this->height);
     this->level = new Level();
     this->level->cc = this;
@@ -272,17 +272,25 @@ void CrossCraft::handleMouseClick() {
 
             bool tileChanged = this->level->setTile(this->hitResult->x, this->hitResult->y, this->hitResult->z, 0);
             if (previousTile != nullptr && tileChanged) {
-                if (this->mpMode && this->client && this->client->isConnected()) {
+                bool particles = true;
+                if (previousTile->id == Tile::unbreakable->id) {
+                    particles = false;
                     this->level->setTile(this->hitResult->x, this->hitResult->y, this->hitResult->z, previousTile->id);
+                }
+                if (this->mpMode && this->client && this->client->isConnected()) {
+                    // this->level->setTile(this->hitResult->x, this->hitResult->y, this->hitResult->z, previousTile->id);
                     BlockChangePacket* packet = new BlockChangePacket(
                         this->hitResult->x, this->hitResult->y, this->hitResult->z, 
                         0, false);
                     client->sendPacket(packet);
                 }
-                if (previousTile->st != &SoundType::none) {
+                if ((previousTile->st != &SoundType::none) && particles) {
                     this->level->playSound("step." + previousTile->st->name, (float)this->hitResult->x, (float)this->hitResult->y, (float)this->hitResult->z, (previousTile->st->getVolume() + 1.0f) / 2.0f, previousTile->st->getPitch() * 0.8f);
                 }
-                previousTile->onDestroy(this->level, this->hitResult->x, this->hitResult->y, this->hitResult->z, this->particleEngine, Data::survival);
+                if (Data::survival) {
+                    this->player->inventory->addItem(previousTile->id);
+                }
+                if (particles) previousTile->onDestroy(this->level, this->hitResult->x, this->hitResult->y, this->hitResult->z, this->particleEngine, Data::survival);
             }
         }
     } else if (this->hitResult != nullptr) {
@@ -297,21 +305,25 @@ void CrossCraft::handleMouseClick() {
         if (this->hitResult->f == 4) x--;
         if (this->hitResult->f == 5) x++;
 
-        AABB* aabb = Tile::tiles[this->player->inventory->getCurrentBlock()]->getAABB(x, y, z);
+        if (this->player->inventory->getCurrentBlock() != -1) {
+            AABB* aabb = Tile::tiles[this->player->inventory->getCurrentBlock()]->getAABB(x, y, z);
         
-        if (aabb == nullptr || this->isFree(*aabb)) {
-            if (this->mpMode && client && client->isConnected()) {
-                BlockChangePacket* packet = new BlockChangePacket(
-                        x, y, z, 
-                        this->player->inventory->getCurrentBlock(), true);
-                client->sendPacket(packet);
-            } else {
+            if (aabb == nullptr || this->isFree(*aabb)) {
                 this->level->setTile(x, y, z, this->player->inventory->getCurrentBlock());
+                if (this->mpMode && client && client->isConnected()) {
+                    BlockChangePacket* packet = new BlockChangePacket(
+                            x, y, z, 
+                            this->player->inventory->getCurrentBlock(), true);
+                    client->sendPacket(packet);
+                }
+                if (Data::survival) {
+                    this->player->inventory->removeItem(this->player->inventory->getCurrentBlock());
+                }
             }
-        }
-        
-        if (aabb != nullptr) {
-            delete aabb;
+            
+            if (aabb != nullptr) {
+                delete aabb;
+            }
         }
     }
 }
@@ -334,24 +346,6 @@ void CrossCraft::tick() {
 
     bool isActuallyGrabbed = Mouse::isGrabbed();
 
-    double dWheel = Mouse::getDWheel();
-    if (dWheel != 0.0) {
-        const double threshold = 5.0; 
-        
-        int scrollDirection = 0;
-        if (dWheel > threshold) scrollDirection = 1;
-        else if (dWheel < -threshold) scrollDirection = -1;
-
-        if (scrollDirection != 0) {
-            int steps = static_cast<int>(dWheel / 100.0);
-            if (steps == 0) steps = scrollDirection;
-
-            this->player->inventory->selectedSlot += steps;
-            int numSlots = this->player->inventory->slots.size();
-            this->player->inventory->selectedSlot = (this->player->inventory->selectedSlot % numSlots + numSlots) % numSlots;
-            // this->selectedTile = this->hotbarSlots[this->hotbarIndex];
-        }
-    }
 
     if (this->mouseGrabbed && !isActuallyGrabbed) {
         printf("CrossCraft: Pointer lock lost\n");
@@ -396,19 +390,17 @@ void CrossCraft::tick() {
         this->raycast();
     }
 
-    if (this->screen != nullptr) {
-        this->screen->updateEvents();
-        if (this->screen != nullptr) {
-            this->screen->tick();
-        }
-        
-        goto update_world;
-    }
-
-    if (this->screen == nullptr) {
+    if (this->screen == nullptr || this->screen->grabMouse) {
         while (Keyboard::next()) { 
             this->player->setKey();
             if (Keyboard::getEventKeyState()) {
+                if (this->mpMode) {
+                    playerListScreen->updateKeyboardEvents();
+                }
+                if (this->screen != nullptr) {
+                    this->screen->updateKeyboardEvents();
+                }
+
                 if (Keyboard::getEventKey() == GLFW_KEY_ESCAPE) {
                     this->releaseMouse();
                     break;
@@ -455,48 +447,75 @@ void CrossCraft::tick() {
                 }
             }
         }
-        while (Mouse::next()) {
-            if (!this->mouseGrabbed && Mouse::getEventButtonState()) {
-                this->grabMouse();
-                break;
+        double dWheel = Mouse::getDWheel();
+        if (dWheel != 0.0) {
+            const double threshold = 5.0; 
+            
+            int scrollDirection = 0;
+            if (dWheel > threshold) scrollDirection = 1;
+            else if (dWheel < -threshold) scrollDirection = -1;
+
+            if (scrollDirection != 0) {
+                int steps = static_cast<int>(dWheel / 100.0);
+                if (steps == 0) steps = scrollDirection;
+
+                this->player->inventory->selectedSlot += steps;
+                int numSlots = this->player->inventory->slots.size();
+                this->player->inventory->selectedSlot = (this->player->inventory->selectedSlot % numSlots + numSlots) % numSlots;
+                // this->selectedTile = this->hotbarSlots[this->hotbarIndex];
             }
-
-            if (!this->mouseGrabbed && Mouse::getEventButtonState()) {
-                this->grabMouse();
-            } else {
-                if (Mouse::getEventButton() == 0 && Mouse::getEventButtonState()) {
-                    this->handleMouseClick();
-                    this->attackTime = 5;
+        }
+        while (Mouse::next()) {
+            if (this->screen == nullptr) {
+                if (!this->mouseGrabbed && Mouse::getEventButtonState()) {
+                    this->grabMouse();
+                    break;
                 }
 
-                if (Mouse::getEventButton() == 2 && Mouse::getEventButtonState()) {
-                    this->editMode = (this->editMode + 1) % 2;
-                }
-                if (Mouse::getEventButton() == 1 && Mouse::getEventButtonState()) {
-                    if (this->hitResult != nullptr) {
-                        int pickedID = this->level->getTile(this->hitResult->x, this->hitResult->y, this->hitResult->z);
-                        
-                        if (pickedID == Tile::grass->id) {
-                            pickedID = Tile::dirt->id;
+                if (!this->mouseGrabbed && Mouse::getEventButtonState()) {
+                    this->grabMouse();
+                } else {
+                    if (Mouse::getEventButton() == 0 && Mouse::getEventButtonState()) {
+                        this->handleMouseClick();
+                        this->attackTime = 5;
+                    }
+
+                    if (Mouse::getEventButton() == 2 && Mouse::getEventButtonState()) {
+                        this->editMode = (this->editMode + 1) % 2;
+                    }
+                    if (Mouse::getEventButton() == 1 && Mouse::getEventButtonState()) {
+                        if (this->hitResult != nullptr) {
+                            int pickedID = this->level->getTile(this->hitResult->x, this->hitResult->y, this->hitResult->z);
+                            
+                            if (pickedID == Tile::grass->id) {
+                                pickedID = Tile::dirt->id;
+                            }
+
+                            if (pickedID == Tile::unbreakable->id) {
+                                pickedID = Tile::rock->id;
+                            }
+
+                            this->player->inventory->pickTile(pickedID);
+
+                            // if (pickedID > 0 && Tile::tiles[pickedID] != nullptr && Tile::tiles[pickedID]->mayPick()) {
+                            //     for (int i = 0; i < this->player->inventory->slots.size(); ++i) {
+                            //         if (this->player->inventory->slots[i] == pickedID) {
+                            //             this->player->inventory->selectedSlot = i;
+                            //             // this->selectedTile = this->hotbarSlots[this->hotbarIndex];
+                            //             break;
+                            //         }
+                            //     }
+                            // }
                         }
-
-                        if (pickedID == Tile::unbreakable->id) {
-                            pickedID = Tile::rock->id;
-                        }
-
-                        this->player->inventory->pickTile(pickedID);
-
-                        // if (pickedID > 0 && Tile::tiles[pickedID] != nullptr && Tile::tiles[pickedID]->mayPick()) {
-                        //     for (int i = 0; i < this->player->inventory->slots.size(); ++i) {
-                        //         if (this->player->inventory->slots[i] == pickedID) {
-                        //             this->player->inventory->selectedSlot = i;
-                        //             // this->selectedTile = this->hotbarSlots[this->hotbarIndex];
-                        //             break;
-                        //         }
-                        //     }
-                        // }
                     }
                 }
+            }
+
+            if (this->mpMode) {
+                playerListScreen->updateMouseEvents();
+            }
+            if (this->screen != nullptr) {
+                this->screen->updateMouseEvents();
             }
         }
 
@@ -508,6 +527,32 @@ void CrossCraft::tick() {
         }
 
     }
+
+    if (this->screen != nullptr) {
+        while (Mouse::next()) {
+            this->screen->updateMouseEvents();
+            if (this->mpMode) {
+                this->playerListScreen->updateMouseEvents();
+            }
+        }
+        while (Keyboard::next()) {
+            this->screen->updateKeyboardEvents();
+            if (this->mpMode) {
+                this->playerListScreen->updateKeyboardEvents();
+            }
+        }
+    }
+
+    if (this->screen != nullptr) {
+        this->screen->tick();
+    }
+
+    if (this->mpMode) {
+        if (playerListScreen != nullptr) {
+            playerListScreen->tick();
+        }
+    }
+
 update_world:
     for (TextureFX* fx : textureEffects) {
         fx->tick();
@@ -518,6 +563,7 @@ update_world:
     this->particleEngine->tick();
 
     this->player->tick();
+    this->player->inventory->tick();
     this->sound->updateListener(this->player->x, this->player->y, this->player->z, this->player->xRot, this->player->yRot);
 
     for (auto const& [id, net_player] : this->level->networkPlayers) {
@@ -693,9 +739,9 @@ void CrossCraft::drawGui(float partialTicks) {
     t.end();
     this->checkGlError("GUI: Draw crosshair");
     this->chatGui->render(this->font, screenWidth, screenHeight);
-        if (this->mpMode && Keyboard::isKeyDown(GLFW_KEY_TAB)) {
+    if (this->mpMode && Keyboard::isKeyDown(GLFW_KEY_TAB)) {
         playerListScreen->init(this, this->width * 240 / this->height, this->height * 240 / this->height);
-        playerListScreen->render(Mouse::getX(), Mouse::getY());
+        playerListScreen->render(xMouse, yMouse);
     }
     if (this->screen != nullptr) {
         this->screen->render(xMouse, yMouse);
@@ -1028,8 +1074,9 @@ void CrossCraft::handleNetworkPacket(Packet* packet) {
                 this->userData->username = p->username;
             }
             this->levelLoadProgress(60);
+            RequestLevelDataPacket* requestLevel = new RequestLevelDataPacket();
+            this->client->sendPacket(requestLevel);
             break;
-
         }
 
         case PacketType::LEVEL_DATA: {

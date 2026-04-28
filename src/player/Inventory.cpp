@@ -9,16 +9,26 @@
 Inventory::Inventory(Player* p) {
     this->player = p;
     this->slots.resize(9);
+    this->count.resize(9);
+    this->popTime.resize(9);
 
-    addBlockToSlot(0, Tile::rock->id);
-    addBlockToSlot(1, Tile::cobblestone->id);
-    addBlockToSlot(2, Tile::dirt->id);
-    addBlockToSlot(3, Tile::wood->id);
-    addBlockToSlot(4, Tile::log->id);
-    addBlockToSlot(5, Tile::leaves->id);
-    addBlockToSlot(6, Tile::bush->id);
-    addBlockToSlot(7, Tile::yellowFlower->id);
-    addBlockToSlot(8, Tile::redFlower->id);
+    if (Data::survival == false) {
+        addBlockToSlot(0, Tile::rock->id);
+        addBlockToSlot(1, Tile::cobblestone->id);
+        addBlockToSlot(2, Tile::dirt->id);
+        addBlockToSlot(3, Tile::wood->id);
+        addBlockToSlot(4, Tile::log->id);
+        addBlockToSlot(5, Tile::leaves->id);
+        addBlockToSlot(6, Tile::bush->id);
+        addBlockToSlot(7, Tile::yellowFlower->id);
+        addBlockToSlot(8, Tile::redFlower->id);
+    } else {
+        for (int i = 0; i < 9; ++i) {
+            this->slots[i] = -1; // empty
+            this->count[i] = 0;
+            this->popTime[i] = 0;
+        }
+    }
 }
 
 void Inventory::addBlockToSlot(int slot, int id) {
@@ -62,5 +72,44 @@ void Inventory::replaceSlot(Tile* tile) {
         }
 
         this->slots[this->selectedSlot] = tile->id;
+    }
+}
+
+bool Inventory::addItem(int id) {
+    int slot = this->inInventory(id);
+    if (slot < 0) {
+        slot = this->inInventory(-1); // get any empty slot
+    }
+
+    if (slot < 0) {
+        return false;
+    } else if (this->count[slot] >= 99) {
+        return false;
+    } else {
+        this->slots[slot] = id;
+        ++this->count[slot];
+        this->popTime[slot] = POP_TIME_DURATION;
+        return true;
+    }
+}
+
+bool Inventory::removeItem(int id) {
+    int slot = this->inInventory(id);
+    if (slot < 0) {
+        return false;
+    } else {
+        if (--this->count[slot] <= 0) {
+            this->slots[slot] = -1;
+        }
+
+        return true;
+    }
+}
+
+void Inventory::tick() {
+    for (int i = 0; i < 9; ++i) {
+        if (this->popTime[i] > 0) {
+            --this->popTime[i];
+        }
     }
 }

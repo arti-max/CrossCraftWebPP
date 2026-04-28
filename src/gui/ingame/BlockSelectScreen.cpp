@@ -6,6 +6,7 @@
 BlockSelectScreen::BlockSelectScreen() {}
 
 void BlockSelectScreen::init() {
+    this->grabMouse = true;
     this->blocks = {
         Tile::rock->id, Tile::cobblestone->id, Tile::dirt->id, Tile::wood->id, Tile::log->id, Tile::leaves->id, Tile::bush->id, Tile::yellowFlower->id,
         Tile::redFlower->id, Tile::brownMushroom->id, Tile::redMushroom->id, Tile::sand->id, Tile::gravel->id, Tile::glass->id, Tile::sponge->id, Tile::goldBlock->id,

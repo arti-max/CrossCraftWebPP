@@ -639,3 +639,11 @@ void Level::addEntity(Entity* e) {
 void Level::removeEntity(Entity* e) {
     this->emesh->removeEntity(e);
 }
+
+std::vector<Entity*> Level::findEntities(Entity* ignore, AABB& bbox) {
+    return this->emesh->getEntities(ignore, bbox);
+}
+
+Entity* Level::getPlayer() {
+    return this->player;
+}

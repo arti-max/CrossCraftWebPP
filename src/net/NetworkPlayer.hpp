@@ -34,6 +34,10 @@ private:
     float run;
     float oRun;
 
+    float targetX = 0, targetY = 0, targetZ = 0;
+    float targetYaw = 0, targetPitch = 0;
+    bool hasTarget = false;
+
     int textureId = -1;
 
 public:

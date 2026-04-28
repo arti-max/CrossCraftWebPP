@@ -6,14 +6,16 @@ FallingTile::FallingTile(int id, int textureId) : Tile::Tile(id, textureId) {
 }
 
 void FallingTile::tryFall(Level* level, int x, int y, int z) {
-    int finalY = y;
+    if (!level->isRemote) {
+        int finalY = y;
 
-    while (level->getTile(x, finalY - 1, z) == 0 && finalY > 0) {
-        finalY--;
-    }
+        while (level->getTile(x, finalY - 1, z) == 0 && finalY > 0) {
+            finalY--;
+        }
 
-    if (finalY != y) {
-        level->swap(x, y, z, x, finalY, z);
+        if (finalY != y) {
+            level->swap(x, y, z, x, finalY, z);
+        }
     }
 }
 

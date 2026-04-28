@@ -15,9 +15,9 @@ const Tile* Tile::empty = nullptr;
 
 static Tile rockTile(1, 1);
 static GrassTile grassTile(2);
-static Tile dirtTile(3, 3);
-static Tile cobbleTile(4, 5);
-static Tile woodTile(5, 2);
+static Tile dirtTile(3, 2);
+static Tile cobbleTile(4, 16);
+static Tile woodTile(5, 4);
 static Bush bushTile(6, 15);
 static Tile unbreakableTile(7, 17);
 static LiquidTile waterTile(8, 1);
@@ -351,7 +351,9 @@ void Tile::onDestroy(Level* level, int x, int y, int z, ParticleEngine* engine, 
         float dropX = rnd.nextFloat() * spr + (1.0f - spr) * 0.5f;
         float dropY = rnd.nextFloat() * spr + (1.0f - spr) * 0.5f;
         float dropZ = rnd.nextFloat() * spr + (1.0f - spr) * 0.5f;
-        level->addEntity(new Item(level, x+dropX, y+dropY, z+dropZ, this->id));
+        for (int i=0; i<this->getDropCount(); ++i) {
+            level->addEntity(new Item(level, x+dropX, y+dropY, z+dropZ, this->getDrop()));
+        }
     }
     int spread = 4;
 
@@ -411,4 +413,12 @@ bool Tile::isCalmLiquid() {
 
 void Tile::onBlockAdded(Level* level, int x, int y, int z) {
     // No implementation
+}
+
+int Tile::getDrop() {
+    return this->id;
+}
+
+int Tile::getDropCount() {
+    return 1;
 }

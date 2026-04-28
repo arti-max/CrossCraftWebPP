@@ -1,6 +1,7 @@
 #include "player/Player.hpp"
 #include "util/Keyboard.hpp"
 #include "util/Logger.hpp"
+#include "level/Level.hpp"
 #include <GLFW/glfw3.h>
 
 Player::Player(Level* level, Settings* settings) : Entity(level) {
@@ -21,6 +22,14 @@ void Player::releaseAllKeys() {
         keys[i] = false;
     }
 }
+
+// void Player::resetPos() {
+//     this->heightOffset = 1.62;
+//     this->setSize(0.6f, 1.8f);
+//     if (this->level != nullptr) {
+//         this->level->player = this;
+//     }
+// }
 
 void Player::tick() {
     this->xo = x;

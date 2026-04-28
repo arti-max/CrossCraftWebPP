@@ -6,14 +6,17 @@
 #include "level/Level.hpp"
 #include <vector>
 
+class CrossCraft;
+
 class Hud {
 private:
     Textures* textures;
+    CrossCraft* cc;
     int width;
     int height;
 
 public:
-    Hud(Textures* textures, int width, int height);
+    Hud(CrossCraft* cc, Textures* textures, int width, int height);
     void render(Player* player, Level* level, float partialTicks);
     
 private:

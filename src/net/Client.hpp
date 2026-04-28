@@ -12,6 +12,7 @@
 #include "net/packet/RequestSpawnPositionPacket.hpp"
 #include "net/packet/ChatMessagePacket.hpp"
 #include "net/packet/LoginResponsePacket.hpp"
+#include "net/packet/RequestLevelDataPacket.hpp"
 
 #include <emscripten/websocket.h>
 #include <functional>

@@ -11,4 +11,4 @@ public:
         this->username = uname;
         this->sessionid = sessionid;
     }
-};
+}; 

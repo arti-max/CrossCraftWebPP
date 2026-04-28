@@ -80,6 +80,13 @@ void ChatScreen::keyPressed(char eventCharacter, int eventKey) {
     }
 }
 
+void ChatScreen::addText(std::string txt) {
+    Logger::logf(PREFIX_DEBUG, "CHAT SCREEN: %s\n", txt.c_str());
+    if (this->message.length() + txt.length() < 64) {
+        this->message += (txt + " ");
+    }
+}
+
 void ChatScreen::tick() {
     this->tickCount++;
     if (this->inputDelay > 0) {

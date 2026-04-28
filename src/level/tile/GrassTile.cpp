@@ -1,11 +1,11 @@
 #include "level/tile/GrassTile.hpp"
 
 GrassTile::GrassTile(int id) : Tile(id) {
-    this->textureId = 4;
+    this->textureId = 3;
 }
 
 int GrassTile::getTexture(int face) {
-    return face == 1 ? 0 : face == 0 ? 3 : 4;
+    return face == 1 ? 0 : face == 0 ? 2 : 3;
 }
 
 void GrassTile::tick(Level* level, int x, int y, int z, Random* random) {
@@ -22,4 +22,8 @@ void GrassTile::tick(Level* level, int x, int y, int z, Random* random) {
     } else {
         level->setTile(x, y, z, Tile::dirt->id);
     }
+}
+
+int GrassTile::getDrop() {
+    return Tile::dirt->id;
 }

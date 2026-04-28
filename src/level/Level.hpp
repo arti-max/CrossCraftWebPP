@@ -53,6 +53,7 @@ public:
     std::string name;
     std::string creator;
     long long creationTime = 0;
+    Entity* player = nullptr;
 
     Random* random;
     CrossCraft* cc = nullptr;
@@ -105,6 +106,8 @@ public:
     void playSound(const std::string& name, float volume, float pitch);
     void addEntity(Entity* e);
     void removeEntity(Entity* e);
+    std::vector<Entity*> findEntities(Entity* e, AABB& bbox);
+    Entity* getPlayer();
 
 private:
     void generateMap();

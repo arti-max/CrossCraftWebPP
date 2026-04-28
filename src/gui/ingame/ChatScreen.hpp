@@ -16,4 +16,5 @@ public:
     void keyPressed(char eventCharacter, int eventKey) override;
     void tick() override;
     void onClose() override;
+    void addText(std::string txt);
 };

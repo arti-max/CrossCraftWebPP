@@ -50,9 +50,9 @@ EM_BOOL Mouse::mouseUpCallback(int eventType, const EmscriptenMouseEvent *e, voi
 }
 
 EM_BOOL Mouse::mouseWheelCallback(int eventType, const EmscriptenWheelEvent *e, void *userData) {
-    if (!Mouse::isGrabbed()) {
-        return EM_FALSE;
-    }
+    // if (!Mouse::isGrabbed()) {
+    //     return EM_FALSE;
+    // }
     
     double delta = e->deltaY;
     if (e->deltaMode == DOM_DELTA_LINE) delta *= 16;

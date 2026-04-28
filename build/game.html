@@ -344,12 +344,12 @@
         const loadmapUser = urlParams.get('loadmap_user');
         const loadmapId = urlParams.get('loadmap_id');
         const fullscreen = urlParams.get('fullscreen');
-        var server_ip = "{{ server_ip }}";
-        var server_port = {{ server_port }};
-        if (!server_ip && !server_port) {
+        var server = "{{ server_ip }}";
+        var port = "{{ server_port }}";
+        if ((!server && !port) || (server.startsWith("{" + "{") || port.startsWith("{" + "{")) || (server == "" && port == 0)) {
             const urlParams = new URLSearchParams(window.location.search);
-            server_ip = urlParams.get('server') || '';
-            server_port = parseInt(urlParams.get('port') || '0');
+            server = urlParams.get('ip') || '';
+            port = parseInt(urlParams.get('port') || '0');
         }
 
         if (DEBUG) {

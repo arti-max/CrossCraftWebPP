@@ -5,6 +5,7 @@
 
 class Player : public Entity {
 public:
+    static const int MAX_HEALTH = 20;
     static const int KEY_UP = 0;
     static const int KEY_DOWN = 1;
     static const int KEY_LEFT = 2;
@@ -26,4 +27,5 @@ public:
     void setKey();
     void releaseAllKeys();
     void tick() override;
+    // void resetPos() override;
 };

@@ -18,6 +18,7 @@ protected:
     virtual void buttonClicked(Button* btn);
     virtual void keyPressed(char eventCharacter, int eventKey);
 public:
+    bool grabMouse = false;
     virtual void render(int xMouse, int yMouse);
     virtual void onClose();
     virtual void init(CrossCraft* cc, int width, int height);
@@ -25,6 +26,8 @@ public:
     virtual void drawCenteredString(const char str[], int x, int y, int color);
     virtual void drawString(const char str[], int x, int y, int color);
     void updateEvents();
+    void updateMouseEvents();
+    void updateKeyboardEvents();
     virtual void tick();
     virtual void drawImage(int x, int y, int u, int v, int w, int h);
 };

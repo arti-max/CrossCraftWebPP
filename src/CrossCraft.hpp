@@ -76,10 +76,12 @@ private:
     bool isDrop = false;
 
 
+    float lastSentX = 0, lastSentY = 0, lastSentZ = 0;
+    float lastSentYaw = 0, lastSentPitch = 0;
+
     Timer* timer = new Timer(20.0f);
     LevelRenderer* levelRenderer;
     HitResult* hitResult;
-    Screen* screen = nullptr;
     LevelGen* levelGen = new LevelGen(this);
     LevelIO* levelIO = new LevelIO(this);
     ParticleEngine* particleEngine;
@@ -127,6 +129,7 @@ public:
     GLFWwindow* window;
 
     Level* level;
+    Screen* screen = nullptr;
     Font* font;
     Textures* textures = nullptr;
     Player* player;
