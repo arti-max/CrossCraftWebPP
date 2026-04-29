@@ -3,10 +3,14 @@
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
+#include <gc.h>
 
 extern "C" void initialize_gl4es();
 
 int main() {
+    GC_INIT();
+    GC_add_roots(&CrossCraft::instance, &CrossCraft::instance + 1);
+    
     std::cout << "CrossCraft C++ main() called" << std::endl;
     srand(time(NULL));
     

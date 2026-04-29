@@ -4,7 +4,7 @@
 
 class CalmLiquidTile : public LiquidTile {
 public:
-    CalmLiquidTile(int id, int liquidType);
+    CalmLiquidTile(int id, LiquidType liquidType);
     ~CalmLiquidTile();
     bool isCalmLiquid() override;
     void tick(Level* level, int x, int y, int z, Random* random) override;

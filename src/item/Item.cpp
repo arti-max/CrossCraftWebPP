@@ -2,6 +2,8 @@
 #include "util/Random.hpp"
 #include "level/tile/Tile.hpp"
 #include "util/Logger.hpp"
+#include "player/Player.hpp"
+#include "item/TakeEntityAnim.hpp"
 
 
 std::vector<ItemModel*> Item::models;
@@ -93,6 +95,13 @@ void Item::render(float partialTicks, Textures* textures) {
 
     glPopMatrix();
     glEnable(GL_TEXTURE_2D);
+}
+
+void Item::playerTouch(Player* player) {
+    if (player->inventory->addItem(this->resourceId)) {
+        this->level->addEntity(new TakeEntityAnim(this->level, this, player));
+        this->remove();
+    }
 }
 
 void Item::initModels() {

@@ -38,12 +38,13 @@
 #include "item/Item.hpp"
 #include "sound/SoundManager.hpp"
 #include "sound/SoundType.hpp"
+#include "mob/HumanMob.hpp"
 #include "Settings.hpp"
 #include "Data.hpp"
 
 class CrossCraft : public LevelLoaderListener {
 private:
-    const std::string VERSION_STRING = "0.0.13a_01";
+    const std::string VERSION_STRING = "0.14";
     int lastFpsTime = 0;
     int frames = 0;
     int lastProgress = -1;

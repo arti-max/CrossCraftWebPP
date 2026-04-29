@@ -30,7 +30,7 @@ private:
     void growSurface(const std::vector<int>& map);
     
     void floodFill(int x, int y, int z, uint8_t targetBlock);
-    void addVeins(int tileId, int abundance);
+    void addVeins(int tileId, int abundance, int num);
 
 public:
     explicit LevelGen(LevelLoaderListener* listener);

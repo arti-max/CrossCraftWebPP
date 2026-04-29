@@ -228,12 +228,12 @@ void LevelGen::carve() {
     }
 
     listener->levelLoadUpdate("Adding minerals..");
-    listener->levelLoadProgress(25);
-    addVeins(Tile::coalOre->id, 90);
-    listener->levelLoadProgress(50);
-    addVeins(Tile::ironOre->id, 75);
-    listener->levelLoadProgress(75);
-    addVeins(Tile::goldOre->id, 50);
+    // listener->levelLoadProgress(25);
+    addVeins(Tile::coalOre->id, 90, 1);
+    // listener->levelLoadProgress(50);
+    addVeins(Tile::ironOre->id, 75, 2);
+    // listener->levelLoadProgress(75);
+    addVeins(Tile::goldOre->id, 50, 3);
     listener->levelLoadProgress(100);
 }
 
@@ -448,10 +448,11 @@ void LevelGen::addTrees(const std::vector<int>& map) {
     listener->levelLoadProgress(100);
 }
 
-void LevelGen::addVeins(int tileId, int abundance) {
-    int numVeins = width * height * depth * abundance / 100 / 64 / 100;
+void LevelGen::addVeins(int tileId, int abundance, int num) {
+    int numVeins = width * height * depth / 256 / 64 * abundance / 100;
 
     for (int i = 0; i < numVeins; ++i) {
+        listener->levelLoadProgress(i * 100 / (numVeins - 1) / 4 + num * 100 / 4);
         float x = random.nextFloat() * width;
         float y = random.nextFloat() * depth;
         float z = random.nextFloat() * height;

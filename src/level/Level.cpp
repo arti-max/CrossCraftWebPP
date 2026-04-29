@@ -1,5 +1,6 @@
 #include "level/Level.hpp"
 #include "level/tile/Tile.hpp"
+#include "level/liquid/LiquidType.hpp"
 #include "util/Utils.hpp"
 #include "Entity.hpp"
 #include "CrossCraft.hpp"
@@ -144,7 +145,7 @@ void Level::findSpawn() {
 
 int Level::getHighestTile(int x, int z) {
     int y;
-    for (y = this->depth; (this->getTile(x, y -1, z) == 0 || Tile::tiles[this->getTile(x, y-1, z)]->getLiquidType() != 0) && y > 0; --y) {
+    for (y = this->depth; (this->getTile(x, y -1, z) == 0 || Tile::tiles[this->getTile(x, y-1, z)]->getLiquidType() != LiquidType::NOT_LIQUID) && y > 0; --y) {
     }
     return y;
 }
@@ -212,7 +213,6 @@ void Level::tickEntities() {
                 utils::remove_at(this->emesh->all, i);
                 i--;
                 this->emesh->slotStart->init(e->xo, e->yo, e->zo).remove(e);
-                delete e;
             } else {
                 int oldX = (int)(e->xo / 16.0f);
                 int oldY = (int)(e->yo / 16.0f);
@@ -482,7 +482,7 @@ bool Level::containsAnyLiquid(const AABB& box) {
         for (int y = y0; y < y1; ++y) {
             for (int z = z0; z < z1; ++z) {
                 Tile* tile = Tile::tiles[getTile(x, y, z)];
-                if (tile != nullptr && tile->getLiquidType() > 0) {
+                if (tile != nullptr && tile->getLiquidType() != LiquidType::NOT_LIQUID) {
                     return true;
                 }
             }
@@ -492,7 +492,7 @@ bool Level::containsAnyLiquid(const AABB& box) {
     return false;
 }
 
-bool Level::containsLiquid(const AABB& box, int liquidId) {
+bool Level::containsLiquid(const AABB& box, LiquidType liquidType) {
     int x0 = (int)std::floor(box.x0);
     int x1 = (int)std::floor(box.x1 + 1.0f);
     int y0 = (int)std::floor(box.y0);
@@ -513,7 +513,7 @@ bool Level::containsLiquid(const AABB& box, int liquidId) {
         for (int y = y0; y < y1; ++y) {
             for (int z = z0; z < z1; ++z) {
                 Tile* tile = Tile::tiles[getTile(x, y, z)];
-                if (tile != nullptr && tile->getLiquidType() == liquidId) {
+                if (tile != nullptr && tile->getLiquidType() == liquidType) {
                     return true;
                 }
             }
@@ -640,7 +640,7 @@ void Level::removeEntity(Entity* e) {
     this->emesh->removeEntity(e);
 }
 
-std::vector<Entity*> Level::findEntities(Entity* ignore, AABB& bbox) {
+std::vector<Entity*> Level::findEntities(Entity* ignore, const AABB& bbox) {
     return this->emesh->getEntities(ignore, bbox);
 }
 

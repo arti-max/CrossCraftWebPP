@@ -8,6 +8,7 @@
 class Textures;
 class EntityMesh;
 class Level;
+class Player;
 
 class Entity {
 protected:
@@ -26,12 +27,25 @@ public:
     float yRotO, xRotO;
     float xRotI, yRotI;
     float walkDist = 0.0f;
+    float walkDistO = 0.0f;
+    float pushthrough = 0.0f;
+    float footSize = 0.0f;
+    float ySlideOffset = 0.0f;
+    float fallDistance = 0.0f;
+    int nextStep = 1;
+    float xOld;
+    float yOld;
+    float zOld;
 
     AABB bb;
     EntityMesh* emesh = nullptr;
     
     bool onGround = false;
     bool horizontalCollision = false;
+    bool noPhysics = false;    
+    bool slide = true;
+    bool hovered = false;
+    bool collision = false;
     bool removed = false;
     bool makeStepSound = true;
 
@@ -41,6 +55,7 @@ public:
 protected:
     void setSize(float w, float h);
     virtual bool isPlayer();
+    virtual void causeFallDamage(float fall);
 
 public:
     virtual void resetPos();
@@ -61,7 +76,18 @@ public:
     virtual void playSound(const std::string& name, float volume, float pitch);
     virtual bool intersects(float x0, float y0, float z0, float x1, float y1, float z1);
     void setLevel(Level* level);
-    virtual void playerTouch(Entity* player);
+    virtual void playerTouch(Player* player);
+    virtual bool isPushable();
+    virtual void push(Entity* e);
+    virtual void push(float x, float y, float z);
+    virtual void moveTo(float x, float y, float z, float yRot, float xRot);
+    virtual float distanceTo(Entity* e);
+    virtual float distanceTo(float x, float y, float z);
+    virtual float distanceToSqr(Entity* e);
+    virtual bool isPickable();
+    virtual bool isShootable();
+    virtual void awardKillScore(Entity* e, int score);
+    virtual bool isUnderWater();
 
 
 private:

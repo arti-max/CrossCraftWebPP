@@ -9,6 +9,7 @@
 #include "level/tile/GlassTile.hpp"
 #include "item/Item.hpp"
 #include "level/tile/Tile.hpp"
+#include "level/liquid/LiquidType.hpp"
 
 std::array<Tile*, 256> Tile::tiles = {nullptr};
 const Tile* Tile::empty = nullptr;
@@ -20,10 +21,10 @@ static Tile cobbleTile(4, 16);
 static Tile woodTile(5, 4);
 static Bush bushTile(6, 15);
 static Tile unbreakableTile(7, 17);
-static LiquidTile waterTile(8, 1);
-static CalmLiquidTile calmWaterTile(9, 1);
-static LiquidTile lavaTile(10, 2);
-static CalmLiquidTile calmLavaTile(11, 2);
+static LiquidTile waterTile(8, LiquidType::WATER);
+static CalmLiquidTile calmWaterTile(9, LiquidType::WATER);
+static LiquidTile lavaTile(10, LiquidType::LAVA);
+static CalmLiquidTile calmLavaTile(11, LiquidType::LAVA);
 static FallingTile gravelTile(12, 19);
 static FallingTile sandTile(13, 18);
 static LogTile logTile(14);
@@ -403,8 +404,8 @@ bool Tile::blocksLight() {
     return true;
 }
 
-int Tile::getLiquidType() {
-    return 0;
+LiquidType Tile::getLiquidType() {
+    return LiquidType::NOT_LIQUID;
 }
 
 bool Tile::isCalmLiquid() {

@@ -1,7 +1,7 @@
 #include "Data.hpp"
 
 std::vector<const Tile*> Data::allowedTiles;
-bool Data::survival = false;
+bool Data::survival = true;
 
 void Data::initAllowedTiles() {
     Data::allowedTiles.clear();

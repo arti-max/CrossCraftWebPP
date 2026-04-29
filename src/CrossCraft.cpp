@@ -2,6 +2,7 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <cmath>
+#include <gc.h>
 
 CrossCraft* CrossCraft::instance = nullptr;
 
@@ -22,6 +23,8 @@ CrossCraft::CrossCraft(const char* canvas, int w, int h, bool fs) :
 
     textureEffects.push_back(new WaterTextureFX());
     textureEffects.push_back(new LavaTextureFX());
+    
+    GC_add_roots(this, (char*)this + sizeof(*this));
 }
 
 CrossCraft::~CrossCraft() {
@@ -135,6 +138,7 @@ void CrossCraft::init() {
     this->selectedTile = this->hotbarSlots[this->hotbarIndex];
 
     this->checkGlError("Post startup");
+    
 }
 
 void CrossCraft::setScreen(Screen* screen) {
@@ -287,9 +291,9 @@ void CrossCraft::handleMouseClick() {
                 if ((previousTile->st != &SoundType::none) && particles) {
                     this->level->playSound("step." + previousTile->st->name, (float)this->hitResult->x, (float)this->hitResult->y, (float)this->hitResult->z, (previousTile->st->getVolume() + 1.0f) / 2.0f, previousTile->st->getPitch() * 0.8f);
                 }
-                if (Data::survival) {
-                    this->player->inventory->addItem(previousTile->id);
-                }
+                // if (Data::survival) {
+                //     this->player->inventory->addItem(previousTile->id);
+                // }
                 if (particles) previousTile->onDestroy(this->level, this->hitResult->x, this->hitResult->y, this->hitResult->z, this->particleEngine, Data::survival);
             }
         }
@@ -443,7 +447,7 @@ void CrossCraft::tick() {
                     this->settings->toggleSetting(4, 1);
                 }
                 if (Keyboard::getEventKey() == GLFW_KEY_G && !this->mpMode && this->level->entities.size() < 256) {
-                    this->level->addEntity(new Zombie(this->level, this->textures, this->player->x, this->player->y, this->player->z));
+                    this->level->addEntity((Entity*)new HumanMob(this->level, this->player->x, this->player->y, this->player->z));
                 }
             }
         }
@@ -806,7 +810,7 @@ void CrossCraft::setupFog(int layer) {
         glLightModelfv(GL_LIGHT_MODEL_AMBIENT, getBuffer(1.0f, 1.0f, 1.0f, 1.0f));
     } else {
         Tile* currentTile = Tile::tiles[this->level->getTile((int)this->player->x, (int)(this->player->y+0.12f), (int)this->player->z)];
-        if (currentTile != nullptr && currentTile->getLiquidType() == 1) {
+        if (currentTile != nullptr && currentTile->getLiquidType() == LiquidType::WATER) {
             glFogi(GL_FOG_MODE, GL_EXP);
             glFogf(GL_FOG_DENSITY, 0.1f);
             glFogfv(GL_FOG_COLOR, getBuffer(0.02f, 0.02f, 0.2f, 1.0f));
@@ -814,7 +818,7 @@ void CrossCraft::setupFog(int layer) {
             this->bgG = 0.02f;
             this->bgB = 0.2f;
             glLightModelfv(GL_LIGHT_MODEL_AMBIENT, getBuffer(0.3f, 0.3f, 0.7f, 1.0f));
-        } else if (currentTile != nullptr && currentTile->getLiquidType() == 2) {
+        } else if (currentTile != nullptr && currentTile->getLiquidType() == LiquidType::LAVA) {
             glFogi(GL_FOG_MODE, GL_EXP);
             glFogf(GL_FOG_DENSITY, 2.0f);
             glFogfv(GL_FOG_COLOR, getBuffer(0.6f, 0.1f, 0.0f, 1.0f));

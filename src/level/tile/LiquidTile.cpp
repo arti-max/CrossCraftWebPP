@@ -1,14 +1,14 @@
 #include "level/tile/LiquidTile.hpp"
+#include "level/liquid/LiquidType.hpp"
 
-LiquidTile::LiquidTile(int id, int liquidType) : Tile::Tile(id) {
+LiquidTile::LiquidTile(int id, LiquidType liquidType) : Tile::Tile(id) {
     this->liquidType = liquidType;
-    if (this->liquidType == 2) {
+    this->textureId = 14;
+    if (this->liquidType == LiquidType::LAVA) {
         this->textureId = 30;
-    } else {
-        this->textureId = 14;
     }
 
-    if (this->liquidType == 1) {
+    if (this->liquidType == LiquidType::WATER) {
         this->tickRate = 40;
     } else {
         this->tickRate = 2;
@@ -21,7 +21,7 @@ LiquidTile::LiquidTile(int id, int liquidType) : Tile::Tile(id) {
 }
 
 bool LiquidTile::tryFlow(Level* level, int x, int y, int z) {
-    if (level->getTile(x, y, z) == 0 && this->liquidType == 1) {
+    if (level->getTile(x, y, z) == 0 && this->liquidType == LiquidType::WATER) {
         for (int xx = x - 2; xx <= x + 2; xx++) {
             for (int yy = y - 2; yy <= y + 2; yy++) {
                 for (int zz = z - 2; zz <= z + 2; zz++) {
@@ -36,7 +36,7 @@ bool LiquidTile::tryFlow(Level* level, int x, int y, int z) {
         if (level->setTile(x, y, z, this->tileId)) {
             level->addToTickNextTick(x, y, z, this->tileId);
         }
-    } else if (level->getTile(x, y, z) == 0 && this->liquidType == 2) {
+    } else if (level->getTile(x, y, z) == 0 && this->liquidType == LiquidType::LAVA) {
         if (level->setTile(x, y, z, this->tileId)) {
             level->addToTickNextTick(x, y, z, this->tileId);
         }
@@ -45,7 +45,7 @@ bool LiquidTile::tryFlow(Level* level, int x, int y, int z) {
 }
 
 float LiquidTile::getBrightness(Level* level, int x, int y, int z) {
-    return this->liquidType == 2 ? 100.0f : level->getBrightness(x, y, z);
+    return this->liquidType == LiquidType::LAVA ? 100.0f : level->getBrightness(x, y, z);
 }
 
 void LiquidTile::tick(Level* level, int x, int y, int z, Random* random) {
@@ -60,11 +60,11 @@ void LiquidTile::tick(Level* level, int x, int y, int z, Random* random) {
         flowedDown = level->setTile(x, y, z, this->tileId);
         if (flowedDown) hasChanged = true;
         
-    } while (flowedDown && this->liquidType != 2);
+    } while (flowedDown && this->liquidType != LiquidType::LAVA);
     
     y = originalY;
 
-    if (this->liquidType == 1 || !hasChanged) {
+    if (this->liquidType == LiquidType::WATER || !hasChanged) {
         tryFlow(level, x - 1, y, z);
         tryFlow(level, x + 1, y, z);
         tryFlow(level, x, y, z - 1);
@@ -78,7 +78,7 @@ bool LiquidTile::shouldRenderFace(Level* level, int x, int y, int z, int layer, 
     if (x < 0 || y < 0 || z < 0 || x >= level->width || y >= level->depth) {
         return false;
     }
-    if (layer != 1 && this->liquidType == 1) {
+    if (layer != 1 && this->liquidType == LiquidType::WATER) {
         return false;
     }
     
@@ -115,15 +115,15 @@ bool LiquidTile::isSolid() {
     return false;
 }
 
-int LiquidTile::getLiquidType() {
+LiquidType LiquidTile::getLiquidType() {
     return this->liquidType;
 }
 
 void LiquidTile::neighborChanged(Level* level, int x, int y, int z, int neighborTileId) {
-    if (this->liquidType == 1 && (neighborTileId == Tile::lava->id || neighborTileId == Tile::calmLava->id)) {
+    if (this->liquidType == LiquidType::WATER && (neighborTileId == Tile::lava->id || neighborTileId == Tile::calmLava->id)) {
         level->setTileNoUpdate(x, y, z, Tile::rock->id);
     }
-    if (this->liquidType == 2 && (neighborTileId == Tile::water->id || neighborTileId == Tile::calmWater->id)) {
+    if (this->liquidType == LiquidType::LAVA && (neighborTileId == Tile::water->id || neighborTileId == Tile::calmWater->id)) {
         level->setTileNoUpdate(x, y, z, Tile::rock->id);
     }
 

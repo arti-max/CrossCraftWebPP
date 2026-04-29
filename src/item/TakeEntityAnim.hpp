@@ -45,6 +45,8 @@ public:
     }
 
     void render(float partialTicks, Textures* textures) override {
-        this->item->render(partialTicks, textures);
+        if (!this->removed) {
+            this->item->render(partialTicks, textures);
+        }
     }
 };

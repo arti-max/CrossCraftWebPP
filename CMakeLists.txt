@@ -33,6 +33,7 @@ if(EMSCRIPTEN)
         glfw
         websocket.js
         stb_vorbis
+        "${CMAKE_CURRENT_SOURCE_DIR}/lib/libgc.a"
         "${CMAKE_CURRENT_SOURCE_DIR}/lib/libGLU.a"
         "${CMAKE_CURRENT_SOURCE_DIR}/lib/libGL.a"
     )
@@ -72,6 +73,8 @@ if(EMSCRIPTEN)
             --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/default.png@default.png \
             --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/clouds.png@clouds.png \
             --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/gui.png@gui.png \
+            --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/armor/plate.png@armor/plate.png \
+            --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/armor/chain.png@armor/chain.png \
         "
     )
     set_target_properties(CrossCraftWebPP PROPERTIES OUTPUT_NAME "game")
@@ -87,6 +90,8 @@ if(EMSCRIPTEN)
         default.png
         clouds.png
         gui.png
+        armor/plate.png
+        armor/chain.png
     )
     
     foreach(TEXTURE_FILE ${TEXTURE_FILES})

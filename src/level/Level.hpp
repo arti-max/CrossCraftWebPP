@@ -10,6 +10,7 @@
 #include "level/render/LevelListener.hpp"
 #include "level/EntityMesh.hpp"
 #include "level/EntityMeshSlot.hpp"
+#include "level/liquid/LiquidType.hpp"
 
 class NetworkPlayer;
 class Entity;
@@ -85,7 +86,7 @@ public:
     bool setTileNoUpdate(int x, int y, int z, int type);
     std::vector<AABB> getCubes(const AABB& boundingBox);
     bool containsAnyLiquid(const AABB& box);
-    bool containsLiquid(const AABB& box, int liquidId);
+    bool containsLiquid(const AABB& box, LiquidType liquidId);
     void addListener(LevelListener* listener);
     void removeListener(LevelListener* listener);
     void addTick(int x, int y, int z);
@@ -106,7 +107,7 @@ public:
     void playSound(const std::string& name, float volume, float pitch);
     void addEntity(Entity* e);
     void removeEntity(Entity* e);
-    std::vector<Entity*> findEntities(Entity* e, AABB& bbox);
+    std::vector<Entity*> findEntities(Entity* e, const AABB& bbox);
     Entity* getPlayer();
 
 private:

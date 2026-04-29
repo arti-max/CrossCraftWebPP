@@ -1,6 +1,6 @@
 #include "level/tile/CalmLiquidTile.hpp"
 
-CalmLiquidTile::CalmLiquidTile(int id, int liquidType) : LiquidTile::LiquidTile(id, liquidType) {
+CalmLiquidTile::CalmLiquidTile(int id, LiquidType liquidType) : LiquidTile(id, liquidType) {
     this->tileId = id - 1;
     this->calmTileId = id;
 }
@@ -21,11 +21,11 @@ void CalmLiquidTile::neighborChanged(Level* level, int x, int y, int z, int type
     if (level->getTile(x, y, z+1) == 0) hasAirHeighbor = true;
     if (level->getTile(x, y-1, z) == 0) hasAirHeighbor = true;
 
-    if (this->liquidType == 1 && (type == Tile::lava->id || type == Tile::calmLava->id)) {
+    if (this->liquidType == LiquidType::WATER && (type == Tile::lava->id || type == Tile::calmLava->id)) {
         level->setTileNoUpdate(x, y, z, Tile::rock->id);
         return;
     }
-    if (this->liquidType == 2 && (type == Tile::water->id || type == Tile::calmWater->id)) {
+    if (this->liquidType == LiquidType::LAVA && (type == Tile::water->id || type == Tile::calmWater->id)) {
         level->setTileNoUpdate(x, y, z, Tile::rock->id);
         return;
     }

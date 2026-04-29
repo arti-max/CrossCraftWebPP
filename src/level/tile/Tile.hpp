@@ -7,6 +7,7 @@
 #include "player/Player.hpp"
 #include "particle/ParticleEngine.hpp"
 #include "sound/SoundType.hpp"
+#include "level/liquid/LiquidType.hpp"
 
 class Tile {
 
@@ -83,7 +84,7 @@ public:
     virtual AABB* getTileAABB(int x, int y, int z) const;
     virtual AABB* getAABB(int x, int y, int z) const ;
     virtual void neighborChanged(Level* level, int x, int y, int z, int type);
-    virtual int getLiquidType();
+    virtual LiquidType getLiquidType();
     virtual bool isCalmLiquid();
     virtual void onBlockAdded(Level* level, int x, int y, int z);
     virtual float getBrightness(Level* level, int x, int y, int z);

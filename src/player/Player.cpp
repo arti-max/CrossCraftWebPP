@@ -103,6 +103,14 @@ void Player::tick() {
             this->zd *= 0.6f;
         }
     }
+
+    std::vector<Entity*> entities = this->level->findEntities(this, this->bb.grow(1.0f, 0.0f, 1.0f));
+    if (entities.size() > 0) {
+        for (int i = 0; i < entities.size(); ++i) {
+            entities[i]->playerTouch(this);
+        }
+    }
+
 }
 
 bool Player::isPlayer() {

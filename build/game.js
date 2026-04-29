@@ -71,7 +71,7 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: D:\Temp\tmpk8t4dcl7.js
+// include: D:\Temp\tmpaahuty0h.js
 
   if (!Module['expectedDataFileDownloads']) Module['expectedDataFileDownloads'] = 0;
   Module['expectedDataFileDownloads']++;
@@ -159,6 +159,7 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
       function assert(check, msg) {
         if (!check) throw new Error(msg);
       }
+Module['FS_createPath']("/", "armor", true, true);
 
     for (var file of metadata['files']) {
       var name = file['filename']
@@ -199,25 +200,25 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
     }
 
     }
-    loadPackage({"files": [{"filename": "/char.png", "start": 0, "end": 3206}, {"filename": "/clouds.png", "start": 3206, "end": 13081}, {"filename": "/default.png", "start": 13081, "end": 17477}, {"filename": "/dirt.png", "start": 17477, "end": 18128}, {"filename": "/gui.png", "start": 18128, "end": 39688}, {"filename": "/rock.png", "start": 39688, "end": 40134}, {"filename": "/rock2.png", "start": 40134, "end": 40541}, {"filename": "/terrain.png", "start": 40541, "end": 67913}, {"filename": "/water.png", "start": 67913, "end": 68400}], "remote_package_size": 68400});
+    loadPackage({"files": [{"filename": "/armor/chain.png", "start": 0, "end": 3495}, {"filename": "/armor/plate.png", "start": 3495, "end": 9415}, {"filename": "/char.png", "start": 9415, "end": 12621}, {"filename": "/clouds.png", "start": 12621, "end": 22496}, {"filename": "/default.png", "start": 22496, "end": 26892}, {"filename": "/dirt.png", "start": 26892, "end": 27543}, {"filename": "/gui.png", "start": 27543, "end": 49103}, {"filename": "/rock.png", "start": 49103, "end": 49549}, {"filename": "/rock2.png", "start": 49549, "end": 49956}, {"filename": "/terrain.png", "start": 49956, "end": 77328}, {"filename": "/water.png", "start": 77328, "end": 77815}], "remote_package_size": 77815});
 
   })();
 
-// end include: D:\Temp\tmpk8t4dcl7.js
-// include: D:\Temp\tmp8gmg2tiu.js
+// end include: D:\Temp\tmpaahuty0h.js
+// include: D:\Temp\tmp_9mmzr4r.js
 
     // All the pre-js content up to here must remain later on, we need to run
     // it.
     if ((typeof ENVIRONMENT_IS_WASM_WORKER != 'undefined' && ENVIRONMENT_IS_WASM_WORKER) || (typeof ENVIRONMENT_IS_PTHREAD != 'undefined' && ENVIRONMENT_IS_PTHREAD) || (typeof ENVIRONMENT_IS_AUDIO_WORKLET != 'undefined' && ENVIRONMENT_IS_AUDIO_WORKLET)) Module['preRun'] = [];
     var necessaryPreJSTasks = Module['preRun'].slice();
-  // end include: D:\Temp\tmp8gmg2tiu.js
-// include: D:\Temp\tmpsr3nuw94.js
+  // end include: D:\Temp\tmp_9mmzr4r.js
+// include: D:\Temp\tmpg7cz5rad.js
 
     if (!Module['preRun']) throw 'Module.preRun should exist because file support used it; did a pre-js delete it?';
     necessaryPreJSTasks.forEach((task) => {
       if (Module['preRun'].indexOf(task) < 0) throw 'All preRun tasks that exist before user pre-js code should remain after; did you replace Module or modify Module.preRun?';
     });
-  // end include: D:\Temp\tmpsr3nuw94.js
+  // end include: D:\Temp\tmpg7cz5rad.js
 
 
 var arguments_ = [];
@@ -1102,6 +1103,18 @@ async function createWasm() {
   }
   __ZN14CalmLiquidTileD1Ev.stub = true;
 
+  function __ZN2AI4hurtEP6Entityi(...args
+  ) {
+  abort('missing function: _ZN2AI4hurtEP6Entityi');
+  }
+  __ZN2AI4hurtEP6Entityi.stub = true;
+
+  function __ZN3Mob4healEi(...args
+  ) {
+  abort('missing function: _ZN3Mob4healEi');
+  }
+  __ZN3Mob4healEi.stub = true;
+
   function __ZN4TileD1Ev(...args
   ) {
   abort('missing function: _ZN4TileD1Ev');
@@ -1114,11 +1127,11 @@ async function createWasm() {
   }
   __ZN4TileD2Ev.stub = true;
 
-  function __ZN6Entity11playerTouchEPS_(...args
+  function __ZN6Entity14awardKillScoreEPS_i(...args
   ) {
-  abort('missing function: _ZN6Entity11playerTouchEPS_');
+  abort('missing function: _ZN6Entity14awardKillScoreEPS_i');
   }
-  __ZN6Entity11playerTouchEPS_.stub = true;
+  __ZN6Entity14awardKillScoreEPS_i.stub = true;
 
   var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
   
@@ -9994,6 +10007,7 @@ async function createWasm() {
       return 0;
     };
 
+
   function _fd_close(fd) {
   try {
   
@@ -12762,15 +12776,15 @@ function checkIncomingModuleAPI() {
   ignoredModuleProp('fetchSettings');
 }
 var ASM_CONSTS = {
-  134354832: () => { FS.mount(IDBFS, {}, '/.crosscraft'); FS.syncfs(true, function (err) { if (err) console.error('Error loading filesystem:', err); else console.log('IndexedDB initialized'); }); },  
- 134355007: () => { FS.syncfs(false, function (err) { if (err) console.error('Error saving config:', err); }); },  
- 134355098: ($0) => { var name = UTF8ToString($0); var img = document.getElementById(name); if (!img || !img.complete || img.naturalWidth === 0) { console.error('Font constructor: Image element not found or not loaded:', name); throw new Error('Font image not available: ' + name); } var w = img.width; var h = img.height; var canvas = document.createElement('canvas'); canvas.width = w; canvas.height = h; var ctx = canvas.getContext('2d'); if (!ctx) { throw new Error('Could not get 2D context for font processing.'); } ctx.drawImage(img, 0, 0); var imageData = ctx.getImageData(0, 0, w, h); var rawPixels = imageData.data; Module.fontImageWidth = w; Module.fontImageHeight = h; Module.fontPixelData = rawPixels; },  
- 134355795: () => { return Module.fontImageWidth; },  
- 134355829: () => { return Module.fontImageHeight; },  
- 134355864: ($0, $1, $2) => { var pixelIndex = ($0 + $1 * $2) * 4 + 3; return Module.fontPixelData[pixelIndex]; },  
- 134355950: () => { delete Module.fontImageWidth; delete Module.fontImageHeight; delete Module.fontPixelData; },  
- 134356044: () => { console.log('🎯 EM_ASM: Requesting pointer lock...'); const canvas = document.getElementById('canvas'); if (canvas) { const requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock || canvas.webkitRequestPointerLock; if (requestPointerLock) { try { const result = requestPointerLock.call(canvas); if (result && typeof result.then === 'function') { result.then(function() { console.log('✅ Pointer lock request SUCCESS (Promise)'); }).catch(function(err) { console.error('❌ Pointer lock request FAILED (Promise):', err); }); } else { console.log('✅ Pointer lock request sent (Legacy API)'); } } catch (error) { console.error('❌ Exception during pointer lock request:', error); } } else { console.error('❌ Pointer lock API not available'); } } else { console.error('❌ Canvas element not found'); } },  
- 134356879: () => { const exitPointerLock = document.exitPointerLock || document.mozExitPointerLock || document.webkitExitPointerLock; if (exitPointerLock) { exitPointerLock.call(document); console.log('✅ Exit pointer lock called'); } else { console.error('❌ Exit pointer lock not available'); } }
+  134359984: () => { FS.mount(IDBFS, {}, '/.crosscraft'); FS.syncfs(true, function (err) { if (err) console.error('Error loading filesystem:', err); else console.log('IndexedDB initialized'); }); },  
+ 134360159: () => { FS.syncfs(false, function (err) { if (err) console.error('Error saving config:', err); }); },  
+ 134360250: ($0) => { var name = UTF8ToString($0); var img = document.getElementById(name); if (!img || !img.complete || img.naturalWidth === 0) { console.error('Font constructor: Image element not found or not loaded:', name); throw new Error('Font image not available: ' + name); } var w = img.width; var h = img.height; var canvas = document.createElement('canvas'); canvas.width = w; canvas.height = h; var ctx = canvas.getContext('2d'); if (!ctx) { throw new Error('Could not get 2D context for font processing.'); } ctx.drawImage(img, 0, 0); var imageData = ctx.getImageData(0, 0, w, h); var rawPixels = imageData.data; Module.fontImageWidth = w; Module.fontImageHeight = h; Module.fontPixelData = rawPixels; },  
+ 134360947: () => { return Module.fontImageWidth; },  
+ 134360981: () => { return Module.fontImageHeight; },  
+ 134361016: ($0, $1, $2) => { var pixelIndex = ($0 + $1 * $2) * 4 + 3; return Module.fontPixelData[pixelIndex]; },  
+ 134361102: () => { delete Module.fontImageWidth; delete Module.fontImageHeight; delete Module.fontPixelData; },  
+ 134361196: () => { console.log('🎯 EM_ASM: Requesting pointer lock...'); const canvas = document.getElementById('canvas'); if (canvas) { const requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock || canvas.webkitRequestPointerLock; if (requestPointerLock) { try { const result = requestPointerLock.call(canvas); if (result && typeof result.then === 'function') { result.then(function() { console.log('✅ Pointer lock request SUCCESS (Promise)'); }).catch(function(err) { console.error('❌ Pointer lock request FAILED (Promise):', err); }); } else { console.log('✅ Pointer lock request sent (Legacy API)'); } } catch (error) { console.error('❌ Exception during pointer lock request:', error); } } else { console.error('❌ Pointer lock API not available'); } } else { console.error('❌ Canvas element not found'); } },  
+ 134362031: () => { const exitPointerLock = document.exitPointerLock || document.mozExitPointerLock || document.webkitExitPointerLock; if (exitPointerLock) { exitPointerLock.call(document); console.log('✅ Exit pointer lock called'); } else { console.error('❌ Exit pointer lock not available'); } }
 };
 function js_getImageData(elementId,buffer,bufferSize,width,height) { try { const img = document.getElementById(UTF8ToString(elementId)); if (!img) { console.error('Image element not found:', UTF8ToString(elementId)); return 0; } if (!img.complete || img.naturalWidth === 0) { console.error('Image not loaded:', UTF8ToString(elementId)); return 0; } const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); canvas.width = img.width; canvas.height = img.height; ctx.drawImage(img, 0, 0); const imageData = ctx.getImageData(0, 0, img.width, img.height); const data = imageData.data; if (data.length > bufferSize) { console.error('Buffer too small for image:', UTF8ToString(elementId), 'need:', data.length, 'have:', bufferSize); return 0; } setValue(width, img.width, 'i32'); setValue(height, img.height, 'i32'); for (let i = 0; i < data.length; i++) { setValue(buffer + i, data[i], 'i8'); } console.log('Successfully loaded image:', UTF8ToString(elementId), 'size:', img.width, 'x', img.height); return 1; } catch (e) { console.error('Error in js_getImageData:', e); return 0; } }
 function js_loadTextureFromUrl(url,textureId,mode) { var img = new Image(); img.crossOrigin = "Anonymous"; img.onload = function() { console.log("Skin loaded from URL:", UTF8ToString(url)); var canvas = document.createElement('canvas'); canvas.width = img.width; canvas.height = img.height; var ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0); var imageData = ctx.getImageData(0, 0, img.width, img.height); var data = imageData.data; var bufferPtr = _malloc(data.length); writeArrayToMemory(data, bufferPtr); Module['_updateTextureFromJs'](textureId, bufferPtr, img.width, img.height, mode); _free(bufferPtr); }; img.onerror = function() { console.warn("Failed to load skin from URL:", UTF8ToString(url), "Keeping default."); }; img.src = UTF8ToString(url); }
@@ -12786,11 +12800,11 @@ var _updateTextureFromJs = Module['_updateTextureFromJs'] = makeInvalidEarlyAcce
 var _malloc = makeInvalidEarlyAccess('_malloc');
 var _free = makeInvalidEarlyAccess('_free');
 var _realloc = makeInvalidEarlyAccess('_realloc');
+var _emscripten_stack_get_base = makeInvalidEarlyAccess('_emscripten_stack_get_base');
 var _calloc = makeInvalidEarlyAccess('_calloc');
 var _fflush = makeInvalidEarlyAccess('_fflush');
 var _emscripten_builtin_malloc = makeInvalidEarlyAccess('_emscripten_builtin_malloc');
 var _emscripten_stack_get_end = makeInvalidEarlyAccess('_emscripten_stack_get_end');
-var _emscripten_stack_get_base = makeInvalidEarlyAccess('_emscripten_stack_get_base');
 var _strerror = makeInvalidEarlyAccess('_strerror');
 var _emscripten_builtin_free = makeInvalidEarlyAccess('_emscripten_builtin_free');
 var _emscripten_builtin_realloc = makeInvalidEarlyAccess('_emscripten_builtin_realloc');
@@ -12807,15 +12821,19 @@ var dynCall_vi = makeInvalidEarlyAccess('dynCall_vi');
 var dynCall_vii = makeInvalidEarlyAccess('dynCall_vii');
 var dynCall_v = makeInvalidEarlyAccess('dynCall_v');
 var dynCall_iii = makeInvalidEarlyAccess('dynCall_iii');
+var dynCall_vif = makeInvalidEarlyAccess('dynCall_vif');
 var dynCall_vifff = makeInvalidEarlyAccess('dynCall_vifff');
 var dynCall_viff = makeInvalidEarlyAccess('dynCall_viff');
 var dynCall_vifi = makeInvalidEarlyAccess('dynCall_vifi');
 var dynCall_viiff = makeInvalidEarlyAccess('dynCall_viiff');
 var dynCall_iiffffff = makeInvalidEarlyAccess('dynCall_iiffffff');
+var dynCall_vifffff = makeInvalidEarlyAccess('dynCall_vifffff');
+var dynCall_fii = makeInvalidEarlyAccess('dynCall_fii');
+var dynCall_fifff = makeInvalidEarlyAccess('dynCall_fifff');
+var dynCall_viii = makeInvalidEarlyAccess('dynCall_viii');
 var dynCall_viiiiii = makeInvalidEarlyAccess('dynCall_viiiiii');
 var dynCall_viiiiiii = makeInvalidEarlyAccess('dynCall_viiiiiii');
 var dynCall_viiii = makeInvalidEarlyAccess('dynCall_viiii');
-var dynCall_viii = makeInvalidEarlyAccess('dynCall_viii');
 var dynCall_viiiii = makeInvalidEarlyAccess('dynCall_viiiii');
 var dynCall_didd = makeInvalidEarlyAccess('dynCall_didd');
 var dynCall_viffffff = makeInvalidEarlyAccess('dynCall_viffffff');
@@ -12824,18 +12842,19 @@ var dynCall_iiif = makeInvalidEarlyAccess('dynCall_iiif');
 var dynCall_iiiii = makeInvalidEarlyAccess('dynCall_iiiii');
 var dynCall_fiiiii = makeInvalidEarlyAccess('dynCall_fiiiii');
 var dynCall_iiii = makeInvalidEarlyAccess('dynCall_iiii');
+var dynCall_viiffffff = makeInvalidEarlyAccess('dynCall_viiffffff');
+var dynCall_viiiff = makeInvalidEarlyAccess('dynCall_viiiff');
 var dynCall_iif = makeInvalidEarlyAccess('dynCall_iif');
 var dynCall_iiiffi = makeInvalidEarlyAccess('dynCall_iiiffi');
+var dynCall_i = makeInvalidEarlyAccess('dynCall_i');
 var dynCall_vff = makeInvalidEarlyAccess('dynCall_vff');
 var dynCall_vf = makeInvalidEarlyAccess('dynCall_vf');
 var dynCall_viffff = makeInvalidEarlyAccess('dynCall_viffff');
 var dynCall_vffff = makeInvalidEarlyAccess('dynCall_vffff');
 var dynCall_vfff = makeInvalidEarlyAccess('dynCall_vfff');
-var dynCall_vif = makeInvalidEarlyAccess('dynCall_vif');
 var dynCall_viif = makeInvalidEarlyAccess('dynCall_viif');
 var dynCall_viiiiiiiii = makeInvalidEarlyAccess('dynCall_viiiiiiiii');
 var dynCall_viiiiiiii = makeInvalidEarlyAccess('dynCall_viiiiiiii');
-var dynCall_i = makeInvalidEarlyAccess('dynCall_i');
 var dynCall_vfi = makeInvalidEarlyAccess('dynCall_vfi');
 var dynCall_jiji = makeInvalidEarlyAccess('dynCall_jiji');
 var dynCall_iidiiii = makeInvalidEarlyAccess('dynCall_iidiiii');
@@ -12866,11 +12885,11 @@ function assignWasmExports(wasmExports) {
   assert(typeof wasmExports['malloc'] != 'undefined', 'missing Wasm export: malloc');
   assert(typeof wasmExports['free'] != 'undefined', 'missing Wasm export: free');
   assert(typeof wasmExports['realloc'] != 'undefined', 'missing Wasm export: realloc');
+  assert(typeof wasmExports['emscripten_stack_get_base'] != 'undefined', 'missing Wasm export: emscripten_stack_get_base');
   assert(typeof wasmExports['calloc'] != 'undefined', 'missing Wasm export: calloc');
   assert(typeof wasmExports['fflush'] != 'undefined', 'missing Wasm export: fflush');
   assert(typeof wasmExports['emscripten_builtin_malloc'] != 'undefined', 'missing Wasm export: emscripten_builtin_malloc');
   assert(typeof wasmExports['emscripten_stack_get_end'] != 'undefined', 'missing Wasm export: emscripten_stack_get_end');
-  assert(typeof wasmExports['emscripten_stack_get_base'] != 'undefined', 'missing Wasm export: emscripten_stack_get_base');
   assert(typeof wasmExports['strerror'] != 'undefined', 'missing Wasm export: strerror');
   assert(typeof wasmExports['emscripten_builtin_free'] != 'undefined', 'missing Wasm export: emscripten_builtin_free');
   assert(typeof wasmExports['emscripten_builtin_realloc'] != 'undefined', 'missing Wasm export: emscripten_builtin_realloc');
@@ -12887,15 +12906,19 @@ function assignWasmExports(wasmExports) {
   assert(typeof wasmExports['dynCall_vii'] != 'undefined', 'missing Wasm export: dynCall_vii');
   assert(typeof wasmExports['dynCall_v'] != 'undefined', 'missing Wasm export: dynCall_v');
   assert(typeof wasmExports['dynCall_iii'] != 'undefined', 'missing Wasm export: dynCall_iii');
+  assert(typeof wasmExports['dynCall_vif'] != 'undefined', 'missing Wasm export: dynCall_vif');
   assert(typeof wasmExports['dynCall_vifff'] != 'undefined', 'missing Wasm export: dynCall_vifff');
   assert(typeof wasmExports['dynCall_viff'] != 'undefined', 'missing Wasm export: dynCall_viff');
   assert(typeof wasmExports['dynCall_vifi'] != 'undefined', 'missing Wasm export: dynCall_vifi');
   assert(typeof wasmExports['dynCall_viiff'] != 'undefined', 'missing Wasm export: dynCall_viiff');
   assert(typeof wasmExports['dynCall_iiffffff'] != 'undefined', 'missing Wasm export: dynCall_iiffffff');
+  assert(typeof wasmExports['dynCall_vifffff'] != 'undefined', 'missing Wasm export: dynCall_vifffff');
+  assert(typeof wasmExports['dynCall_fii'] != 'undefined', 'missing Wasm export: dynCall_fii');
+  assert(typeof wasmExports['dynCall_fifff'] != 'undefined', 'missing Wasm export: dynCall_fifff');
+  assert(typeof wasmExports['dynCall_viii'] != 'undefined', 'missing Wasm export: dynCall_viii');
   assert(typeof wasmExports['dynCall_viiiiii'] != 'undefined', 'missing Wasm export: dynCall_viiiiii');
   assert(typeof wasmExports['dynCall_viiiiiii'] != 'undefined', 'missing Wasm export: dynCall_viiiiiii');
   assert(typeof wasmExports['dynCall_viiii'] != 'undefined', 'missing Wasm export: dynCall_viiii');
-  assert(typeof wasmExports['dynCall_viii'] != 'undefined', 'missing Wasm export: dynCall_viii');
   assert(typeof wasmExports['dynCall_viiiii'] != 'undefined', 'missing Wasm export: dynCall_viiiii');
   assert(typeof wasmExports['dynCall_didd'] != 'undefined', 'missing Wasm export: dynCall_didd');
   assert(typeof wasmExports['dynCall_viffffff'] != 'undefined', 'missing Wasm export: dynCall_viffffff');
@@ -12904,18 +12927,19 @@ function assignWasmExports(wasmExports) {
   assert(typeof wasmExports['dynCall_iiiii'] != 'undefined', 'missing Wasm export: dynCall_iiiii');
   assert(typeof wasmExports['dynCall_fiiiii'] != 'undefined', 'missing Wasm export: dynCall_fiiiii');
   assert(typeof wasmExports['dynCall_iiii'] != 'undefined', 'missing Wasm export: dynCall_iiii');
+  assert(typeof wasmExports['dynCall_viiffffff'] != 'undefined', 'missing Wasm export: dynCall_viiffffff');
+  assert(typeof wasmExports['dynCall_viiiff'] != 'undefined', 'missing Wasm export: dynCall_viiiff');
   assert(typeof wasmExports['dynCall_iif'] != 'undefined', 'missing Wasm export: dynCall_iif');
   assert(typeof wasmExports['dynCall_iiiffi'] != 'undefined', 'missing Wasm export: dynCall_iiiffi');
+  assert(typeof wasmExports['dynCall_i'] != 'undefined', 'missing Wasm export: dynCall_i');
   assert(typeof wasmExports['dynCall_vff'] != 'undefined', 'missing Wasm export: dynCall_vff');
   assert(typeof wasmExports['dynCall_vf'] != 'undefined', 'missing Wasm export: dynCall_vf');
   assert(typeof wasmExports['dynCall_viffff'] != 'undefined', 'missing Wasm export: dynCall_viffff');
   assert(typeof wasmExports['dynCall_vffff'] != 'undefined', 'missing Wasm export: dynCall_vffff');
   assert(typeof wasmExports['dynCall_vfff'] != 'undefined', 'missing Wasm export: dynCall_vfff');
-  assert(typeof wasmExports['dynCall_vif'] != 'undefined', 'missing Wasm export: dynCall_vif');
   assert(typeof wasmExports['dynCall_viif'] != 'undefined', 'missing Wasm export: dynCall_viif');
   assert(typeof wasmExports['dynCall_viiiiiiiii'] != 'undefined', 'missing Wasm export: dynCall_viiiiiiiii');
   assert(typeof wasmExports['dynCall_viiiiiiii'] != 'undefined', 'missing Wasm export: dynCall_viiiiiiii');
-  assert(typeof wasmExports['dynCall_i'] != 'undefined', 'missing Wasm export: dynCall_i');
   assert(typeof wasmExports['dynCall_vfi'] != 'undefined', 'missing Wasm export: dynCall_vfi');
   assert(typeof wasmExports['dynCall_jiji'] != 'undefined', 'missing Wasm export: dynCall_jiji');
   assert(typeof wasmExports['dynCall_iidiiii'] != 'undefined', 'missing Wasm export: dynCall_iidiiii');
@@ -12943,11 +12967,11 @@ function assignWasmExports(wasmExports) {
   _malloc = createExportWrapper('malloc', 1);
   _free = createExportWrapper('free', 1);
   _realloc = createExportWrapper('realloc', 2);
+  _emscripten_stack_get_base = wasmExports['emscripten_stack_get_base'];
   _calloc = createExportWrapper('calloc', 2);
   _fflush = createExportWrapper('fflush', 1);
   _emscripten_builtin_malloc = createExportWrapper('emscripten_builtin_malloc', 1);
   _emscripten_stack_get_end = wasmExports['emscripten_stack_get_end'];
-  _emscripten_stack_get_base = wasmExports['emscripten_stack_get_base'];
   _strerror = createExportWrapper('strerror', 1);
   _emscripten_builtin_free = createExportWrapper('emscripten_builtin_free', 1);
   _emscripten_builtin_realloc = createExportWrapper('emscripten_builtin_realloc', 2);
@@ -12964,15 +12988,19 @@ function assignWasmExports(wasmExports) {
   dynCall_vii = dynCalls['vii'] = createExportWrapper('dynCall_vii', 3);
   dynCall_v = dynCalls['v'] = createExportWrapper('dynCall_v', 1);
   dynCall_iii = dynCalls['iii'] = createExportWrapper('dynCall_iii', 3);
+  dynCall_vif = dynCalls['vif'] = createExportWrapper('dynCall_vif', 3);
   dynCall_vifff = dynCalls['vifff'] = createExportWrapper('dynCall_vifff', 5);
   dynCall_viff = dynCalls['viff'] = createExportWrapper('dynCall_viff', 4);
   dynCall_vifi = dynCalls['vifi'] = createExportWrapper('dynCall_vifi', 4);
   dynCall_viiff = dynCalls['viiff'] = createExportWrapper('dynCall_viiff', 5);
   dynCall_iiffffff = dynCalls['iiffffff'] = createExportWrapper('dynCall_iiffffff', 8);
+  dynCall_vifffff = dynCalls['vifffff'] = createExportWrapper('dynCall_vifffff', 7);
+  dynCall_fii = dynCalls['fii'] = createExportWrapper('dynCall_fii', 3);
+  dynCall_fifff = dynCalls['fifff'] = createExportWrapper('dynCall_fifff', 5);
+  dynCall_viii = dynCalls['viii'] = createExportWrapper('dynCall_viii', 4);
   dynCall_viiiiii = dynCalls['viiiiii'] = createExportWrapper('dynCall_viiiiii', 7);
   dynCall_viiiiiii = dynCalls['viiiiiii'] = createExportWrapper('dynCall_viiiiiii', 8);
   dynCall_viiii = dynCalls['viiii'] = createExportWrapper('dynCall_viiii', 5);
-  dynCall_viii = dynCalls['viii'] = createExportWrapper('dynCall_viii', 4);
   dynCall_viiiii = dynCalls['viiiii'] = createExportWrapper('dynCall_viiiii', 6);
   dynCall_didd = dynCalls['didd'] = createExportWrapper('dynCall_didd', 4);
   dynCall_viffffff = dynCalls['viffffff'] = createExportWrapper('dynCall_viffffff', 8);
@@ -12981,18 +13009,19 @@ function assignWasmExports(wasmExports) {
   dynCall_iiiii = dynCalls['iiiii'] = createExportWrapper('dynCall_iiiii', 5);
   dynCall_fiiiii = dynCalls['fiiiii'] = createExportWrapper('dynCall_fiiiii', 6);
   dynCall_iiii = dynCalls['iiii'] = createExportWrapper('dynCall_iiii', 4);
+  dynCall_viiffffff = dynCalls['viiffffff'] = createExportWrapper('dynCall_viiffffff', 9);
+  dynCall_viiiff = dynCalls['viiiff'] = createExportWrapper('dynCall_viiiff', 6);
   dynCall_iif = dynCalls['iif'] = createExportWrapper('dynCall_iif', 3);
   dynCall_iiiffi = dynCalls['iiiffi'] = createExportWrapper('dynCall_iiiffi', 6);
+  dynCall_i = dynCalls['i'] = createExportWrapper('dynCall_i', 1);
   dynCall_vff = dynCalls['vff'] = createExportWrapper('dynCall_vff', 3);
   dynCall_vf = dynCalls['vf'] = createExportWrapper('dynCall_vf', 2);
   dynCall_viffff = dynCalls['viffff'] = createExportWrapper('dynCall_viffff', 6);
   dynCall_vffff = dynCalls['vffff'] = createExportWrapper('dynCall_vffff', 5);
   dynCall_vfff = dynCalls['vfff'] = createExportWrapper('dynCall_vfff', 4);
-  dynCall_vif = dynCalls['vif'] = createExportWrapper('dynCall_vif', 3);
   dynCall_viif = dynCalls['viif'] = createExportWrapper('dynCall_viif', 4);
   dynCall_viiiiiiiii = dynCalls['viiiiiiiii'] = createExportWrapper('dynCall_viiiiiiiii', 10);
   dynCall_viiiiiiii = dynCalls['viiiiiiii'] = createExportWrapper('dynCall_viiiiiiii', 9);
-  dynCall_i = dynCalls['i'] = createExportWrapper('dynCall_i', 1);
   dynCall_vfi = dynCalls['vfi'] = createExportWrapper('dynCall_vfi', 3);
   dynCall_jiji = dynCalls['jiji'] = createExportWrapper('dynCall_jiji', 4);
   dynCall_iidiiii = dynCalls['iidiiii'] = createExportWrapper('dynCall_iidiiii', 7);
@@ -13020,11 +13049,15 @@ var wasmImports = {
   /** @export */
   _ZN14CalmLiquidTileD1Ev: __ZN14CalmLiquidTileD1Ev,
   /** @export */
+  _ZN2AI4hurtEP6Entityi: __ZN2AI4hurtEP6Entityi,
+  /** @export */
+  _ZN3Mob4healEi: __ZN3Mob4healEi,
+  /** @export */
   _ZN4TileD1Ev: __ZN4TileD1Ev,
   /** @export */
   _ZN4TileD2Ev: __ZN4TileD2Ev,
   /** @export */
-  _ZN6Entity11playerTouchEPS_: __ZN6Entity11playerTouchEPS_,
+  _ZN6Entity14awardKillScoreEPS_i: __ZN6Entity14awardKillScoreEPS_i,
   /** @export */
   __assert_fail: ___assert_fail,
   /** @export */
@@ -13457,6 +13490,8 @@ var wasmImports = {
   environ_get: _environ_get,
   /** @export */
   environ_sizes_get: _environ_sizes_get,
+  /** @export */
+  exit: _exit,
   /** @export */
   fd_close: _fd_close,
   /** @export */

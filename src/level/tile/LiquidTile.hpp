@@ -3,7 +3,7 @@
 
 class LiquidTile : public Tile {
 protected:
-    int liquidType;
+    LiquidType liquidType;
     int calmTileId;
     int tileId;
     int tickRate;
@@ -12,7 +12,7 @@ protected:
 private:
     bool tryFlow(Level* level, int x, int y, int z);
 public:
-    LiquidTile(int id, int liquidType);
+    LiquidTile(int id, LiquidType liquidType);
     ~LiquidTile();
     void tick(Level* level, int x, int y, int z, Random* random) override;
     void renderFace(Tessellator& t, int x, int y, int z, int face) override;
@@ -21,6 +21,6 @@ public:
     AABB* getAABB(int x, int y, int z) const override;
     bool blocksLight() override;
     bool isSolid() override;
-    int getLiquidType() override;
+    LiquidType getLiquidType() override;
     float getBrightness(Level* level, int x, int y, int z) override;
 };
