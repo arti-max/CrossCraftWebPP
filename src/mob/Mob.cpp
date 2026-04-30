@@ -85,7 +85,7 @@ void Mob::tick() {
 
     this->run += (targetRun - this->run) * 0.3f;
 
-    int bodyRot;
+    float bodyRot;
     for (bodyRot = ybrot - this->yBodyRot; bodyRot < -180.0f; bodyRot += 360.0f) {
         ;
     }
@@ -99,7 +99,7 @@ void Mob::tick() {
     for (bodyRot = this->yRot - this->yBodyRot; bodyRot < -180.0f; bodyRot += 360.0f) {
         ;
     }
-
+ 
     while (bodyRot >= 180.0f) {
         bodyRot -= 360.0f;
     }
@@ -174,7 +174,6 @@ void Mob::render(float partialTicks, Textures* textures) {
         while (this->xRotO - this->xRot < -180.0f) {
             this->xRotO += 360.0f;
         }
-
 
         while (this->xRotO - this->xRot >= 180.0f) {
             this->xRotO -= 360.0f;

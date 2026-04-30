@@ -71,7 +71,7 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: D:\Temp\tmpaahuty0h.js
+// include: D:\Temp\tmpf1fm00ai.js
 
   if (!Module['expectedDataFileDownloads']) Module['expectedDataFileDownloads'] = 0;
   Module['expectedDataFileDownloads']++;
@@ -200,25 +200,25 @@ Module['FS_createPath']("/", "armor", true, true);
     }
 
     }
-    loadPackage({"files": [{"filename": "/armor/chain.png", "start": 0, "end": 3495}, {"filename": "/armor/plate.png", "start": 3495, "end": 9415}, {"filename": "/char.png", "start": 9415, "end": 12621}, {"filename": "/clouds.png", "start": 12621, "end": 22496}, {"filename": "/default.png", "start": 22496, "end": 26892}, {"filename": "/dirt.png", "start": 26892, "end": 27543}, {"filename": "/gui.png", "start": 27543, "end": 49103}, {"filename": "/rock.png", "start": 49103, "end": 49549}, {"filename": "/rock2.png", "start": 49549, "end": 49956}, {"filename": "/terrain.png", "start": 49956, "end": 77328}, {"filename": "/water.png", "start": 77328, "end": 77815}], "remote_package_size": 77815});
+    loadPackage({"files": [{"filename": "/armor/chain.png", "start": 0, "end": 3495}, {"filename": "/armor/plate.png", "start": 3495, "end": 4237}, {"filename": "/char.png", "start": 4237, "end": 7443}, {"filename": "/clouds.png", "start": 7443, "end": 17318}, {"filename": "/default.png", "start": 17318, "end": 21714}, {"filename": "/dirt.png", "start": 21714, "end": 22365}, {"filename": "/gui.png", "start": 22365, "end": 43925}, {"filename": "/rock.png", "start": 43925, "end": 44371}, {"filename": "/rock2.png", "start": 44371, "end": 44778}, {"filename": "/terrain.png", "start": 44778, "end": 72150}, {"filename": "/water.png", "start": 72150, "end": 72637}], "remote_package_size": 72637});
 
   })();
 
-// end include: D:\Temp\tmpaahuty0h.js
-// include: D:\Temp\tmp_9mmzr4r.js
+// end include: D:\Temp\tmpf1fm00ai.js
+// include: D:\Temp\tmp37qmt1bg.js
 
     // All the pre-js content up to here must remain later on, we need to run
     // it.
     if ((typeof ENVIRONMENT_IS_WASM_WORKER != 'undefined' && ENVIRONMENT_IS_WASM_WORKER) || (typeof ENVIRONMENT_IS_PTHREAD != 'undefined' && ENVIRONMENT_IS_PTHREAD) || (typeof ENVIRONMENT_IS_AUDIO_WORKLET != 'undefined' && ENVIRONMENT_IS_AUDIO_WORKLET)) Module['preRun'] = [];
     var necessaryPreJSTasks = Module['preRun'].slice();
-  // end include: D:\Temp\tmp_9mmzr4r.js
-// include: D:\Temp\tmpg7cz5rad.js
+  // end include: D:\Temp\tmp37qmt1bg.js
+// include: D:\Temp\tmp66l02ass.js
 
     if (!Module['preRun']) throw 'Module.preRun should exist because file support used it; did a pre-js delete it?';
     necessaryPreJSTasks.forEach((task) => {
       if (Module['preRun'].indexOf(task) < 0) throw 'All preRun tasks that exist before user pre-js code should remain after; did you replace Module or modify Module.preRun?';
     });
-  // end include: D:\Temp\tmpg7cz5rad.js
+  // end include: D:\Temp\tmp66l02ass.js
 
 
 var arguments_ = [];

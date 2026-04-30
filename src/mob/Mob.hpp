@@ -37,8 +37,8 @@ public:
     int lastHealth;
     int invulnerableTime = 0;
     int airSupply = 300;
-    int hurtTime;
-    int hurtDuration;
+    int hurtTime = 0;
+    int hurtDuration = 10;
     float hurtDir = 0.0f;
     int deathTime = 0;
     int attackTime = 0;

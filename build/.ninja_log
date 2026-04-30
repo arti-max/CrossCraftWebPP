@@ -1,5 +1,5 @@
 # ninja log v7
-60	447	7992014294550004	CMakeFiles/copy_textures.util	17ac98d61d1721d7
+308	1098	7992563565183470	CMakeFiles/copy_textures.util	17ac98d61d1721d7
 24	2253	7991971094979860	CMakeFiles/stb_vorbis.dir/lib/stb/stb_impl.c.o	dd776e0f0fb63ef1
 534	6563	7991971100081330	CMakeFiles/CrossCraftWebPP.dir/src/Timer.cpp.o	cdb3ac6d156d740a
 2257	6954	7991971117319439	libstb_vorbis.a	2a832bebae377583
@@ -47,7 +47,7 @@
 770	8706	7991995130605940	CMakeFiles/CrossCraftWebPP.dir/src/mob/HumanMob.cpp.o	7215ce0a3a3943e4
 16529	24166	7991971260032171	CMakeFiles/CrossCraftWebPP.dir/src/level/tile/Tile.cpp.o	44d0423b61b88578
 18456	24334	7991971279303656	CMakeFiles/CrossCraftWebPP.dir/src/net/packet/Packet.cpp.o	7a5024019e675afc
-526	4374	7992008549386431	CMakeFiles/CrossCraftWebPP.dir/src/mob/Mob.cpp.o	6cb4bb70aeba997e
+1098	5854	7992563573080410	CMakeFiles/CrossCraftWebPP.dir/src/mob/Mob.cpp.o	6cb4bb70aeba997e
 18300	24914	7991971277741810	CMakeFiles/CrossCraftWebPP.dir/src/net/Client.cpp.o	aabe263c5b4941c6
 448	4055	7992014298423326	CMakeFiles/CrossCraftWebPP.dir/src/mob/ai/BasicAI.cpp.o	d3a0b6472eae4e03
 747	9186	7991995130375941	CMakeFiles/CrossCraftWebPP.dir/src/main.cpp.o	57cf5c93dc5e56d7
@@ -64,7 +64,26 @@
 24112	29040	7991971335857326	CMakeFiles/CrossCraftWebPP.dir/src/util/Keyboard.cpp.o	712a0459ed63d57c
 24167	29078	7991971336407331	CMakeFiles/CrossCraftWebPP.dir/src/util/Mouse.cpp.o	32f6c69c930122c6
 23791	29649	7991971332650238	CMakeFiles/CrossCraftWebPP.dir/src/sound/SoundManager.cpp.o	4cf2530e83043d2e
-4056	14769	7992014334508248	game.html	f82f7f5ce950b17e
-66	491	7992022153053630	CMakeFiles/copy_textures.util	17ac98d61d1721d7
-491	4483	7992022157314318	CMakeFiles/CrossCraftWebPP.dir/src/mob/Mob.cpp.o	6cb4bb70aeba997e
-4484	15503	7992022197238988	game.html	f82f7f5ce950b17e
+5855	23006	7992563620648832	game.html	f82f7f5ce950b17e
+55	437	7992569051809895	CMakeFiles/copy_textures.util	17ac98d61d1721d7
+498	7992	7992569056232871	CMakeFiles/CrossCraftWebPP.dir/src/gui/ingame/Hud.cpp.o	eb119fb8abe743fa
+449	8032	7992569055738024	CMakeFiles/CrossCraftWebPP.dir/src/CrossCraftApplet.cpp.o	b271f3bc6df66db3
+751	8057	7992569058766146	CMakeFiles/CrossCraftWebPP.dir/src/mob/HumanMob.cpp.o	7215ce0a3a3943e4
+473	8062	7992569055983011	CMakeFiles/CrossCraftWebPP.dir/src/gui/ingame/BlockSelectScreen.cpp.o	2ab038a9f0e53a8e
+584	8096	7992569057094407	CMakeFiles/CrossCraftWebPP.dir/src/gui/pause/LevelSaveScreen.cpp.o	e2bca5bcb5588f9f
+513	8173	7992569056388432	CMakeFiles/CrossCraftWebPP.dir/src/gui/ingame/PlayerListScreen.cpp.o	1c21ea77a7d6ebde
+716	8226	7992569058415165	CMakeFiles/CrossCraftWebPP.dir/src/main.cpp.o	57cf5c93dc5e56d7
+623	8292	7992569057491845	CMakeFiles/CrossCraftWebPP.dir/src/gui/pause/settings/ControlsScreen.cpp.o	a39d76075587a1df
+484	8324	7992569056092483	CMakeFiles/CrossCraftWebPP.dir/src/gui/ingame/ChatScreen.cpp.o	86e24ae629776bd0
+461	8355	7992569055858014	CMakeFiles/CrossCraftWebPP.dir/src/gui/Screen.cpp.o	c8234b2c097e6a95
+603	8359	7992569057284823	CMakeFiles/CrossCraftWebPP.dir/src/gui/pause/PauseScreen.cpp.o	63faa4d4def44a8b
+565	8379	7992569056908196	CMakeFiles/CrossCraftWebPP.dir/src/gui/pause/LevelSaveInputScreen.cpp.o	37c76ce69935d90
+528	8421	7992569056532501	CMakeFiles/CrossCraftWebPP.dir/src/gui/pause/LevelGenerateScreen.cpp.o	326524ce51291688
+645	8557	7992569057704435	CMakeFiles/CrossCraftWebPP.dir/src/gui/pause/settings/SettingsScreen.cpp.o	86b1cb6a8b32a656
+546	8622	7992569056719041	CMakeFiles/CrossCraftWebPP.dir/src/gui/pause/LevelLoadScreen.cpp.o	891ece9c52235d48
+685	8751	7992569058104445	CMakeFiles/CrossCraftWebPP.dir/src/level/LevelIO.cpp.o	cdee2d1b41c09770
+665	9019	7992569057904443	CMakeFiles/CrossCraftWebPP.dir/src/level/Level.cpp.o	c01422394c617b16
+437	9134	7992569055631860	CMakeFiles/CrossCraftWebPP.dir/src/CrossCraft.cpp.o	17ab398cb1ad0891
+8036	11749	7992569131615657	CMakeFiles/CrossCraftWebPP.dir/src/mob/ai/BasicAI.cpp.o	d3a0b6472eae4e03
+8009	11974	7992569131354017	CMakeFiles/CrossCraftWebPP.dir/src/mob/Mob.cpp.o	6cb4bb70aeba997e
+11975	22285	7992569170999429	game.html	f82f7f5ce950b17e
