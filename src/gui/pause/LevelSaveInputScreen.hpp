@@ -7,8 +7,8 @@ class LevelSaveInputScreen : public Screen {
 private:
     Screen* parent;
     std::string title = "Enter level name:";
-    int levelId;
-    std::string levelName;
+    int levelId = 0;
+    std::string levelName = "";
     int tickCounter = 0;
 public:
     LevelSaveInputScreen(Screen* parent, std::string currentName, int levelId);

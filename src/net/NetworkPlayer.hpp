@@ -1,6 +1,6 @@
 #pragma once
 #include "Entity.hpp"
-#include "character/ZombieModel.hpp"
+#include "model/HumanModel.hpp"
 #include "render/Textures.hpp"
 #include "gui/Font.hpp"
 #include "player/Player.hpp"
@@ -19,7 +19,7 @@ struct NetworkPosition {
 class NetworkPlayer : public Entity {
 private:
     static const long long serialVersionUID = 77479605454997290;
-    ZombieModel* model = new ZombieModel();
+    HumanModel* model = new HumanModel(0.0f);
     std::deque<NetworkPosition> moveQueue;
 
     int ticks = 0;

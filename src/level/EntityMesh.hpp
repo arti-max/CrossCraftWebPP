@@ -12,7 +12,7 @@ private:
     std::vector<Entity*> tmp;
 
 public:
-    int width, height, depth;
+    int width = 0, height = 0, depth = 0;
     std::vector<std::vector<Entity*>> grid; // entities
     std::vector<Entity*> all; // all entities
 

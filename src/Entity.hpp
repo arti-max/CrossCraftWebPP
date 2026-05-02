@@ -20,12 +20,18 @@ protected:
     static std::mt19937 randomGenerator;
 
 public:
-    float xo, yo, zo;
-    float x, y, z;
-    float xd, yd, zd;
-    float yRot, xRot;
-    float yRotO, xRotO;
-    float xRotI, yRotI;
+    float xo = 0.0f;
+    float yo = 0.0f;
+    float zo = 0.0f;
+    float x = 0.0f;
+    float y = 0.0f;
+    float z = 0.0f;
+    float xd = 0.0f;
+    float yd = 0.0f;
+    float zd = 0.0f;
+    float yRot = 0.0f, xRot = 0.0f;
+    float yRotO = 0.0f, xRotO = 0.0f;
+    float xRotI = 0.0f, yRotI = 0.0f;
     float walkDist = 0.0f;
     float walkDistO = 0.0f;
     float pushthrough = 0.0f;
@@ -33,9 +39,9 @@ public:
     float ySlideOffset = 0.0f;
     float fallDistance = 0.0f;
     int nextStep = 1;
-    float xOld;
-    float yOld;
-    float zOld;
+    float xOld = 0.0f;
+    float yOld = 0.0f;
+    float zOld = 0.0f;
 
     AABB bb;
     EntityMesh* emesh = nullptr;
@@ -48,6 +54,7 @@ public:
     bool collision = false;
     bool removed = false;
     bool makeStepSound = true;
+    bool debug = false;
 
     Entity(Level* level);
     virtual ~Entity() = default;
@@ -72,7 +79,7 @@ public:
     void moveRelative(float xa, float za, float speed);
     bool isLit();
     float getBrightness();
-    virtual void render(float a, Textures* textures);
+    virtual void render(float partialTicks, Textures* textures);
     virtual void playSound(const std::string& name, float volume, float pitch);
     virtual bool intersects(float x0, float y0, float z0, float x1, float y1, float z1);
     void setLevel(Level* level);

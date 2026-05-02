@@ -1,5 +1,6 @@
 #include "LevelIO.hpp"
 #include "CrossCraft.hpp"
+#include "character/Zombie.hpp"
 #include "Entity.hpp"
 #include <emscripten.h>
 #include <emscripten/fetch.h>
@@ -288,7 +289,7 @@ bool LevelIO::load(Level* level, const uint8_t* data, size_t length) {
                     float loadedXRot = readFloat(decompressed.data(), offset);
                     float loadedYRot = readFloat(decompressed.data(), offset);
                     
-                    Zombie* zombie = new Zombie(level, this->cc->textures, loadedX, loadedY, loadedZ);
+                    HZombie* zombie = new HZombie(level, this->cc->textures, loadedX, loadedY, loadedZ);
                     zombie->xRot = loadedXRot;
                     zombie->yRot = loadedYRot;
                     zombie->setPos(loadedX, loadedY, loadedZ);

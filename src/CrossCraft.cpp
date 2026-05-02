@@ -115,6 +115,7 @@ void CrossCraft::init() {
 
     this->levelRenderer = new LevelRenderer(this->level, this->textures);
     this->player = new Player(this->level, this->settings);
+    this->player->resetPos();
 
     Mouse::init(window);
     Keyboard::init(window);
@@ -447,7 +448,11 @@ void CrossCraft::tick() {
                     this->settings->toggleSetting(4, 1);
                 }
                 if (Keyboard::getEventKey() == GLFW_KEY_G && !this->mpMode && this->level->entities.size() < 256) {
-                    this->level->addEntity((Entity*)new HumanMob(this->level, this->player->x, this->player->y, this->player->z));
+                    if (Random::random() < 0.5f) {
+                        this->level->addEntity((Entity*)new Zombie(this->level, this->player->x, this->player->y, this->player->z));
+                    } else {
+                        this->level->addEntity((Entity*)new Skeleton(this->level, this->player->x, this->player->y, this->player->z));
+                    }
                 }
             }
         }
@@ -624,6 +629,35 @@ void CrossCraft::render(float partialTicks) {
     this->setupFog(0);
     glEnable(GL_FOG);
     this->levelRenderer->render(this->player, 0);
+    if (this->levelRenderer->cracks > 0.0f) {
+        glBlendFunc(GL_DST_COLOR, GL_SRC_COLOR);
+        int texture = this->textures->loadTexture("terrain", GL_NEAREST);
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glColor4f(1.0f, 1.0f, 1.0f, 0.5f);
+        glPushMatrix();
+        int tileId = this->level->getTile(this->hitResult->x, this->hitResult->y, this->hitResult->z);
+        Tile* tile = tileId > 0 ? Tile::tiles[tileId] : nullptr;
+        Tessellator& t = Tessellator::getInstance();
+        float offX = (tile->minX + tile->maxX) / 2.0f;
+        float offY = (tile->minY + tile->maxY) / 2.0f;
+        float offZ = (tile->minZ + tile->maxZ) / 2.0f;
+        glScalef(1.01f, 1.01f, 1.01f);
+        glTranslatef(-((float)tile->x + offX), -((float)tile->y + offY), -((float)tile->z + offZ));
+        t.begin();
+        t._noColor();
+        glDepthMask(false);
+        if (tile == nullptr) {
+            tile = Tile::tiles[Tile::rock->id];
+        }
+
+        for (int face = 0; face < 6; ++face) {
+            tile->renderFace(t, tile->x, tile->y, tile->z, face, (int)(this->levelRenderer->cracks * 10.0f));
+        }
+
+        t.end();
+        glDepthMask(true);
+        glPopMatrix();
+    }
     this->checkGlError("Rendered level");
     // int i;
     // Entity* entity;

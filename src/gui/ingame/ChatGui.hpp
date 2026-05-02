@@ -5,7 +5,7 @@
 
 struct ChatMessage {
     std::string text;
-    int lifetime;
+    int lifetime = 0;
 };
 
 class ChatGui {

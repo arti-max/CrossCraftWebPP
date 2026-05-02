@@ -16,7 +16,6 @@
 #include "gui/Font.hpp"
 #include "util/Ray.hpp"
 #include "Entity.hpp"
-#include "character/Zombie.hpp"
 #include "gui/Screen.hpp"
 #include "gui/pause/PauseScreen.hpp"
 #include "gui/ingame/ChatScreen.hpp"
@@ -39,6 +38,8 @@
 #include "sound/SoundManager.hpp"
 #include "sound/SoundType.hpp"
 #include "mob/HumanMob.hpp"
+#include "mob/Zombie.hpp"
+#include "mob/Skeleton.hpp"
 #include "Settings.hpp"
 #include "Data.hpp"
 
@@ -52,8 +53,8 @@ private:
     std::string title = "";
     std::string status = "";
     bool inErrorState = false;
-    std::string errorTitle;
-    std::string errorReason;
+    std::string errorTitle = "";
+    std::string errorReason = "";
     std::vector<std::string> connectionUrls;
     int currentUrlIndex = 0;
     int playerId = -1;

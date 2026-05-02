@@ -8,6 +8,6 @@ public:
     void neighborChanged(Level* level, int x, int y, int z, int type) override;
 
 private:
-    int x, y, z;
+    int x = 0, y = 0, z = 0;
     void checkSpongeEffect(Level* level, int x, int y, int z);
 };

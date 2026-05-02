@@ -75,7 +75,9 @@ if(EMSCRIPTEN)
             --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/gui.png@gui.png \
             --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/armor/plate.png@armor/plate.png \
             --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/armor/chain.png@armor/chain.png \
-        "
+            --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/mob/zombie.png@mob/zombie.png \
+            --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/mob/skeleton.png@mob/skeleton.png \
+            --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/mob/pig.png@mob/pig.png"
     )
     set_target_properties(CrossCraftWebPP PROPERTIES OUTPUT_NAME "game")
     set_target_properties(CrossCraftWebPP PROPERTIES SUFFIX ".html")
@@ -92,6 +94,9 @@ if(EMSCRIPTEN)
         gui.png
         armor/plate.png
         armor/chain.png
+        mob/zombie.png
+        mob/skeleton.png
+        mob/pig.png
     )
     
     foreach(TEXTURE_FILE ${TEXTURE_FILES})

@@ -444,14 +444,12 @@ std::vector<AABB> Level::getCubes(const AABB& boundingBox) {
                         AABB* aabb = tile->getAABB(x, y, z);
                         if (aabb != nullptr) {
                             boxes.push_back(*aabb);
-                            delete aabb;
                         }
                     }
                 } else if (x < 0 || y < 0 || z < 0 || x >= width || z >= height) {
                     AABB* aabb = Tile::unbreakable->getAABB(x, y, z);
                     if (aabb != nullptr) {
                         boxes.push_back(*aabb);
-                        delete aabb;
                     }
                 }
             }

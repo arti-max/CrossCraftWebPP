@@ -16,7 +16,7 @@ class NetworkPlayer;
 class Entity;
 
 struct TickEntry {
-    int x, y, z, tileId;
+    int x = 0, y = 0, z = 0, tileId = 0;
 };
 
 class CrossCraft;
@@ -34,7 +34,7 @@ private:
     std::vector<Entity*> pendingAdd;
 
     static const int maxBits = 10;
-    int randValue;
+    int randValue = 0;
     int unprocessed = 0;
     
     void calcLightDepths(int x0, int z0, int x1, int z1);
@@ -45,14 +45,14 @@ private:
     void decodePosition(int code, int& x, int& y, int& z);
 
 public:
-    int width, height, depth;
+    int width = 0, height = 0, depth = 0;
     int tickCount = 0;
     std::vector<uint8_t> blocks;
     std::vector<int> lightDepths;
     std::vector<Entity*> entities;
     std::map<int, NetworkPlayer*> networkPlayers;
-    std::string name;
-    std::string creator;
+    std::string name = "";
+    std::string creator = "";
     long long creationTime = 0;
     Entity* player = nullptr;
 
@@ -61,10 +61,10 @@ public:
 
     EntityMesh* emesh;
 
-    int xSpawn;
-    int ySpawn;
-    int zSpawn;
-    int rotSpawn;
+    int xSpawn = 0;
+    int ySpawn = 0;
+    int zSpawn = 0;
+    int rotSpawn = 0;
 
     bool isRemote = false;
 

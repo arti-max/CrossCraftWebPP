@@ -14,7 +14,6 @@ class Tile {
 private:
 
 protected:
-    float minX, minY, minZ, maxX, maxY, maxZ;
     virtual void setShape(float x0, float y0, float z0, float x1, float y1, float z1);
     virtual bool shouldRenderFace(Level* level, int x, int y, int z, int layer, int face);
 public:
@@ -65,15 +64,20 @@ public:
     static const Tile* brownMushroom;
     static const Tile* goldBlock;
 
-    int textureId;
-    int id;
-    float particleGravity;
+    int textureId = 0;
+    int id = 0;
+    float particleGravity = 0.0f;
+    float minX = 0.0f, minY = 0.0f, minZ = 0.0f, maxX = 0.0f, maxY = 0.0f, maxZ = 0.0f;
+    int x = 0;
+    int y = 0;
+    int z = 0;
     const SoundType* st;
 
     virtual Tile* setData(const SoundType& st, float particleGravity);
     virtual int getTexture(int face);
     virtual bool render(Tessellator& t, Level* level, int layer, int x, int y, int z);
     virtual void renderFace(Tessellator& t, int x, int y, int z, int face);
+    virtual void renderFace(Tessellator& t, int x, int y, int z, int face, int textureId);
     virtual void renderBackFace(Tessellator& t, int x, int y, int z, int face);
     virtual void renderFaceNoTexture(Player* player, Tessellator& t, int x, int y, int z, int face);
     virtual void onDestroy(Level* level, int x, int y, int z, ParticleEngine* engine, bool drop);

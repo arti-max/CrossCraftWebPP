@@ -4,9 +4,9 @@
 
 class Vec3D {
 public:
-    float x;
-    float y;
-    float z;
+    float x = 0.0f;
+    float y = 0.0f;
+    float z = 0.0f;
 
     Vec3D() : x(0), y(0), z(0) {}
     Vec3D(float x, float y, float z) {

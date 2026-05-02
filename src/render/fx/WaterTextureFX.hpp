@@ -1,8 +1,6 @@
 #pragma once
 #include "render/fx/TextureFX.hpp"
 #include <cmath>
-#include <stdlib.h>
-#include <math.h>
 #include <cstdlib>
 
 class WaterTextureFX : public TextureFX {
@@ -38,8 +36,7 @@ public:
                 }
 
                 int index = x + (y << 4);
-                next_height[index] =
-                    sum / 3.3f + disturbance[index] * 0.8f;
+                next_height[index] = sum / 3.3f + disturbance[index] * 0.8f;
             }
         }
 
@@ -54,7 +51,7 @@ public:
 
                 disturbance_delta[index] -= 0.1f;
 
-                if (static_cast<float>(std::rand()) / (float)RAND_MAX < 0.05f) {
+                if (static_cast<float>(std::rand()) / RAND_MAX < 0.05f) {
                     disturbance_delta[index] = 0.5f;
                 }
             }
@@ -73,11 +70,20 @@ public:
             if (value < 0.0f) value = 0.0f;
 
             float value2 = value * value;
-
-            int red = static_cast<int>(32.0f  + value2 * 32.0f);
+            
+            int red   = static_cast<int>(32.0f  + value2 * 32.0f);
             int green = static_cast<int>(50.0f  + value2 * 64.0f);
-            int blue = 255;
+            int blue  = 255;
             int alpha = static_cast<int>(146.0f + value2 * 50.0f);
+
+            if (anaglyph) {
+                int r = (red * 30 + green * 59 + 2805) / 100;
+                int g = (red * 30 + green * 70) / 100;
+                int b = (red * 30 + 17850) / 100;
+                red = r;
+                green = g;
+                blue = b;
+            }
 
             pixels[i * 4 + 0] = static_cast<unsigned char>(red);
             pixels[i * 4 + 1] = static_cast<unsigned char>(green);

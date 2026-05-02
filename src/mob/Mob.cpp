@@ -7,6 +7,9 @@
 ModelManager* Mob::modelManager = new ModelManager();
 
 Mob::Mob(Level* level) : Entity(level) {
+    this->x = 0.0f;
+    this->y = 0.0f;
+    this->z = 0.0f;
     this->setPos(this->x, this->y, this->z);
     this->timeOffs = Random::random() * 12398.0f;
     this->rot = Random::random() * M_PI * 2.0f;
@@ -199,7 +202,7 @@ void Mob::render(float partialTicks, Textures* textures) {
         float scale = 0.0625f;
         float bobOffset = (float)(-std::abs(std::cos((float)interpAnimStep * 0.6662f)) * 5.0f * interpRun * this->bobStrength - 23.0f);
         float interpX = this->xo + (this->x - this->xo) * partialTicks;
-        float interpY = this->yo + (this->y - this->yo) * partialTicks + this->renderOffset;
+        float interpY = this->yo + (this->y - this->yo) * partialTicks - 1.62F + this->renderOffset;
         float interpZ = this->zo + (this->z - this->zo) * partialTicks;
         glTranslatef(interpX, interpY, interpZ);
         float hurtAngle = (float)this->hurtTime - partialTicks;

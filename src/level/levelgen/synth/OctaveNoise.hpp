@@ -9,7 +9,7 @@
 class OctaveNoise : public Noise {
 private:
     std::vector<std::unique_ptr<ImprovedNoise>> noises;
-    int octaveCount;
+    int octaveCount = 0;
 
 public:
     OctaveNoise(Random& random, int octaves) : octaveCount(octaves) {

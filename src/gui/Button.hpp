@@ -3,12 +3,12 @@
 
 class Button {
 public:
-    int id;
-    int x;
-    int y; 
-    int w;
-    int h;
-    std::string msg;
+    int id = 0;
+    int x = 0;
+    int y = 0; 
+    int w = 0;
+    int h = 0;
+    std::string msg = "";
     bool visible = true;
     bool enabled = true;
 

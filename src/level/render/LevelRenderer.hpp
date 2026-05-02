@@ -17,9 +17,9 @@
 #include <GL/gl.h>
 
 struct NameTagInfo {
-    std::string text;
+    std::string text = "";
     Vec3 position;
-    float scale;
+    float scale = 0.0f;
 };
 
 class LevelRenderer : public LevelListener {
@@ -28,7 +28,7 @@ private:
     Textures* textures;
     std::vector<Chunk*> chunks;
     std::vector<Chunk*> sortedChunks;
-    int xChunks, yChunks, zChunks;
+    int xChunks = 0, yChunks = 0, zChunks = 0;
     GLuint surroundLists;
     float lX = 0.0f;
     float lY = 0.0f;
@@ -39,8 +39,9 @@ public:
     static const int MAX_REBUILDS_PER_FRAME = 4;
     static const int CHUNK_SIZE = 16;
     
-    int cloudTicks;
+    int cloudTicks = 0;
     int drawDistance = 0;
+    float cracks = 4;
 
     LevelRenderer(Level* level, Textures* textures);
     ~LevelRenderer();

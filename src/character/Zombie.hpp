@@ -7,9 +7,9 @@
 #include <cstdlib>
 #include <chrono>
 
-class Zombie : public Entity {
+class HZombie : public Entity {
 private:
-    static ZombieModel* zombieModel;
+    static HZombieModel* zombieModel;
     Textures* textures;
 
 public:
@@ -18,8 +18,8 @@ public:
     float speed;
     float rotA;
 
-    Zombie(Level* level, Textures* textures, float x, float y, float z);
-    ~Zombie() = default;
+    HZombie(Level* level, Textures* textures, float x, float y, float z);
+    ~HZombie() = default;
     
     void tick() override;
     void render(float partialTicks, Textures* textures) override;

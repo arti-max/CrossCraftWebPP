@@ -11,9 +11,7 @@ public:
     AABB(float x0, float y0, float z0, float x1, float y1, float z1);
 
     AABB expand(float xa, float ya, float za) const;
-
     AABB grow(float xa, float ya, float za) const;
-
     AABB cloneMove(float xa, float ya, float za) const;
 
     float clipXCollide(const AABB& c, float xa) const;
@@ -24,4 +22,5 @@ public:
     bool intersects(float x0, float y0, float z0, float x1, float y1, float z1) const;
 
     void move(float xa, float ya, float za);
+    void render() const;
 };

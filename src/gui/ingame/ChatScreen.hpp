@@ -4,7 +4,7 @@
 
 class ChatScreen : public Screen {
 private:
-    std::string message;
+    std::string message = "";
     int tickCount = 0;
     int inputDelay = 4;
 

@@ -12,8 +12,8 @@ class Hud {
 private:
     Textures* textures;
     CrossCraft* cc;
-    int width;
-    int height;
+    int width = 0;
+    int height = 0;
 
 public:
     Hud(CrossCraft* cc, Textures* textures, int width, int height);

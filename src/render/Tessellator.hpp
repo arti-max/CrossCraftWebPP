@@ -10,16 +10,16 @@ private:
     Tessellator& operator=(const Tessellator&) = delete;
 
     std::vector<float> buffer;
-    int vertices;
-    int p;
-    int len;
-    float u, v;
-    float r, g, b;
-    float nx, ny, nz;
-    bool hasTexture;
-    bool hasColor;
-    bool hasNormal;
-    bool noColor;
+    int vertices = 0;
+    int p = 0;
+    int len = 0;
+    float u = 0.0f, v = 0.0f;
+    float r = 0, g = 0, b = 0;
+    float nx = 0, ny = 0, nz = 0;
+    bool hasTexture = false;
+    bool hasColor = false;
+    bool hasNormal = false;
+    bool noColor = false;
 public:
     static const int MAX_FLOATS = 524288;
 

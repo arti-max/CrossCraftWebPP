@@ -3,7 +3,7 @@
 
 class FallingTile : public Tile {
 private:
-    int tileId;
+    int tileId = 0;
     int prevTileId = 0;
     static void tryFall(Level* level, int x, int y, int z);
 public:

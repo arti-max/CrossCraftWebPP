@@ -27,5 +27,5 @@ public:
     void setKey();
     void releaseAllKeys();
     void tick() override;
-    // void resetPos() override;
+    void resetPos() override;
 };

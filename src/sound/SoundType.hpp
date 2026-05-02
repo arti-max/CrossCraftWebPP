@@ -7,10 +7,10 @@
 class SoundType {
 private:
 public:
-    float volume;
-    float pitch;
-    std::string name;
-    std::string soundName;
+    float volume = 0.0f;
+    float pitch = 0.0f;
+    std::string name = "";
+    std::string soundName = "";
 
     SoundType(const std::string& name, float volume, float pitch, const std::string& soundName);
     SoundType();

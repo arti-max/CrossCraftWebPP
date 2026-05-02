@@ -7,8 +7,8 @@
 
 class ModelPart {
 private:
-    int textureOffsetX;
-    int textureOffsetY;
+    int textureOffsetX = 0;
+    int textureOffsetY = 0;
     
 public:
     std::vector<NewVertex> vertices;

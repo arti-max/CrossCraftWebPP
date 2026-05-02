@@ -11,7 +11,7 @@
 #include "Settings.hpp"
 
 struct SoundData {
-    ALuint bufferId;
+    ALuint bufferId = 0;
 };
 
 struct SoundGroup {

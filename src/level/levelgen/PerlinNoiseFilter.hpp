@@ -5,7 +5,7 @@
 class PerlinNoiseFilter {
 private:
     static constexpr int FUZZINESS = 16;
-    int octave;
+    int octave = 0;
 
 public:
     /**

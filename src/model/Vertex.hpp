@@ -5,8 +5,8 @@
 class NewVertex {
 public:
     Vec3D vector;
-    float u;
-    float v;
+    float u = 0.0f;
+    float v = 0.0f;
 
     NewVertex(float x, float y, float z, float u, float v) {
         this->vector = Vec3D(x, y, z);

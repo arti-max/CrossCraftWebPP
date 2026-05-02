@@ -2,7 +2,7 @@
 #include <cmath>
 #include <iostream>
 
-ZombieModel::ZombieModel() {
+HZombieModel::HZombieModel() {
     
     head = new Cube(0, 0);
     head->addBox(-4.0f, -8.0f, -4.0f, 8, 8, 8);
@@ -27,7 +27,7 @@ ZombieModel::ZombieModel() {
     leg1->setPos(2.0f, 12.0f, 0.0f);
 }
 
-ZombieModel::~ZombieModel() {
+HZombieModel::~HZombieModel() {
     delete head;
     delete body;
     delete arm0;
@@ -36,7 +36,7 @@ ZombieModel::~ZombieModel() {
     delete leg1;
 }
 
-void ZombieModel::render(float time, float speed, float tick, float headYRot, float headXRot, float scale) {
+void HZombieModel::render(float time, float speed, float tick, float headYRot, float headXRot, float scale) {
     
     this->head->yRot = headYRot / 57.29578f;
     this->head->xRot = headXRot / 57.29578f;

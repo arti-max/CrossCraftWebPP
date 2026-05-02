@@ -5,9 +5,9 @@
 #include <chrono>
 #include <random>
 
-ZombieModel* Zombie::zombieModel = nullptr;
+HZombieModel* HZombie::zombieModel = nullptr;
 
-Zombie::Zombie(Level* level, Textures* textures, float x, float y, float z) : Entity(level) {
+HZombie::HZombie(Level* level, Textures* textures, float x, float y, float z) : Entity(level) {
     this->textures = textures;
     
     if (!zombieModel) {
@@ -25,7 +25,7 @@ Zombie::Zombie(Level* level, Textures* textures, float x, float y, float z) : En
     this->speed = 1.0f;
 }
 
-void Zombie::tick() {
+void HZombie::tick() {
     this->xo = this->x;
     this->yo = this->y;
     this->zo = this->z;
@@ -70,7 +70,7 @@ void Zombie::tick() {
     }
 }
 
-void Zombie::render(float partialTicks, Textures* textures) {
+void HZombie::render(float partialTicks, Textures* textures) {
 glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, this->textures->loadTexture("char", GL_NEAREST));
     
@@ -104,13 +104,13 @@ glEnable(GL_TEXTURE_2D);
     glDisable(GL_TEXTURE_2D);
 }
 
-void Zombie::initModel() {
+void HZombie::initModel() {
     if (!zombieModel) {
-        zombieModel = new ZombieModel();
+        zombieModel = new HZombieModel();
     }
 }
 
-void Zombie::destroyModel() {
+void HZombie::destroyModel() {
     if (zombieModel) {
         delete zombieModel;
         zombieModel = nullptr;

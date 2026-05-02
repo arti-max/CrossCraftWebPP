@@ -130,12 +130,10 @@ void Entity::move(float xa, float ya, float za) {
 
     bb.move(0.0f, ya, 0.0f);
     if (!this->slide && yaOrg != ya) {
-        za = 0;
-        ya = 0;
-        xa = 0;
+        za = 0.0f;
+        ya = 0.0f;
+        xa = 0.0f;
     }
-
-    // bool grnd = this->onGround || yaOrg != ya && yaOrg < 0.0f;
 
     for (size_t i = 0; i < aabbs.size(); ++i) {
         xa = aabbs[i].clipXCollide(bb, xa);
@@ -143,9 +141,9 @@ void Entity::move(float xa, float ya, float za) {
 
     bb.move(xa, 0.0f, 0.0f);
     if (!this->slide && xaOrg != xa) {
-        za = 0;
-        ya = 0;
-        xa = 0;
+        za = 0.0f;
+        ya = 0.0f;
+        xa = 0.0f;
     }
 
     for (size_t i = 0; i < aabbs.size(); ++i) {
@@ -154,20 +152,10 @@ void Entity::move(float xa, float ya, float za) {
 
     bb.move(0.0f, 0.0f, za);
     if (!this->slide && zaOrg != za) {
-        za = 0;
-        ya = 0;
-        xa = 0;
+        za = 0.0f;
+        ya = 0.0f;
+        xa = 0.0f;
     }
-
-    // if (this->footSize > 0.0f && grnd && this->ySlideOffset < 0.05f && (xaOrg != xa || zaOrg != za)) {
-    //     float xx = xa;
-    //     float yy = ya;
-    //     float zz = za;
-    //     xa = xaOrg;
-    //     ya = this->footSize;
-    //     za = zaOrg;
-    //     // TODO: Завкончить обновление move метода
-    // }
 
     this->horizontalCollision = xaOrg != xa || zaOrg != za;
     this->onGround = (yaOrg != ya && yaOrg < 0.0f);
@@ -253,6 +241,9 @@ bool Entity::isLit() {
 }
 
 void Entity::render(float partialTicks, Textures* textures) {
+    if (this->debug) {
+        this->bb.render();
+    }
 }
 
 float Entity::randomFloat() {

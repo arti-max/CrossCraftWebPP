@@ -22,14 +22,16 @@ Item::Item(Level* level, float x, float y, float z, int resourceId) : Entity(lev
 }
 
 void Item::tick() {
-    Entity::tick();
-
+    this->xo = this->x;
+    this->yo = this->y;
+    this->zo = this->z;
     this->yd -= 0.04f;
-    this->move(xd, yd, zd);
+    this->move(this->xd, this->yd, this->zd);
     this->xd *= 0.98f;
     this->yd *= 0.98f;
     this->zd *= 0.98f;
     if (this->onGround) {
+        // Logger::logf(PREFIX_DEBUG, "ITEM: OnGround, bounce? %i\n", this->yd);
         this->xd *= 0.7f;
         this->zd *= 0.7f;
         this->yd *= -0.5f;
@@ -62,31 +64,23 @@ void Item::render(float partialTicks, Textures* textures) {
     float glow;
     glow = (glow = (glow = std::sin(rotation / 10.0F) * 0.5F + 0.5F) * glow) * glow;
 
-        glDisable(GL_TEXTURE_2D); // Чтобы рисовало сплошным цветом
+        glDisable(GL_TEXTURE_2D);
         glEnable(GL_BLEND);
-        glDisable(GL_LIGHTING);   // Выключаем свет (чтобы свечение было "чистым")
-        glDisable(GL_ALPHA_TEST); // ВАЖНО! Отключаем отсечение прозрачности
+        glDisable(GL_LIGHTING);
+        glDisable(GL_ALPHA_TEST);
         
-        // Аддитивный блендинг (лучше всего для свечения)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE); 
         
-        // КЛЮЧЕВОЙ МОМЕНТ: Запрещаем писать в буфер глубины!
-        // Это значит, что свечение нарисуется ПОВЕРХ, но не будет перекрывать сам предмет.
         glDepthMask(GL_FALSE); 
         
-        // Устанавливаем цвет (ModelPart теперь его подхватит)
-        // Попробуйте Красный цвет для теста, чтобы убедиться что блендинг работает
         // glColor4f(1.0f, 0.0f, 0.0f, glow * 0.4f); 
         glColor4f(1.0f, 1.0f, 1.0f, glow * 0.4f); 
-
-        // Чуть-чуть увеличиваем масштаб, чтобы избежать Z-fighting на гранях
         glPushMatrix();
         
         models[this->resourceId]->generateList();
         
         glPopMatrix();
         
-        // Восстанавливаем стейт
         glDepthMask(GL_TRUE);
         glEnable(GL_ALPHA_TEST);
         glEnable(GL_ALPHA_TEST);

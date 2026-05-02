@@ -13,16 +13,16 @@ class Chunk {
 private:
     static Tessellator& t;
     Level* level;
-    int x0, y0, z0;
-    int x1, y1, z1;
-    int lists;
+    int x0 = 0, y0 = 0, z0 = 0;
+    int x1 = 0, y1 = 0, z1 = 0;
+    int lists = 0;
     bool dirty = true;
 public:
     static int rebuiltThisFrame;
     static int updates;
     AABB boundingBox;
-    float boundingSphereRadius;
-        float x, y, z;
+    float boundingSphereRadius = 0.0f;
+    float x = 0.0f, y = 0.0f, z = 0.0f;
     bool visible = false;
 
     Chunk(Level* level, int x0, int y0, int z0, int x1, int y1, int z1);

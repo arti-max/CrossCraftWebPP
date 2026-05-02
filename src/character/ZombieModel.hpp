@@ -2,7 +2,7 @@
 #include "character/Cube.hpp"
 #include <cmath>
 
-class ZombieModel {
+class HZombieModel {
 public:
     Cube* head;
     Cube* body;
@@ -11,8 +11,8 @@ public:
     Cube* leg0;
     Cube* leg1;
 
-    ZombieModel();
-    ~ZombieModel();
+    HZombieModel();
+    ~HZombieModel();
     
     void render(float time, float speed, float tick, float headYRot, float headXRot, float scale);
 };

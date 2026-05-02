@@ -12,9 +12,9 @@ class Mob;
 class BasicAI : public AI {
 public:
     Random* random = new Random();
-    float xxa; // Ax
-    float yya; // Ay
-    float yRotA;
+    float xxa = 0.0f; // Ax
+    float yya = 0.0f; // Ay
+    float yRotA = 0.0f;
     Level* level;
     Mob* mob;
     bool jumping = false;
@@ -24,8 +24,8 @@ public:
     Entity* attackTarget = nullptr;
 
     void tick(Level* level, Mob* mob) override;
-    void jumpFromGround();
-    void update();
+    virtual void jumpFromGround();
+    virtual void update();
     void beforeRemove() override;
     void hurt(Entity* e, int dmg) override;
 };

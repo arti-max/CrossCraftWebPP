@@ -8,6 +8,8 @@ class Level;
 class Textures;
 
 class HumanMob : public Mob {
+private:
+    bool armor = Random::random() < 0.2f;
 public:
     HumanMob(Level* level, float x, float y, float z);
     void renderModel(Textures* textures, float time, float speed, float tick, float headYRot, float headXRot, float scale) override;

@@ -23,13 +23,15 @@ void Player::releaseAllKeys() {
     }
 }
 
-// void Player::resetPos() {
-//     this->heightOffset = 1.62;
-//     this->setSize(0.6f, 1.8f);
-//     if (this->level != nullptr) {
-//         this->level->player = this;
-//     }
-// }
+void Player::resetPos() {
+    this->heightOffset = 1.62;
+    this->setSize(0.6f, 1.8f);
+    Entity::resetPos();
+    if (this->level != nullptr) {
+        this->level->player = this;
+    }
+
+}
 
 void Player::tick() {
     this->xo = x;

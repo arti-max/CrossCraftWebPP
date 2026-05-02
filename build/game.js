@@ -71,7 +71,7 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: D:\Temp\tmpf1fm00ai.js
+// include: D:\Temp\tmpb1_cg3fn.js
 
   if (!Module['expectedDataFileDownloads']) Module['expectedDataFileDownloads'] = 0;
   Module['expectedDataFileDownloads']++;
@@ -160,6 +160,7 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
         if (!check) throw new Error(msg);
       }
 Module['FS_createPath']("/", "armor", true, true);
+Module['FS_createPath']("/", "mob", true, true);
 
     for (var file of metadata['files']) {
       var name = file['filename']
@@ -200,25 +201,25 @@ Module['FS_createPath']("/", "armor", true, true);
     }
 
     }
-    loadPackage({"files": [{"filename": "/armor/chain.png", "start": 0, "end": 3495}, {"filename": "/armor/plate.png", "start": 3495, "end": 4237}, {"filename": "/char.png", "start": 4237, "end": 7443}, {"filename": "/clouds.png", "start": 7443, "end": 17318}, {"filename": "/default.png", "start": 17318, "end": 21714}, {"filename": "/dirt.png", "start": 21714, "end": 22365}, {"filename": "/gui.png", "start": 22365, "end": 43925}, {"filename": "/rock.png", "start": 43925, "end": 44371}, {"filename": "/rock2.png", "start": 44371, "end": 44778}, {"filename": "/terrain.png", "start": 44778, "end": 72150}, {"filename": "/water.png", "start": 72150, "end": 72637}], "remote_package_size": 72637});
+    loadPackage({"files": [{"filename": "/armor/chain.png", "start": 0, "end": 3495}, {"filename": "/armor/plate.png", "start": 3495, "end": 4237}, {"filename": "/char.png", "start": 4237, "end": 7443}, {"filename": "/clouds.png", "start": 7443, "end": 17318}, {"filename": "/default.png", "start": 17318, "end": 21714}, {"filename": "/dirt.png", "start": 21714, "end": 22365}, {"filename": "/gui.png", "start": 22365, "end": 43925}, {"filename": "/mob/pig.png", "start": 43925, "end": 52556}, {"filename": "/mob/skeleton.png", "start": 52556, "end": 62524}, {"filename": "/mob/zombie.png", "start": 62524, "end": 73095}, {"filename": "/rock.png", "start": 73095, "end": 73541}, {"filename": "/rock2.png", "start": 73541, "end": 73948}, {"filename": "/terrain.png", "start": 73948, "end": 102333}, {"filename": "/water.png", "start": 102333, "end": 102820}], "remote_package_size": 102820});
 
   })();
 
-// end include: D:\Temp\tmpf1fm00ai.js
-// include: D:\Temp\tmp37qmt1bg.js
+// end include: D:\Temp\tmpb1_cg3fn.js
+// include: D:\Temp\tmp3zyf_11w.js
 
     // All the pre-js content up to here must remain later on, we need to run
     // it.
     if ((typeof ENVIRONMENT_IS_WASM_WORKER != 'undefined' && ENVIRONMENT_IS_WASM_WORKER) || (typeof ENVIRONMENT_IS_PTHREAD != 'undefined' && ENVIRONMENT_IS_PTHREAD) || (typeof ENVIRONMENT_IS_AUDIO_WORKLET != 'undefined' && ENVIRONMENT_IS_AUDIO_WORKLET)) Module['preRun'] = [];
     var necessaryPreJSTasks = Module['preRun'].slice();
-  // end include: D:\Temp\tmp37qmt1bg.js
-// include: D:\Temp\tmp66l02ass.js
+  // end include: D:\Temp\tmp3zyf_11w.js
+// include: D:\Temp\tmpgyyq1c8h.js
 
     if (!Module['preRun']) throw 'Module.preRun should exist because file support used it; did a pre-js delete it?';
     necessaryPreJSTasks.forEach((task) => {
       if (Module['preRun'].indexOf(task) < 0) throw 'All preRun tasks that exist before user pre-js code should remain after; did you replace Module or modify Module.preRun?';
     });
-  // end include: D:\Temp\tmp66l02ass.js
+  // end include: D:\Temp\tmpgyyq1c8h.js
 
 
 var arguments_ = [];
@@ -12776,15 +12777,15 @@ function checkIncomingModuleAPI() {
   ignoredModuleProp('fetchSettings');
 }
 var ASM_CONSTS = {
-  134359984: () => { FS.mount(IDBFS, {}, '/.crosscraft'); FS.syncfs(true, function (err) { if (err) console.error('Error loading filesystem:', err); else console.log('IndexedDB initialized'); }); },  
- 134360159: () => { FS.syncfs(false, function (err) { if (err) console.error('Error saving config:', err); }); },  
- 134360250: ($0) => { var name = UTF8ToString($0); var img = document.getElementById(name); if (!img || !img.complete || img.naturalWidth === 0) { console.error('Font constructor: Image element not found or not loaded:', name); throw new Error('Font image not available: ' + name); } var w = img.width; var h = img.height; var canvas = document.createElement('canvas'); canvas.width = w; canvas.height = h; var ctx = canvas.getContext('2d'); if (!ctx) { throw new Error('Could not get 2D context for font processing.'); } ctx.drawImage(img, 0, 0); var imageData = ctx.getImageData(0, 0, w, h); var rawPixels = imageData.data; Module.fontImageWidth = w; Module.fontImageHeight = h; Module.fontPixelData = rawPixels; },  
- 134360947: () => { return Module.fontImageWidth; },  
- 134360981: () => { return Module.fontImageHeight; },  
- 134361016: ($0, $1, $2) => { var pixelIndex = ($0 + $1 * $2) * 4 + 3; return Module.fontPixelData[pixelIndex]; },  
- 134361102: () => { delete Module.fontImageWidth; delete Module.fontImageHeight; delete Module.fontPixelData; },  
- 134361196: () => { console.log('🎯 EM_ASM: Requesting pointer lock...'); const canvas = document.getElementById('canvas'); if (canvas) { const requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock || canvas.webkitRequestPointerLock; if (requestPointerLock) { try { const result = requestPointerLock.call(canvas); if (result && typeof result.then === 'function') { result.then(function() { console.log('✅ Pointer lock request SUCCESS (Promise)'); }).catch(function(err) { console.error('❌ Pointer lock request FAILED (Promise):', err); }); } else { console.log('✅ Pointer lock request sent (Legacy API)'); } } catch (error) { console.error('❌ Exception during pointer lock request:', error); } } else { console.error('❌ Pointer lock API not available'); } } else { console.error('❌ Canvas element not found'); } },  
- 134362031: () => { const exitPointerLock = document.exitPointerLock || document.mozExitPointerLock || document.webkitExitPointerLock; if (exitPointerLock) { exitPointerLock.call(document); console.log('✅ Exit pointer lock called'); } else { console.error('❌ Exit pointer lock not available'); } }
+  134360544: () => { FS.mount(IDBFS, {}, '/.crosscraft'); FS.syncfs(true, function (err) { if (err) console.error('Error loading filesystem:', err); else console.log('IndexedDB initialized'); }); },  
+ 134360719: () => { FS.syncfs(false, function (err) { if (err) console.error('Error saving config:', err); }); },  
+ 134360810: ($0) => { var name = UTF8ToString($0); var img = document.getElementById(name); if (!img || !img.complete || img.naturalWidth === 0) { console.error('Font constructor: Image element not found or not loaded:', name); throw new Error('Font image not available: ' + name); } var w = img.width; var h = img.height; var canvas = document.createElement('canvas'); canvas.width = w; canvas.height = h; var ctx = canvas.getContext('2d'); if (!ctx) { throw new Error('Could not get 2D context for font processing.'); } ctx.drawImage(img, 0, 0); var imageData = ctx.getImageData(0, 0, w, h); var rawPixels = imageData.data; Module.fontImageWidth = w; Module.fontImageHeight = h; Module.fontPixelData = rawPixels; },  
+ 134361507: () => { return Module.fontImageWidth; },  
+ 134361541: () => { return Module.fontImageHeight; },  
+ 134361576: ($0, $1, $2) => { var pixelIndex = ($0 + $1 * $2) * 4 + 3; return Module.fontPixelData[pixelIndex]; },  
+ 134361662: () => { delete Module.fontImageWidth; delete Module.fontImageHeight; delete Module.fontPixelData; },  
+ 134361756: () => { console.log('🎯 EM_ASM: Requesting pointer lock...'); const canvas = document.getElementById('canvas'); if (canvas) { const requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock || canvas.webkitRequestPointerLock; if (requestPointerLock) { try { const result = requestPointerLock.call(canvas); if (result && typeof result.then === 'function') { result.then(function() { console.log('✅ Pointer lock request SUCCESS (Promise)'); }).catch(function(err) { console.error('❌ Pointer lock request FAILED (Promise):', err); }); } else { console.log('✅ Pointer lock request sent (Legacy API)'); } } catch (error) { console.error('❌ Exception during pointer lock request:', error); } } else { console.error('❌ Pointer lock API not available'); } } else { console.error('❌ Canvas element not found'); } },  
+ 134362591: () => { const exitPointerLock = document.exitPointerLock || document.mozExitPointerLock || document.webkitExitPointerLock; if (exitPointerLock) { exitPointerLock.call(document); console.log('✅ Exit pointer lock called'); } else { console.error('❌ Exit pointer lock not available'); } }
 };
 function js_getImageData(elementId,buffer,bufferSize,width,height) { try { const img = document.getElementById(UTF8ToString(elementId)); if (!img) { console.error('Image element not found:', UTF8ToString(elementId)); return 0; } if (!img.complete || img.naturalWidth === 0) { console.error('Image not loaded:', UTF8ToString(elementId)); return 0; } const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); canvas.width = img.width; canvas.height = img.height; ctx.drawImage(img, 0, 0); const imageData = ctx.getImageData(0, 0, img.width, img.height); const data = imageData.data; if (data.length > bufferSize) { console.error('Buffer too small for image:', UTF8ToString(elementId), 'need:', data.length, 'have:', bufferSize); return 0; } setValue(width, img.width, 'i32'); setValue(height, img.height, 'i32'); for (let i = 0; i < data.length; i++) { setValue(buffer + i, data[i], 'i8'); } console.log('Successfully loaded image:', UTF8ToString(elementId), 'size:', img.width, 'x', img.height); return 1; } catch (e) { console.error('Error in js_getImageData:', e); return 0; } }
 function js_loadTextureFromUrl(url,textureId,mode) { var img = new Image(); img.crossOrigin = "Anonymous"; img.onload = function() { console.log("Skin loaded from URL:", UTF8ToString(url)); var canvas = document.createElement('canvas'); canvas.width = img.width; canvas.height = img.height; var ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0); var imageData = ctx.getImageData(0, 0, img.width, img.height); var data = imageData.data; var bufferPtr = _malloc(data.length); writeArrayToMemory(data, bufferPtr); Module['_updateTextureFromJs'](textureId, bufferPtr, img.width, img.height, mode); _free(bufferPtr); }; img.onerror = function() { console.warn("Failed to load skin from URL:", UTF8ToString(url), "Keeping default."); }; img.src = UTF8ToString(url); }
@@ -12820,7 +12821,6 @@ var dynCall_ii = makeInvalidEarlyAccess('dynCall_ii');
 var dynCall_vi = makeInvalidEarlyAccess('dynCall_vi');
 var dynCall_vii = makeInvalidEarlyAccess('dynCall_vii');
 var dynCall_v = makeInvalidEarlyAccess('dynCall_v');
-var dynCall_iii = makeInvalidEarlyAccess('dynCall_iii');
 var dynCall_vif = makeInvalidEarlyAccess('dynCall_vif');
 var dynCall_vifff = makeInvalidEarlyAccess('dynCall_vifff');
 var dynCall_viff = makeInvalidEarlyAccess('dynCall_viff');
@@ -12831,6 +12831,9 @@ var dynCall_vifffff = makeInvalidEarlyAccess('dynCall_vifffff');
 var dynCall_fii = makeInvalidEarlyAccess('dynCall_fii');
 var dynCall_fifff = makeInvalidEarlyAccess('dynCall_fifff');
 var dynCall_viii = makeInvalidEarlyAccess('dynCall_viii');
+var dynCall_viiffffff = makeInvalidEarlyAccess('dynCall_viiffffff');
+var dynCall_viiiff = makeInvalidEarlyAccess('dynCall_viiiff');
+var dynCall_iii = makeInvalidEarlyAccess('dynCall_iii');
 var dynCall_viiiiii = makeInvalidEarlyAccess('dynCall_viiiiii');
 var dynCall_viiiiiii = makeInvalidEarlyAccess('dynCall_viiiiiii');
 var dynCall_viiii = makeInvalidEarlyAccess('dynCall_viiii');
@@ -12842,8 +12845,6 @@ var dynCall_iiif = makeInvalidEarlyAccess('dynCall_iiif');
 var dynCall_iiiii = makeInvalidEarlyAccess('dynCall_iiiii');
 var dynCall_fiiiii = makeInvalidEarlyAccess('dynCall_fiiiii');
 var dynCall_iiii = makeInvalidEarlyAccess('dynCall_iiii');
-var dynCall_viiffffff = makeInvalidEarlyAccess('dynCall_viiffffff');
-var dynCall_viiiff = makeInvalidEarlyAccess('dynCall_viiiff');
 var dynCall_iif = makeInvalidEarlyAccess('dynCall_iif');
 var dynCall_iiiffi = makeInvalidEarlyAccess('dynCall_iiiffi');
 var dynCall_i = makeInvalidEarlyAccess('dynCall_i');
@@ -12905,7 +12906,6 @@ function assignWasmExports(wasmExports) {
   assert(typeof wasmExports['dynCall_vi'] != 'undefined', 'missing Wasm export: dynCall_vi');
   assert(typeof wasmExports['dynCall_vii'] != 'undefined', 'missing Wasm export: dynCall_vii');
   assert(typeof wasmExports['dynCall_v'] != 'undefined', 'missing Wasm export: dynCall_v');
-  assert(typeof wasmExports['dynCall_iii'] != 'undefined', 'missing Wasm export: dynCall_iii');
   assert(typeof wasmExports['dynCall_vif'] != 'undefined', 'missing Wasm export: dynCall_vif');
   assert(typeof wasmExports['dynCall_vifff'] != 'undefined', 'missing Wasm export: dynCall_vifff');
   assert(typeof wasmExports['dynCall_viff'] != 'undefined', 'missing Wasm export: dynCall_viff');
@@ -12916,6 +12916,9 @@ function assignWasmExports(wasmExports) {
   assert(typeof wasmExports['dynCall_fii'] != 'undefined', 'missing Wasm export: dynCall_fii');
   assert(typeof wasmExports['dynCall_fifff'] != 'undefined', 'missing Wasm export: dynCall_fifff');
   assert(typeof wasmExports['dynCall_viii'] != 'undefined', 'missing Wasm export: dynCall_viii');
+  assert(typeof wasmExports['dynCall_viiffffff'] != 'undefined', 'missing Wasm export: dynCall_viiffffff');
+  assert(typeof wasmExports['dynCall_viiiff'] != 'undefined', 'missing Wasm export: dynCall_viiiff');
+  assert(typeof wasmExports['dynCall_iii'] != 'undefined', 'missing Wasm export: dynCall_iii');
   assert(typeof wasmExports['dynCall_viiiiii'] != 'undefined', 'missing Wasm export: dynCall_viiiiii');
   assert(typeof wasmExports['dynCall_viiiiiii'] != 'undefined', 'missing Wasm export: dynCall_viiiiiii');
   assert(typeof wasmExports['dynCall_viiii'] != 'undefined', 'missing Wasm export: dynCall_viiii');
@@ -12927,8 +12930,6 @@ function assignWasmExports(wasmExports) {
   assert(typeof wasmExports['dynCall_iiiii'] != 'undefined', 'missing Wasm export: dynCall_iiiii');
   assert(typeof wasmExports['dynCall_fiiiii'] != 'undefined', 'missing Wasm export: dynCall_fiiiii');
   assert(typeof wasmExports['dynCall_iiii'] != 'undefined', 'missing Wasm export: dynCall_iiii');
-  assert(typeof wasmExports['dynCall_viiffffff'] != 'undefined', 'missing Wasm export: dynCall_viiffffff');
-  assert(typeof wasmExports['dynCall_viiiff'] != 'undefined', 'missing Wasm export: dynCall_viiiff');
   assert(typeof wasmExports['dynCall_iif'] != 'undefined', 'missing Wasm export: dynCall_iif');
   assert(typeof wasmExports['dynCall_iiiffi'] != 'undefined', 'missing Wasm export: dynCall_iiiffi');
   assert(typeof wasmExports['dynCall_i'] != 'undefined', 'missing Wasm export: dynCall_i');
@@ -12987,7 +12988,6 @@ function assignWasmExports(wasmExports) {
   dynCall_vi = dynCalls['vi'] = createExportWrapper('dynCall_vi', 2);
   dynCall_vii = dynCalls['vii'] = createExportWrapper('dynCall_vii', 3);
   dynCall_v = dynCalls['v'] = createExportWrapper('dynCall_v', 1);
-  dynCall_iii = dynCalls['iii'] = createExportWrapper('dynCall_iii', 3);
   dynCall_vif = dynCalls['vif'] = createExportWrapper('dynCall_vif', 3);
   dynCall_vifff = dynCalls['vifff'] = createExportWrapper('dynCall_vifff', 5);
   dynCall_viff = dynCalls['viff'] = createExportWrapper('dynCall_viff', 4);
@@ -12998,6 +12998,9 @@ function assignWasmExports(wasmExports) {
   dynCall_fii = dynCalls['fii'] = createExportWrapper('dynCall_fii', 3);
   dynCall_fifff = dynCalls['fifff'] = createExportWrapper('dynCall_fifff', 5);
   dynCall_viii = dynCalls['viii'] = createExportWrapper('dynCall_viii', 4);
+  dynCall_viiffffff = dynCalls['viiffffff'] = createExportWrapper('dynCall_viiffffff', 9);
+  dynCall_viiiff = dynCalls['viiiff'] = createExportWrapper('dynCall_viiiff', 6);
+  dynCall_iii = dynCalls['iii'] = createExportWrapper('dynCall_iii', 3);
   dynCall_viiiiii = dynCalls['viiiiii'] = createExportWrapper('dynCall_viiiiii', 7);
   dynCall_viiiiiii = dynCalls['viiiiiii'] = createExportWrapper('dynCall_viiiiiii', 8);
   dynCall_viiii = dynCalls['viiii'] = createExportWrapper('dynCall_viiii', 5);
@@ -13009,8 +13012,6 @@ function assignWasmExports(wasmExports) {
   dynCall_iiiii = dynCalls['iiiii'] = createExportWrapper('dynCall_iiiii', 5);
   dynCall_fiiiii = dynCalls['fiiiii'] = createExportWrapper('dynCall_fiiiii', 6);
   dynCall_iiii = dynCalls['iiii'] = createExportWrapper('dynCall_iiii', 4);
-  dynCall_viiffffff = dynCalls['viiffffff'] = createExportWrapper('dynCall_viiffffff', 9);
-  dynCall_viiiff = dynCalls['viiiff'] = createExportWrapper('dynCall_viiiff', 6);
   dynCall_iif = dynCalls['iif'] = createExportWrapper('dynCall_iif', 3);
   dynCall_iiiffi = dynCalls['iiiffi'] = createExportWrapper('dynCall_iiiffi', 6);
   dynCall_i = dynCalls['i'] = createExportWrapper('dynCall_i', 1);

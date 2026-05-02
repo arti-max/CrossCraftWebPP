@@ -4,9 +4,9 @@
 class LiquidTile : public Tile {
 protected:
     LiquidType liquidType;
-    int calmTileId;
-    int tileId;
-    int tickRate;
+    int calmTileId = 0;
+    int tileId = 0;
+    int tickRate = 0;
 
     bool shouldRenderFace(Level* level, int x, int y, int z, int layer, int face) override;
 private:

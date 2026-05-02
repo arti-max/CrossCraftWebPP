@@ -3,6 +3,10 @@
 #include <vector>
 
 EntityMeshSlot& EntityMeshSlot::init(float x, float y, float z) {
+    if (std::isnan(x) || std::isinf(x)) x = 0.0f;
+    if (std::isnan(y) || std::isinf(y)) y = 0.0f;
+    if (std::isnan(z) || std::isinf(z)) z = 0.0f;
+    
     this->xSlot = (int)(x / 16.0f);
     this->ySlot = (int)(y / 16.0f);
     this->zSlot = (int)(z / 16.0f);

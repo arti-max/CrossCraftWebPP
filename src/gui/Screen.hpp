@@ -8,8 +8,8 @@ class CrossCraft;
 class Screen {
 protected:
     CrossCraft* cc;
-    int width;
-    int height;
+    int width = 0;
+    int height = 0;
     float imgZOrder = 0.0f;
     std::vector<Button*> buttons;
     virtual void fill(int x0, int y0, int x1, int y1, int col);
