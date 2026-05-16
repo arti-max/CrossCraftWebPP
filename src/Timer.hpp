@@ -19,6 +19,9 @@ public:
 
     Timer(float ticksPerSecond);
     void advanceTime();
+
+    float getTickIntervalMs() const { return 1000.0f / ticksPerSecond; }
+    long long msUntilNextTick() const;
     
 private:
     long long getCurrentTimeNanos();

@@ -86,7 +86,6 @@ private:
     HitResult* hitResult;
     LevelGen* levelGen = new LevelGen(this);
     LevelIO* levelIO = new LevelIO(this);
-    ParticleEngine* particleEngine;
     Hud* hud;
     BlockSelectScreen* blockSelectScreen;
     
@@ -132,6 +131,7 @@ public:
 
     Level* level;
     Screen* screen = nullptr;
+    ParticleEngine* particleEngine;
     Font* font;
     Textures* textures = nullptr;
     Player* player;
