@@ -52,7 +52,13 @@ void Mob::tick() {
     }
 
     if (this->isUnderWater()) {
-        // TODO: Air Supply
+        if (this->airSupply > 0) {
+            --this->airSupply;
+        } else {
+            this->hurt(nullptr, 2);
+        }
+    } else {
+        this->airSupply = Mob::TOTAL_AIR_SUPPLY;
     }
 
     if (this->isInWater()) {
@@ -308,7 +314,10 @@ void Mob::travel(float xxa, float yya) {
 }
 
 void Mob::causeFallDamage(float fall) {
-    // TODO: calculate damage
+    int dmg = std::ceil(fall - 3.0f);
+    if (dmg > 0) {
+        this->hurt((Entity*)nullptr, dmg);
+    }
 }
 
 void Mob::hurt(Entity* e, int dmg) {
@@ -362,4 +371,15 @@ void Mob::die(Entity* e) {
 
 bool Mob::isShootable() {
     return true;
+}
+
+void Mob::heal(int hp) {
+    if (this->health > 0) {
+        this->health += hp;
+        if (this->health > 20) {
+            this->health = 20;
+        }
+
+        this->invulnerableTime = this->invulnerableDuration / 2;
+    }
 }

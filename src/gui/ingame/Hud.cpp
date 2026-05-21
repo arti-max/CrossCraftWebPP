@@ -30,7 +30,7 @@ void Hud::render(Player* player, Level* level, float partialTicks) {
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     glEnable(GL_TEXTURE_2D);
 
-    glBindTexture(GL_TEXTURE_2D, textures->loadTexture("gui", GL_NEAREST));
+    glBindTexture(GL_TEXTURE_2D, textures->loadTexture("/gui/gui.png", GL_NEAREST));
     
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -40,6 +40,66 @@ void Hud::render(Player* player, Level* level, float partialTicks) {
     int slot = player->inventory->selectedSlot; 
     drawTexturedModalRect(xStart - 1 + slot * 20, yStart - 1, 0, 22, 24, 24);
     
+    glBindTexture(GL_TEXTURE_2D, textures->loadTexture("/gui/icons.png", GL_NEAREST));
+    this->drawTexturedModalRect(screenWidth / 2 - 7, screenHeight /2 - 7, 0, 0, 16, 16);
+    bool blink = this->cc->player->invulnerableTime / 3 % 2 == 1;
+    if (this->cc->player->invulnerableTime < 10) {
+        blink = false;
+    }
+
+    int health = this->cc->player->health;
+    int lasth = this->cc->player->lastHealth;
+    this->random->setSeed(this->ticks * 312871);
+
+    if (this->cc->gamemode->isSurvival()) {
+        for (int i = 0; i < 10; ++i) {
+            int heartYOffset = 0;
+            if (blink) {
+                heartYOffset = 1;
+            }
+
+            int heartX = this->width / 2 - 91 + (i*8);
+            int heartY = this->height - 32;
+            if (health <= 4) {
+                heartY += this->random->nextInt(2);
+            }
+
+            this->drawTexturedModalRect(heartX, heartY, 16 + heartYOffset * 9, 0, 9, 9);
+
+            if (blink) {
+                if (i * 2 + 1 < lasth) {
+                    this->drawTexturedModalRect(heartX, heartY, 70, 0, 9, 9);
+                }
+                if (i * 2 + 1 == lasth) {
+                    this->drawTexturedModalRect(heartX, heartY, 79, 0, 9, 9);
+                }
+            }
+
+            if (i * 2 + 1 < health) {
+                this->drawTexturedModalRect(heartX, heartY, 52, 0, 9, 9);
+            }
+            if (i * 2 + 1 == health) {
+                this->drawTexturedModalRect(heartX, heartY, 61, 0, 9, 9);
+            }
+        } 
+
+        if (this->cc->player->isUnderWater()) {
+            int airFull = (int)std::ceil((this->cc->player->airSupply - 2) * 10.0f / 300.0f);
+            int airTotal = (int)std::ceil(this->cc->player->airSupply * 10.0f / 300.0f);
+            int airEmpty = airTotal - airFull;
+
+            for (int i = 0; i < airFull + airEmpty; ++i) {
+                int bubbleX = this->width / 2 - 91 + (i*8);
+                int bubbleY = this->height - 32 - 9;
+                if (i < airFull) {
+                    this->drawTexturedModalRect(bubbleX, bubbleY, 16, 18, 9, 9);
+                } else {
+                    this->drawTexturedModalRect(bubbleX, bubbleY, 25, 18, 9, 9);
+                }
+            }
+        }
+    }
+
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
     glClear(GL_DEPTH_BUFFER_BIT); 

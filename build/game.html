@@ -311,7 +311,8 @@
         <img id="rock2" src="rock2.png" crossorigin="anonymous" />
         <img id="water" src="water.png" crossorigin="anonymous" />
         <img id="clouds" src="clouds.png" crossorigin="anonymous" />
-        <img id="gui" src="gui/gui.png" crossorigin="anonymous" />
+        <img id="/gui/gui.png" src="gui/gui.png" crossorigin="anonymous" />
+        <img id="/gui/icons.png" src="gui/icons.png" crossorigin="anonymous" />
         <img id="/armor/plate.png" src="armor/plate.png" crossorigin="anonymous" />
         <img id="/armor/chain.png" src="armor/chain.png" crossorigin="anonymous" />
         <img id="/mob/zombie.png" src="mob/zombie.png" crossorigin="anonymous" />
@@ -391,7 +392,7 @@
         }
 
         // Ждем загрузки всех изображений
-        let imagesToLoad = ['terrain', 'char', 'dirt', 'rock', 'rock2', 'water', 'default', 'clouds', 'gui'];
+        let imagesToLoad = ['terrain', 'char', 'dirt', 'rock', 'rock2', 'water', 'default', 'clouds', '/gui/gui.png', '/gui/icons.png'];
         let loadedCount = 0;
         
         function checkAllImagesLoaded() {

@@ -10,6 +10,10 @@ private:
 public:
     Random() : generator(std::random_device{}()) {}
     Random(int seed) : generator(seed) {}
+
+    void setSeed(int seed) {
+        generator.seed(seed);
+    }
     
     int nextInt() {
         std::uniform_int_distribution<int> dist(INT_MIN, INT_MAX);

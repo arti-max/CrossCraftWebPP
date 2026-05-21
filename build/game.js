@@ -71,7 +71,7 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: D:\Temp\tmpnmq7szam.js
+// include: D:\Temp\tmpgqjixvrj.js
 
   if (!Module['expectedDataFileDownloads']) Module['expectedDataFileDownloads'] = 0;
   Module['expectedDataFileDownloads']++;
@@ -160,6 +160,7 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
         if (!check) throw new Error(msg);
       }
 Module['FS_createPath']("/", "gui", true, true);
+Module['FS_createPath']("/", "item", true, true);
 Module['FS_createPath']("/", "mob", true, true);
 
     for (var file of metadata['files']) {
@@ -201,25 +202,25 @@ Module['FS_createPath']("/", "mob", true, true);
     }
 
     }
-    loadPackage({"files": [{"filename": "/char.png", "start": 0, "end": 3206}, {"filename": "/clouds.png", "start": 3206, "end": 13081}, {"filename": "/default.png", "start": 13081, "end": 17477}, {"filename": "/dirt.png", "start": 17477, "end": 18128}, {"filename": "/gui/gui.png", "start": 18128, "end": 39688}, {"filename": "/mob/pig.png", "start": 39688, "end": 48319}, {"filename": "/mob/skeleton.png", "start": 48319, "end": 58287}, {"filename": "/mob/zombie.png", "start": 58287, "end": 68858}, {"filename": "/rock.png", "start": 68858, "end": 69304}, {"filename": "/rock2.png", "start": 69304, "end": 69711}, {"filename": "/terrain.png", "start": 69711, "end": 98096}, {"filename": "/water.png", "start": 98096, "end": 98583}], "remote_package_size": 98583});
+    loadPackage({"files": [{"filename": "/char.png", "start": 0, "end": 3206}, {"filename": "/clouds.png", "start": 3206, "end": 13081}, {"filename": "/default.png", "start": 13081, "end": 17477}, {"filename": "/dirt.png", "start": 17477, "end": 18128}, {"filename": "/gui/gui.png", "start": 18128, "end": 39688}, {"filename": "/gui/icons.png", "start": 39688, "end": 44422}, {"filename": "/item/arrows.png", "start": 44422, "end": 45352}, {"filename": "/item/sign.png", "start": 45352, "end": 54900}, {"filename": "/mob/pig.png", "start": 54900, "end": 63531}, {"filename": "/mob/skeleton.png", "start": 63531, "end": 73499}, {"filename": "/mob/zombie.png", "start": 73499, "end": 84070}, {"filename": "/rock.png", "start": 84070, "end": 84516}, {"filename": "/rock2.png", "start": 84516, "end": 84923}, {"filename": "/terrain.png", "start": 84923, "end": 113308}, {"filename": "/water.png", "start": 113308, "end": 113795}], "remote_package_size": 113795});
 
   })();
 
-// end include: D:\Temp\tmpnmq7szam.js
-// include: D:\Temp\tmp0c1pqe0c.js
+// end include: D:\Temp\tmpgqjixvrj.js
+// include: D:\Temp\tmp9wfr4dmg.js
 
     // All the pre-js content up to here must remain later on, we need to run
     // it.
     if ((typeof ENVIRONMENT_IS_WASM_WORKER != 'undefined' && ENVIRONMENT_IS_WASM_WORKER) || (typeof ENVIRONMENT_IS_PTHREAD != 'undefined' && ENVIRONMENT_IS_PTHREAD) || (typeof ENVIRONMENT_IS_AUDIO_WORKLET != 'undefined' && ENVIRONMENT_IS_AUDIO_WORKLET)) Module['preRun'] = [];
     var necessaryPreJSTasks = Module['preRun'].slice();
-  // end include: D:\Temp\tmp0c1pqe0c.js
-// include: D:\Temp\tmp_35enb3b.js
+  // end include: D:\Temp\tmp9wfr4dmg.js
+// include: D:\Temp\tmp6q6bodcy.js
 
     if (!Module['preRun']) throw 'Module.preRun should exist because file support used it; did a pre-js delete it?';
     necessaryPreJSTasks.forEach((task) => {
       if (Module['preRun'].indexOf(task) < 0) throw 'All preRun tasks that exist before user pre-js code should remain after; did you replace Module or modify Module.preRun?';
     });
-  // end include: D:\Temp\tmp_35enb3b.js
+  // end include: D:\Temp\tmp6q6bodcy.js
 
 
 var arguments_ = [];
@@ -1110,12 +1111,6 @@ async function createWasm() {
   }
   __ZN16SurvivalGameMode12prepareLevelEP5Level.stub = true;
 
-  function __ZN16SurvivalGameMode7useItemEP6Playeri(...args
-  ) {
-  abort('missing function: _ZN16SurvivalGameMode7useItemEP6Playeri');
-  }
-  __ZN16SurvivalGameMode7useItemEP6Playeri.stub = true;
-
   function __ZN16SurvivalGameMode8spawnMobEv(...args
   ) {
   abort('missing function: _ZN16SurvivalGameMode8spawnMobEv');
@@ -1127,12 +1122,6 @@ async function createWasm() {
   abort('missing function: _ZN2AI4hurtEP6Entityi');
   }
   __ZN2AI4hurtEP6Entityi.stub = true;
-
-  function __ZN3Mob4healEi(...args
-  ) {
-  abort('missing function: _ZN3Mob4healEi');
-  }
-  __ZN3Mob4healEi.stub = true;
 
   function __ZN4TileD1Ev(...args
   ) {
@@ -12807,15 +12796,15 @@ function checkIncomingModuleAPI() {
   ignoredModuleProp('fetchSettings');
 }
 var ASM_CONSTS = {
-  134361408: () => { FS.mount(IDBFS, {}, '/.crosscraft'); FS.syncfs(true, function (err) { if (err) console.error('Error loading filesystem:', err); else console.log('IndexedDB initialized'); }); },  
- 134361583: () => { FS.syncfs(false, function (err) { if (err) console.error('Error saving config:', err); }); },  
- 134361674: ($0) => { var name = UTF8ToString($0); var img = document.getElementById(name); if (!img || !img.complete || img.naturalWidth === 0) { console.error('Font constructor: Image element not found or not loaded:', name); throw new Error('Font image not available: ' + name); } var w = img.width; var h = img.height; var canvas = document.createElement('canvas'); canvas.width = w; canvas.height = h; var ctx = canvas.getContext('2d'); if (!ctx) { throw new Error('Could not get 2D context for font processing.'); } ctx.drawImage(img, 0, 0); var imageData = ctx.getImageData(0, 0, w, h); var rawPixels = imageData.data; Module.fontImageWidth = w; Module.fontImageHeight = h; Module.fontPixelData = rawPixels; },  
- 134362371: () => { return Module.fontImageWidth; },  
- 134362405: () => { return Module.fontImageHeight; },  
- 134362440: ($0, $1, $2) => { var pixelIndex = ($0 + $1 * $2) * 4 + 3; return Module.fontPixelData[pixelIndex]; },  
- 134362526: () => { delete Module.fontImageWidth; delete Module.fontImageHeight; delete Module.fontPixelData; },  
- 134362620: () => { console.log('🎯 EM_ASM: Requesting pointer lock...'); const canvas = document.getElementById('canvas'); if (canvas) { const requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock || canvas.webkitRequestPointerLock; if (requestPointerLock) { try { const result = requestPointerLock.call(canvas); if (result && typeof result.then === 'function') { result.then(function() { console.log('✅ Pointer lock request SUCCESS (Promise)'); }).catch(function(err) { console.error('❌ Pointer lock request FAILED (Promise):', err); }); } else { console.log('✅ Pointer lock request sent (Legacy API)'); } } catch (error) { console.error('❌ Exception during pointer lock request:', error); } } else { console.error('❌ Pointer lock API not available'); } } else { console.error('❌ Canvas element not found'); } },  
- 134363455: () => { const exitPointerLock = document.exitPointerLock || document.mozExitPointerLock || document.webkitExitPointerLock; if (exitPointerLock) { exitPointerLock.call(document); console.log('✅ Exit pointer lock called'); } else { console.error('❌ Exit pointer lock not available'); } }
+  134361440: () => { FS.mount(IDBFS, {}, '/.crosscraft'); FS.syncfs(true, function (err) { if (err) console.error('Error loading filesystem:', err); else console.log('IndexedDB initialized'); }); },  
+ 134361615: () => { FS.syncfs(false, function (err) { if (err) console.error('Error saving config:', err); }); },  
+ 134361706: ($0) => { var name = UTF8ToString($0); var img = document.getElementById(name); if (!img || !img.complete || img.naturalWidth === 0) { console.error('Font constructor: Image element not found or not loaded:', name); throw new Error('Font image not available: ' + name); } var w = img.width; var h = img.height; var canvas = document.createElement('canvas'); canvas.width = w; canvas.height = h; var ctx = canvas.getContext('2d'); if (!ctx) { throw new Error('Could not get 2D context for font processing.'); } ctx.drawImage(img, 0, 0); var imageData = ctx.getImageData(0, 0, w, h); var rawPixels = imageData.data; Module.fontImageWidth = w; Module.fontImageHeight = h; Module.fontPixelData = rawPixels; },  
+ 134362403: () => { return Module.fontImageWidth; },  
+ 134362437: () => { return Module.fontImageHeight; },  
+ 134362472: ($0, $1, $2) => { var pixelIndex = ($0 + $1 * $2) * 4 + 3; return Module.fontPixelData[pixelIndex]; },  
+ 134362558: () => { delete Module.fontImageWidth; delete Module.fontImageHeight; delete Module.fontPixelData; },  
+ 134362652: () => { console.log('🎯 EM_ASM: Requesting pointer lock...'); const canvas = document.getElementById('canvas'); if (canvas) { const requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock || canvas.webkitRequestPointerLock; if (requestPointerLock) { try { const result = requestPointerLock.call(canvas); if (result && typeof result.then === 'function') { result.then(function() { console.log('✅ Pointer lock request SUCCESS (Promise)'); }).catch(function(err) { console.error('❌ Pointer lock request FAILED (Promise):', err); }); } else { console.log('✅ Pointer lock request sent (Legacy API)'); } } catch (error) { console.error('❌ Exception during pointer lock request:', error); } } else { console.error('❌ Pointer lock API not available'); } } else { console.error('❌ Canvas element not found'); } },  
+ 134363487: () => { const exitPointerLock = document.exitPointerLock || document.mozExitPointerLock || document.webkitExitPointerLock; if (exitPointerLock) { exitPointerLock.call(document); console.log('✅ Exit pointer lock called'); } else { console.error('❌ Exit pointer lock not available'); } }
 };
 function js_getImageData(elementId,buffer,bufferSize,width,height) { try { const img = document.getElementById(UTF8ToString(elementId)); if (!img) { console.error('Image element not found:', UTF8ToString(elementId)); return 0; } if (!img.complete || img.naturalWidth === 0) { console.error('Image not loaded:', UTF8ToString(elementId)); return 0; } const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); canvas.width = img.width; canvas.height = img.height; ctx.drawImage(img, 0, 0); const imageData = ctx.getImageData(0, 0, img.width, img.height); const data = imageData.data; if (data.length > bufferSize) { console.error('Buffer too small for image:', UTF8ToString(elementId), 'need:', data.length, 'have:', bufferSize); return 0; } setValue(width, img.width, 'i32'); setValue(height, img.height, 'i32'); for (let i = 0; i < data.length; i++) { setValue(buffer + i, data[i], 'i8'); } console.log('Successfully loaded image:', UTF8ToString(elementId), 'size:', img.width, 'x', img.height); return 1; } catch (e) { console.error('Error in js_getImageData:', e); return 0; } }
 function js_loadTextureFromUrl(url,textureId,mode) { var img = new Image(); img.crossOrigin = "Anonymous"; img.onload = function() { console.log("Skin loaded from URL:", UTF8ToString(url)); var canvas = document.createElement('canvas'); canvas.width = img.width; canvas.height = img.height; var ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0); var imageData = ctx.getImageData(0, 0, img.width, img.height); var data = imageData.data; var bufferPtr = _malloc(data.length); writeArrayToMemory(data, bufferPtr); Module['_updateTextureFromJs'](textureId, bufferPtr, img.width, img.height, mode); _free(bufferPtr); }; img.onerror = function() { console.warn("Failed to load skin from URL:", UTF8ToString(url), "Keeping default."); }; img.src = UTF8ToString(url); }
@@ -13088,13 +13077,9 @@ var wasmImports = {
   /** @export */
   _ZN16SurvivalGameMode12prepareLevelEP5Level: __ZN16SurvivalGameMode12prepareLevelEP5Level,
   /** @export */
-  _ZN16SurvivalGameMode7useItemEP6Playeri: __ZN16SurvivalGameMode7useItemEP6Playeri,
-  /** @export */
   _ZN16SurvivalGameMode8spawnMobEv: __ZN16SurvivalGameMode8spawnMobEv,
   /** @export */
   _ZN2AI4hurtEP6Entityi: __ZN2AI4hurtEP6Entityi,
-  /** @export */
-  _ZN3Mob4healEi: __ZN3Mob4healEi,
   /** @export */
   _ZN4TileD1Ev: __ZN4TileD1Ev,
   /** @export */

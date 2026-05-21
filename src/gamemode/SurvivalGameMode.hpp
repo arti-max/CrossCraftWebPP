@@ -24,4 +24,5 @@ public:
     void preparePlayer(Player* player) override;
     void spawnMob() override;
     void prepareLevel(Level* level) override;
+    bool isSurvival() override;
 };

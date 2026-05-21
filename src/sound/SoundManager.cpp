@@ -271,12 +271,12 @@ void SoundManager::updateListener(float x, float y, float z, float yaw, float pi
     alListener3f(AL_POSITION, x, y, z);
     alListener3f(AL_VELOCITY, 0, 0, 0);
 
-    float radYaw = yaw * (M_PI / 180.0f);
-    float radPitch = pitch * (M_PI / 180.0f);
+    float radYaw = -yaw * (M_PI / 180.0f);
+    float radPitch = -pitch * (M_PI / 180.0f);
 
     float lookX = -sin(radYaw) * cos(radPitch);
-    float lookY = -sin(radPitch);
-    float lookZ = cos(radYaw) * cos(radPitch);
+    float lookY = sin(radPitch);
+    float lookZ = -cos(radYaw) * cos(radPitch);
 
     float upX = 0.0f;
     float upY = 1.0f;

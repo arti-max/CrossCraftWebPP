@@ -1,6 +1,7 @@
 #include "mob/ai/BasicAttackAI.hpp"
 #include "mob/Mob.hpp"
 #include "level/Level.hpp"
+#include "model/Vec3D.hpp"
 
 void BasicAttackAI::update() {
     BasicAI::update();
@@ -52,10 +53,24 @@ void BasicAttackAI::doAttack() {
 }
 
 bool BasicAttackAI::attack(Entity* target) {
-    // TODO: attack player
-    return true;
+    Vec3D mobVec = Vec3D(this->mob->x, this->mob->y, this->mob->z);
+    Vec3D targetVec = Vec3D(target->x, target->y, target->z);
+    if (this->level->clip(mobVec, targetVec) != nullptr) {
+        return false;
+    } else {
+        this->mob->attackTime = 5;
+        this->attackDelay = this->random->nextInt(20) + 10;
+        int dmg = (this->random->nextFloat() + this->random->nextFloat()) / 2.0f * (float)this->damage + 1.0f;
+        target->hurt(this->mob, dmg);
+        this->noActionTime = 0;
+        return true;
+    }
 }
 
 void BasicAttackAI::hurt(Entity* target, int dmg) {
-    // TODO: hurt this mob
+    BasicAI::hurt(target, dmg);
+
+    if (target != nullptr && !(target->getEntityType() == this->mob->getEntityType())) {
+        this->attackTarget = target;
+    }
 }

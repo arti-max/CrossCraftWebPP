@@ -4,6 +4,7 @@
 #include "player/Player.hpp"
 #include "level/tile/Tile.hpp"
 #include "level/Level.hpp"
+#include "util/Random.hpp"
 #include <vector>
 
 class CrossCraft;
@@ -14,8 +15,11 @@ private:
     CrossCraft* cc;
     int width = 0;
     int height = 0;
+    Random* random = new Random();
 
 public:
+    int ticks = 0;
+
     Hud(CrossCraft* cc, Textures* textures, int width, int height);
     void render(Player* player, Level* level, float partialTicks);
     

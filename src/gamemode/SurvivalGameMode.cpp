@@ -74,7 +74,24 @@ float SurvivalGameMode::getReachDistance() {
 
 void SurvivalGameMode::preparePlayer(Player* player) {
     player->inventory->slots[0] = Tile::brownMushroom->id;
-    player->inventory->count[0] = 99;
+    player->inventory->count[0] = 999;
     player->inventory->slots[1] = Tile::redMushroom->id;
     player->inventory->count[1] = 99;
+}
+
+bool SurvivalGameMode::isSurvival() {
+    return true;
+}
+
+bool SurvivalGameMode::useItem(Player* player, int id) {
+    Tile* tile = Tile::tiles[id];
+    if (tile->id == Tile::redMushroom->id && player->inventory->removeItem(id)) {
+        player->hurt(nullptr, 3);
+        return true;
+    } else if (tile->id == Tile::brownMushroom->id && player->inventory->removeItem(id)) {
+        player->heal(5);
+        return true;
+    } else {
+        return false;
+    }
 }

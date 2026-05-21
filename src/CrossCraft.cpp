@@ -279,7 +279,10 @@ void CrossCraft::handleMouseClick(int mode) {
         return;
     }
 
-    if (this->hitResult == nullptr) {
+    int selected = this->player->inventory->getCurrentBlock();
+    if (mode == 1 && selected > 0 && this->gamemode->useItem(this->player, selected)) {
+        // TODO: Arm Animation
+    } else if (this->hitResult == nullptr) {
         if (this->gamemode->gmType == 0 && mode == 0) {
             this->attackTime = 10;
         }
@@ -653,12 +656,13 @@ update_world:
         textures->updateTextureFX(fx->pixels, fx->textureId);
     }
     ++this->levelRenderer->cloudTicks;
+    ++this->hud->ticks;
     this->level->tick();
     this->particleEngine->tick();
 
     this->player->tick();
     // this->player->inventory->tick();
-    this->sound->updateListener(this->player->x, this->player->y, this->player->z, this->player->xRot, this->player->yRot);
+    this->sound->updateListener(this->player->x, this->player->y+1.62, this->player->z, this->player->yRot, this->player->xRot);
 
     for (auto const& [id, net_player] : this->level->networkPlayers) {
         if (net_player != nullptr) {
@@ -697,65 +701,6 @@ void CrossCraft::render(float partialTicks) {
         this->player->turn(xo, yo * static_cast<float>(iy));
     }
 
-    // if (this->level != nullptr) {
-    //     float pitch = this->player->xRotO + (this->player->xRot - this->player->xRotO) * partialTicks;
-    //     float yaw = this->player->yRotO + (this->player->yRot - this->player->yRotO) * partialTicks;
-
-    //     Vec3D eyePos = this->getPlayerVectorO(partialTicks);
-    //     float rad = M_PI / 180.0f;
-    //     float cosYaw = std::cos(-yaw * rad - M_PI);
-    //     float sinYaw = std::sin(-yaw * rad - M_PI);
-    //     float cosPitch = std::cos(-pitch * rad);
-    //     float sinPitch = std::sin(-pitch * rad);
-
-    //     float dirX = sinYaw * cosPitch;
-    //     float dirY = sinPitch;
-    //     float dirZ = cosYaw * cosPitch;
-
-    //     float reachDistance = this->gamemode->getReachDistance();
-
-    //     Vec3D farPoint = eyePos.add(dirX * reachDistance, dirY * reachDistance, dirZ * reachDistance);
-
-    //     this->hitResult = this->level->clip(eyePos, farPoint);
-    //     float tileDist = reachDistance;
-    //     if (this->hitResult != nullptr) {
-    //         tileDist = this->hitResult->vec.distance(this->getPlayerVector(partialTicks));
-    //     }
-
-    //     float entityReach = 0.0f;
-    //     if (this->gamemode->gmType == 1) {
-    //         entityReach = 32.0f;
-    //     } else {
-    //         entityReach = tileDist;
-    //     }
-
-    //     Vec3D entityFarPoint = eyePos.add(dirX * entityReach, dirY * entityReach, dirZ * entityReach);
-    //     this->hitEntity = nullptr;
-    //     AABB playerBB = this->player->bb.expand(dirX * entityReach, dirY * entityReach, dirZ * entityReach);
-    //     std::vector<Entity*> ents = this->level->emesh->getEntities(this->player, playerBB);
-
-    //     float minDist = 0.0f;
-    //     for (int i = 0; i < ents.size(); i++) {
-    //         Entity* e = ents[i];
-    //         if (!e->isPickable()) continue;
-
-    //         AABB hitbox = e->bb.grow(0.1f, 0.1f, 0.1f);
-    //         HitResult* hit = hitbox.clip(eyePos, entityFarPoint);
-
-    //         if (hit != nullptr) {
-    //             float dist = eyePos.distance(&hit->vec);
-    //             if (dist < minDist || minDist == 0.0f) {
-    //                 this->hitEntity = e;
-    //                 minDist = dist;
-    //             }
-    //         }
-    //     }
-
-    //     if (this->hitEntity != nullptr && this->gamemode->gmType == 0) {
-    //         this->hitResult = new HitResult(this->hitEntity);
-    //     }
-    // }
-    
     this->checkGlError("Set viewport");
     this->checkGlError("Rasycasted");
     this->gamemode->applyCracks(partialTicks);
@@ -776,15 +721,7 @@ void CrossCraft::render(float partialTicks) {
     glEnable(GL_FOG);
     this->levelRenderer->render(this->player, 0);
     this->checkGlError("Rendered level");
-    // int i;
-    // Entity* entity;
     this->level->emesh->render(frustum, this->textures, partialTicks);
-    // for (i = 0; i < this->level->entities.size(); ++i) {
-    //     entity = this->level->entities[i];
-    //     if (frustum.isVisible(entity->bb)) {
-    //         this->level->entities[i]->render(partialTicks, this->textures);
-    //     }
-    // }
     for (auto const& [id, net_player] : this->level->networkPlayers) {
         if (net_player != nullptr) {
             net_player->render(this->textures, partialTicks, this->font, this->player);
@@ -852,6 +789,7 @@ void CrossCraft::render(float partialTicks) {
     this->levelRenderer->renderSurroundingWater();
     this->checkGlError("Render surrounding Water");
     glEnable(GL_BLEND);
+    glEnable(GL_TEXTURE_2D);
     glEnable(GL_FOG);
     glColorMask(false, false, false, false);
     this->levelRenderer->render(this->player, 1);
@@ -1006,7 +944,7 @@ void CrossCraft::setupFog(int layer) {
             this->bgR = 0.02f;
             this->bgG = 0.02f;
             this->bgB = 0.2f;
-            glLightModelfv(GL_LIGHT_MODEL_AMBIENT, getBuffer(0.3f, 0.3f, 0.7f, 1.0f));
+            glLightModelfv(GL_LIGHT_MODEL_AMBIENT, getBuffer(0.4f, 0.4f, 0.9f, 1.0f));
         } else if (currentTile != nullptr && currentTile->getLiquidType() == LiquidType::LAVA) {
             glFogi(GL_FOG_MODE, GL_EXP);
             glFogf(GL_FOG_DENSITY, 2.0f);
@@ -1031,7 +969,7 @@ void CrossCraft::setupFog(int layer) {
             glFogi(GL_FOG_MODE, GL_EXP);
             glFogf(GL_FOG_DENSITY, 0.01f);
             glFogfv(GL_FOG_COLOR, this->fogColor1.data());
-            float br = 0.6f;
+            float br = 1.0f;
             glLightModelfv(GL_LIGHT_MODEL_AMBIENT, getBuffer(br, br, br, 1.0f));
         }
 

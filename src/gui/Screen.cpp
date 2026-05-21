@@ -15,7 +15,7 @@ void Screen::render(int xMouse, int yMouse) {
         Button* btn = this->buttons[i];
         if (!btn->visible) continue;
         glEnable(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, this->cc->textures->loadTexture("gui", GL_NEAREST));
+        glBindTexture(GL_TEXTURE_2D, this->cc->textures->loadTexture("/gui/gui.png", GL_NEAREST));
         glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 
         bool mouseInButton = xMouse >= btn->x && yMouse >= btn->y && xMouse < btn->x + btn->w && yMouse < btn->y + btn->h;
