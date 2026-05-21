@@ -12,4 +12,6 @@ public:
         ai->runSpeed = 0.7f;
         this->ai = ai;
     }
+
+    EntityType getEntityType() const override { return EntityType::Skeleton; }
 };

@@ -68,11 +68,16 @@ void Entity::setPos(float x, float y, float z) {
 }
 
 void Entity::turn(float xo, float yo) {
+    float oldXR = this->xRot;
+    float oldYR = this->yRot;
     yRot += xo * 0.15f;
     xRot -= yo * 0.15f;
     
     xRot = std::max(-90.0f, xRot);
     xRot = std::min(90.0f, xRot);
+
+    this->xRotO += this->xRot - oldXR;
+    this->yRotO += this->yRot - oldYR;
 }
 
 void Entity::interpolateTurn(float xo, float yo) {
@@ -350,5 +355,9 @@ void Entity::causeFallDamage(float fall) {
 }
 
 void Entity::playerTouch(Player* player) {
+    // nothing
+}
+
+void Entity::hurt(Entity* e, int dmg) {
     // nothing
 }

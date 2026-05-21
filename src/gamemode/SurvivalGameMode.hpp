@@ -9,6 +9,7 @@ public:
     int hits = 0;
     int hardness = 0;
     int hitDelay = 0;
+    int gmType = 0;
 
     SurvivalGameMode(CrossCraft* cc);
     void apply(Level* level) override;

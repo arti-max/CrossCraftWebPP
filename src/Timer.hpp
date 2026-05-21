@@ -7,7 +7,6 @@ private:
     static const long long MAX_NS_PER_UPDATE = 1000000000LL;
     static const int MAX_TICKS_PER_UPDATE = 100;
     
-    float ticksPerSecond;
     std::chrono::high_resolution_clock::time_point lastTime;
 
 public:
@@ -16,6 +15,7 @@ public:
     float timeScale = 1.0f;
     float fps = 0.0f;
     float passedTime = 0.0f;
+    float ticksPerSecond = 0.0f;
 
     Timer(float ticksPerSecond);
     void advanceTime();

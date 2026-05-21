@@ -86,7 +86,7 @@ void BasicAI::update() {
     bool inWater = this->mob->isInWater();
     bool inLava = this->mob->isInLava();
     if (inWater || inLava) {
-        this->jumping = this->random->nextFloat() < 0.08f;
+        this->jumping = this->random->nextFloat() < 0.8f;
     }
 
 }

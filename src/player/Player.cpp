@@ -3,10 +3,20 @@
 #include "util/Logger.hpp"
 #include "level/Level.hpp"
 #include <GLFW/glfw3.h>
+#include "player/PlayerAI.hpp"
 
-Player::Player(Level* level, Settings* settings) : Entity(level) {
+Player::Player(Level* level, Settings* settings) : Mob(level) {
+    // if (level != nullptr) {
+    //     level->player = this;
+    //     level->removeEntity(this);
+    //     level->addEntity(this);
+    // }
     this->heightOffset = 1.62f;
     this->settings = settings;
+    this->health = 20;
+    this->modelName = "human";
+    this->rotOffs = 180.0f;
+    this->ai = new PlayerAI(this);
 }
 
 void Player::setKey() {
@@ -30,81 +40,47 @@ void Player::resetPos() {
     if (this->level != nullptr) {
         this->level->player = this;
     }
-
+    this->health = Player::MAX_HEALTH;
+    this->deathTime = 0;
 }
 
-void Player::tick() {
-    this->xo = x;
-    this->yo = y;
-    this->zo = z;
-    
-    float xa = 0.0f;
-    float ya = 0.0f;
-    bool inWater = this->isInWater();
-    bool inLava = this->isInLava();
+void Player::aiStep() {
+    this->inventory->tick();
+    this->oBob = this->bob;
+    this->input_xxa = 0.0f;
+    this->input_yya = 0.0f;
 
     if (keys[KEY_UP]) {
-        --ya;
+        --input_yya;
     }
     if (keys[KEY_DOWN]) {
-        ++ya;
+        ++input_yya;
     }
     if (keys[KEY_LEFT]) {
-        --xa;
+        --input_xxa;
     }
     if (keys[KEY_RIGHT]) {
-        ++xa;
+        ++input_xxa;
     }
-    
-    if (keys[KEY_JUMP]) {
-        if (inWater) {
-            this->yd += 0.04f;
-        } else if (inLava) {
-            this->yd += 0.04f;
-        } else if (onGround) {
-            this->yd = 0.42f;
-        }
+    input_jumping = keys[KEY_JUMP];
+    Mob::aiStep();
+    float tbob = std::sqrt(this->xd * this->xd + this->zd * this->zd);
+    float ttilt = std::atan(-this->yd * 0.2f) * 15.0f;
+
+    if (tbob > 0.1f) {
+        tbob = 0.1f;
     }
-    
-    float oldY;
-    if (inWater) {
-        oldY = this->y;
-        this->moveRelative(xa, ya, 0.02f);
-        this->move(this->xd, this->yd, this->zd);
-        this->xd *= 0.8f;
-        this->yd *= 0.8f;
-        this->zd *= 0.8f;
-        this->yd -= 0.02f;
-        // Logger::logf(PREFIX_DEBUG, "hor: %i, is free: %i", this->horizontalCollision, this->isFree(this->xd, this->yd + 0.6f - this->y + oldY, this->zd));
-        if (this->horizontalCollision && this->isFree(this->xd, this->yd + 0.6f - this->y + oldY, this->zd)) {
-            this->yd = 0.3f;
-        }
-    } else if (inLava) {
-        oldY = this->y;
-        this->moveRelative(xa, ya, 0.02f);
-        this->move(this->xd, this->yd, this->zd);
-        this->xd *= 0.5f;
-        this->yd *= 0.5f;
-        this->zd *= 0.5f;
-        this->yd -= 0.02f;
-        
-        if (this->horizontalCollision && this->isFree(this->xd, this->yd + 0.6f - this->y + oldY, this->zd)) {
-            this->yd = 0.3f;
-        }
-    } else {
-        this->moveRelative(xa, ya, this->onGround ? 0.1f : 0.02f);
-        this->move(this->xd, this->yd, this->zd);
-        
-        this->xd *= 0.91f;
-        this->yd *= 0.98f;
-        this->zd *= 0.91f;
-        this->yd -= 0.08f;
-        
-        if (onGround) {
-            this->xd *= 0.6f;
-            this->zd *= 0.6f;
-        }
+
+    if (!this->onGround || this->health <= 0) {
+        tbob = 0.0f;
     }
+
+    if (this->onGround || this->health <= 0) {
+        tilt = 0.0f;
+    }
+
+    this->bob += (tbob - this->bob) * 0.4f;
+    this->tilt += (ttilt - this->tilt) * 0.8f;
 
     std::vector<Entity*> entities = this->level->findEntities(this, this->bb.grow(1.0f, 0.0f, 1.0f));
     if (entities.size() > 0) {
@@ -112,6 +88,88 @@ void Player::tick() {
             entities[i]->playerTouch(this);
         }
     }
+}
+
+// void Player::tick() {
+//     this->xo = x;
+//     this->yo = y;
+//     this->zo = z;
+    
+//     float xa = 0.0f;
+//     float ya = 0.0f;
+//     bool inWater = this->isInWater();
+//     bool inLava = this->isInLava();
+
+//     if (keys[KEY_UP]) {
+//         --ya;
+//     }
+//     if (keys[KEY_DOWN]) {
+//         ++ya;
+//     }
+//     if (keys[KEY_LEFT]) {
+//         --xa;
+//     }
+//     if (keys[KEY_RIGHT]) {
+//         ++xa;
+//     }
+    
+//     if (keys[KEY_JUMP]) {
+//         if (inWater) {
+//             this->yd += 0.04f;
+//         } else if (inLava) {
+//             this->yd += 0.04f;
+//         } else if (onGround) {
+//             this->yd = 0.42f;
+//         }
+//     }
+    
+//     float oldY;
+//     if (inWater) {
+//         oldY = this->y;
+//         this->moveRelative(xa, ya, 0.02f);
+//         this->move(this->xd, this->yd, this->zd);
+//         this->xd *= 0.8f;
+//         this->yd *= 0.8f;
+//         this->zd *= 0.8f;
+//         this->yd -= 0.02f;
+//         // Logger::logf(PREFIX_DEBUG, "hor: %i, is free: %i", this->horizontalCollision, this->isFree(this->xd, this->yd + 0.6f - this->y + oldY, this->zd));
+//         if (this->horizontalCollision && this->isFree(this->xd, this->yd + 0.6f - this->y + oldY, this->zd)) {
+//             this->yd = 0.3f;
+//         }
+//     } else if (inLava) {
+//         oldY = this->y;
+//         this->moveRelative(xa, ya, 0.02f);
+//         this->move(this->xd, this->yd, this->zd);
+//         this->xd *= 0.5f;
+//         this->yd *= 0.5f;
+//         this->zd *= 0.5f;
+//         this->yd -= 0.02f;
+        
+//         if (this->horizontalCollision && this->isFree(this->xd, this->yd + 0.6f - this->y + oldY, this->zd)) {
+//             this->yd = 0.3f;
+//         }
+//     } else {
+//         this->moveRelative(xa, ya, this->onGround ? 0.1f : 0.02f);
+//         this->move(this->xd, this->yd, this->zd);
+        
+//         this->xd *= 0.91f;
+//         this->yd *= 0.98f;
+//         this->zd *= 0.91f;
+//         this->yd -= 0.08f;
+        
+//         if (onGround) {
+//             this->xd *= 0.6f;
+//             this->zd *= 0.6f;
+//         }
+//     }
+
+// }
+
+void Player::hurt(Entity* e, int dmg) {
+    Mob::hurt(e, dmg);
+}
+
+void Player::die(Entity* e) {
 
 }
 

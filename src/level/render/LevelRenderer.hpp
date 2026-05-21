@@ -41,7 +41,7 @@ public:
     
     int cloudTicks = 0;
     int drawDistance = 0;
-    float cracks = 4;
+    float cracks = 0.4f;
 
     LevelRenderer(Level* level, Textures* textures);
     ~LevelRenderer();

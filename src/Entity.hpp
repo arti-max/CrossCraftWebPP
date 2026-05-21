@@ -1,5 +1,6 @@
 #pragma once
 #include "phys/AABB.hpp"
+#include "EntityType.hpp"
 #include <vector>
 #include <cmath>
 #include <random>
@@ -95,7 +96,8 @@ public:
     virtual bool isShootable();
     virtual void awardKillScore(Entity* e, int score);
     virtual bool isUnderWater();
-
+    virtual void hurt(Entity* e, int dmg);
+    virtual EntityType getEntityType() const { return EntityType::Entity; }
 
 private:
     float randomFloat();

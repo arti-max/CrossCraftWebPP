@@ -9,6 +9,7 @@ class Tile;
 class GameMode {
 public:
     bool instantBreak = false;
+    int gmType = 1;
     CrossCraft* cc;
 
     GameMode(CrossCraft* cc);

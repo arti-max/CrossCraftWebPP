@@ -11,6 +11,8 @@
 #include "level/tile/Tile.hpp"
 #include "level/liquid/LiquidType.hpp"
 
+#include "particle/TileParticle.hpp"
+
 std::array<Tile*, 256> Tile::tiles = {nullptr};
 const Tile* Tile::empty = nullptr;
 
@@ -57,47 +59,47 @@ static Bush brownMushroomTile(40, 29);
 static Tile goldBlockTile(41, 40);
 
 
-const Tile* Tile::rock = rockTile.setData(SoundType::stone, 1.0f);
-const Tile* Tile::grass = grassTile.setData(SoundType::grass, 1.0f);
-const Tile* Tile::dirt = dirtTile.setData(SoundType::grass, 1.0f);
-const Tile* Tile::cobblestone = cobbleTile.setData(SoundType::stone, 1.0f);
-const Tile* Tile::wood = woodTile.setData(SoundType::wood, 1.0f);
-const Tile* Tile::bush = bushTile.setData(SoundType::none, 1.0f);
-const Tile* Tile::unbreakable = unbreakableTile.setData(SoundType::stone, 1.0f);
-const Tile* Tile::water = waterTile.setData(SoundType::none, 1.0f);
-const Tile* Tile::calmWater = calmWaterTile.setData(SoundType::none, 1.0f);
-const Tile* Tile::lava = lavaTile.setData(SoundType::none, 1.0f);
-const Tile* Tile::calmLava = calmLavaTile.setData(SoundType::none, 1.0f);
-const Tile* Tile::gravel = gravelTile.setData(SoundType::gravel, 1.0f);
-const Tile* Tile::sand = sandTile.setData(SoundType::gravel, 1.0f);
-const Tile* Tile::log = logTile.setData(SoundType::wood, 1.0f);
-const Tile* Tile::leaves = leavesTile.setData(SoundType::leaves, 0.4f);
-const Tile* Tile::goldOre = goldOreTile.setData(SoundType::stone, 1.0f);
-const Tile* Tile::ironOre = ironOreTile.setData(SoundType::stone, 1.0f);
-const Tile* Tile::coalOre = coalOreTile.setData(SoundType::stone, 1.0f);
-const Tile* Tile::sponge = spongeTile.setData(SoundType::cloth, 0.9f);
-const Tile* Tile::glass = glassTile.setData(SoundType::metal, 1.0f);
-const Tile* Tile::wool1 = woolTile1.setData(SoundType::cloth, 1.0f);
-const Tile* Tile::wool2 = woolTile2.setData(SoundType::cloth, 1.0f);
-const Tile* Tile::wool3 = woolTile3.setData(SoundType::cloth, 1.0f);
-const Tile* Tile::wool4 = woolTile4.setData(SoundType::cloth, 1.0f);
-const Tile* Tile::wool5 = woolTile5.setData(SoundType::cloth, 1.0f);
-const Tile* Tile::wool6 = woolTile6.setData(SoundType::cloth, 1.0f);
-const Tile* Tile::wool7 = woolTile7.setData(SoundType::cloth, 1.0f);
-const Tile* Tile::wool8 = woolTile8.setData(SoundType::cloth, 1.0f);
-const Tile* Tile::wool9 = woolTile9.setData(SoundType::cloth, 1.0f);
-const Tile* Tile::wool10 = woolTile10.setData(SoundType::cloth, 1.0f);
-const Tile* Tile::wool11 = woolTile11.setData(SoundType::cloth, 1.0f);
-const Tile* Tile::wool12 = woolTile12.setData(SoundType::cloth, 1.0f);
-const Tile* Tile::wool13 = woolTile13.setData(SoundType::cloth, 1.0f);
-const Tile* Tile::wool14 = woolTile14.setData(SoundType::cloth, 1.0f);
-const Tile* Tile::wool15 = woolTile15.setData(SoundType::cloth, 1.0f);
-const Tile* Tile::wool16 = woolTile16.setData(SoundType::cloth, 1.0f);
-const Tile* Tile::redFlower = redFlowerTile.setData(SoundType::none, 1.0f);
-const Tile* Tile::yellowFlower = yellowFlowerTile.setData(SoundType::none, 1.0f);
-const Tile* Tile::redMushroom = redMushroomTile.setData(SoundType::none, 1.0f);
-const Tile* Tile::brownMushroom = brownMushroomTile.setData(SoundType::none, 1.0f);
-const Tile* Tile::goldBlock = goldBlockTile.setData(SoundType::metal, 1.0f);
+const Tile* Tile::rock = (rockTile.setData(SoundType::stone, 1.0f, 1.0f)->setDrop(cobbleTile.id));
+const Tile* Tile::grass = grassTile.setData(SoundType::grass, 1.0f, 0.6f);
+const Tile* Tile::dirt = dirtTile.setData(SoundType::grass, 1.0f, 0.5f);
+const Tile* Tile::cobblestone = cobbleTile.setData(SoundType::stone, 1.0f, 1.5f);
+const Tile* Tile::wood = woodTile.setData(SoundType::wood, 1.0f, 1.5f);
+const Tile* Tile::bush = bushTile.setData(SoundType::none, 1.0f, 0.0f);
+const Tile* Tile::unbreakable = unbreakableTile.setData(SoundType::stone, 1.0f, 999.0f);
+const Tile* Tile::water = waterTile.setData(SoundType::none, 1.0f, 100.0f);
+const Tile* Tile::calmWater = calmWaterTile.setData(SoundType::none, 1.0f, 100.0f);
+const Tile* Tile::lava = lavaTile.setData(SoundType::none, 1.0f, 100.0f);
+const Tile* Tile::calmLava = calmLavaTile.setData(SoundType::none, 1.0f, 100.0f);
+const Tile* Tile::gravel = gravelTile.setData(SoundType::gravel, 1.0f, 0.6f);
+const Tile* Tile::sand = sandTile.setData(SoundType::gravel, 1.0f, 0.5f);
+const Tile* Tile::log = logTile.setData(SoundType::wood, 1.0f, 2.5f);
+const Tile* Tile::leaves = leavesTile.setData(SoundType::leaves, 0.4f, 0.2f);
+const Tile* Tile::goldOre = goldOreTile.setData(SoundType::stone, 1.0f, 3.0f);
+const Tile* Tile::ironOre = ironOreTile.setData(SoundType::stone, 1.0f, 3.0f);
+const Tile* Tile::coalOre = coalOreTile.setData(SoundType::stone, 1.0f, 3.0f);
+const Tile* Tile::sponge = spongeTile.setData(SoundType::cloth, 0.9f, 0.6f);
+const Tile* Tile::glass = glassTile.setData(SoundType::metal, 1.0f, 0.3f);
+const Tile* Tile::wool1 = woolTile1.setData(SoundType::cloth, 1.0f, 0.8f);
+const Tile* Tile::wool2 = woolTile2.setData(SoundType::cloth, 1.0f, 0.8f);
+const Tile* Tile::wool3 = woolTile3.setData(SoundType::cloth, 1.0f, 0.8f);
+const Tile* Tile::wool4 = woolTile4.setData(SoundType::cloth, 1.0f, 0.8f);
+const Tile* Tile::wool5 = woolTile5.setData(SoundType::cloth, 1.0f, 0.8f);
+const Tile* Tile::wool6 = woolTile6.setData(SoundType::cloth, 1.0f, 0.8f);
+const Tile* Tile::wool7 = woolTile7.setData(SoundType::cloth, 1.0f, 0.8f);
+const Tile* Tile::wool8 = woolTile8.setData(SoundType::cloth, 1.0f, 0.8f);
+const Tile* Tile::wool9 = woolTile9.setData(SoundType::cloth, 1.0f, 0.8f);
+const Tile* Tile::wool10 = woolTile10.setData(SoundType::cloth, 1.0f, 0.8f);
+const Tile* Tile::wool11 = woolTile11.setData(SoundType::cloth, 1.0f, 0.8f);
+const Tile* Tile::wool12 = woolTile12.setData(SoundType::cloth, 1.0f, 0.8f);
+const Tile* Tile::wool13 = woolTile13.setData(SoundType::cloth, 1.0f, 0.8f);
+const Tile* Tile::wool14 = woolTile14.setData(SoundType::cloth, 1.0f, 0.8f);
+const Tile* Tile::wool15 = woolTile15.setData(SoundType::cloth, 1.0f, 0.8f);
+const Tile* Tile::wool16 = woolTile16.setData(SoundType::cloth, 1.0f, 0.8f);
+const Tile* Tile::redFlower = redFlowerTile.setData(SoundType::none, 1.0f, 0.0f);
+const Tile* Tile::yellowFlower = yellowFlowerTile.setData(SoundType::none, 1.0f, 0.0f);
+const Tile* Tile::redMushroom = redMushroomTile.setData(SoundType::none, 1.0f, 0.0f);
+const Tile* Tile::brownMushroom = brownMushroomTile.setData(SoundType::none, 1.0f, 0.0f);
+const Tile* Tile::goldBlock = goldBlockTile.setData(SoundType::metal, 1.0f, 5.0f);
 
 Tile::Tile(int id) {
     tiles[id] = this;
@@ -110,9 +112,15 @@ Tile::Tile(int id, int texture) : Tile(id) {
     this->textureId = texture;
 }
 
-Tile* Tile::setData(const SoundType& st, float particleGravity) {
+Tile* Tile::setData(const SoundType& st, float particleGravity, float hardness) {
     this->st = &st;
     this->particleGravity = particleGravity;
+    this->hardness = (int)(hardness*20.0f);
+    return this;
+}
+
+Tile* Tile::setDrop(int drop) {
+    this->dropid = drop;
     return this;
 }
 
@@ -352,7 +360,7 @@ void Tile::renderFaceNoTexture(Player* player, Tessellator& t, int x, int y, int
 
 void Tile::onDestroy(Level* level, int x, int y, int z, ParticleEngine* engine, bool drop) {
     Random rnd = Random();
-    if (drop) {
+    if (1 == 0) {
         float spr = 0.7f;
         float dropX = rnd.nextFloat() * spr + (1.0f - spr) * 0.5f;
         float dropY = rnd.nextFloat() * spr + (1.0f - spr) * 0.5f;
@@ -374,9 +382,81 @@ void Tile::onDestroy(Level* level, int x, int y, int z, ParticleEngine* engine, 
                 float motionY = targetY - y - 0.5f;
                 float motionZ = targetZ - z - 0.5f;
 
-                Particle* p = (new Particle(level, targetX, targetY, targetZ, motionX, motionY, motionZ, this));
+                Particle* p = ((new TileParticle(level, targetX, targetY, targetZ, motionX, motionY, motionZ, this))->setPower(0.2f)->setScale(0.6f));
                 engine->add(p);
             }
+        }
+    }
+}
+
+void Tile::spawnDestroyParticles(Level* level, int x, int y, int z, ParticleEngine* engine) {
+    Random rnd = Random();
+    int spread = 4;
+    for (int offsetX = 0; offsetX < spread; offsetX++) {
+        for (int offsetY = 0; offsetY < spread; offsetY++) {
+            for (int offsetZ = 0; offsetZ < spread; offsetZ++) {
+                float targetX = x + (offsetX + 0.5f) / spread;
+                float targetY = y + (offsetY + 0.5f) / spread;
+                float targetZ = z + (offsetZ + 0.5f) / spread;
+
+                float motionX = targetX - x - 0.5f;
+                float motionY = targetY - y - 0.5f;
+                float motionZ = targetZ - z - 0.5f;
+
+                Particle* p = ((new TileParticle(level, targetX, targetY, targetZ, motionX, motionY, motionZ, this)));
+                engine->add(p);
+            }
+        }
+    }
+}
+
+void Tile::spawnHitParticles(Level* level, int x, int y, int z, int face, ParticleEngine* engine) {
+    Random rnd = Random();
+    float inset = 0.1f;
+
+    float targetX = x + rnd.nextFloat() * (this->maxX - this->minX - inset * 2.0f) + inset + this->minX;
+    float targetY = y + rnd.nextFloat() * (this->maxY - this->minY - inset * 2.0f) + inset + this->minY;
+    float targetZ = z + rnd.nextFloat() * (this->maxZ - this->minZ - inset * 2.0f) + inset + this->minZ;
+
+    switch(face) {
+        case 0: // bottom
+            targetY = y + this->minY - inset;
+            break;
+        case 1: // top
+            targetY = y + this->maxX + inset;
+            break;
+        case 2: // n
+            targetZ = z + this->minZ - inset;
+            break;
+        case 3: // s
+            targetZ = z + this->maxZ + inset;
+            break;
+        case 4: // w
+            targetX = x + this->minX - inset;
+            break;
+        case 5: // e
+            targetX = x + this->maxX + inset;
+            break;
+    }
+
+    engine->add((new TileParticle(level, targetX, targetY, targetZ, 0.0f, 0.0f, 0.0f, this))->setPower(0.2f)->setScale(0.6f));
+}
+
+void Tile::onDestroy(Level* level, int x, int y, int z) {
+    this->spawnDrop(level, x, y, z, 1.0f);
+}
+
+void Tile::spawnDrop(Level* level, int x, int y, int z, float chance) {
+    Random rnd = Random();
+    int cnt = this->getDropCount();
+
+    for (int i = 0; i < cnt; ++i) {
+        if (rnd.nextFloat() <= chance) {
+            float spr = 0.7f;
+            float dropX = rnd.nextFloat() * spr + (1.0f - spr) * 0.5f;
+            float dropY = rnd.nextFloat() * spr + (1.0f - spr) * 0.5f;
+            float dropZ = rnd.nextFloat() * spr + (1.0f - spr) * 0.5f;
+            level->addEntity(new Item(level, x+dropX, y+dropY, z+dropZ, this->getDrop()));
         }
     }
 }
@@ -418,15 +498,77 @@ bool Tile::isCalmLiquid() {
 }
 
 void Tile::onBlockAdded(Level* level, int x, int y, int z) {
-    this->x = x;
-    this->y = y;
-    this->z = z;
+    // this->x = x;
+    // this->y = y;
+    // this->z = z;
 }
 
 int Tile::getDrop() {
+    if (this->dropid != -1) return this->dropid;
     return this->id;
 }
 
 int Tile::getDropCount() {
     return 1;
 }
+
+int Tile::getHardness() {
+    return this->hardness;
+}
+
+HitResult* Tile::clip(int x, int y, int z, Vec3D& start, Vec3D& end) {
+    Vec3D localStart = start.add(-(float)x, -(float)y, -(float)z);
+    Vec3D localEnd = end.add(-(float)x, -(float)y, -(float)z);
+
+    Vec3D* pX0 = localStart.getXIntersection(&localEnd, this->minX);
+    Vec3D* pX1 = localStart.getXIntersection(&localEnd, this->maxX);
+    Vec3D* pY0 = localStart.getYIntersection(&localEnd, this->minY);
+    Vec3D* pY1 = localStart.getYIntersection(&localEnd, this->maxY);
+    Vec3D* pZ0 = localStart.getZIntersection(&localEnd, this->minZ);
+    Vec3D* pZ1 = localStart.getZIntersection(&localEnd, this->maxZ);
+
+    auto checkX = [&](Vec3D* p) { return p && p->y >= this->minY && p->y <= this->maxY && p->z >= this->minZ && p->z <= this->maxZ; };
+    auto checkY = [&](Vec3D* p) { return p && p->x >= this->minX && p->x <= this->maxX && p->z >= this->minZ && p->z <= this->maxZ; };
+    auto checkZ = [&](Vec3D* p) { return p && p->x >= this->minX && p->x <= this->maxX && p->y >= this->minY && p->y <= this->maxY; };
+
+    if (!checkX(pX0)) { delete pX0; pX0 = nullptr; }
+    if (!checkX(pX1)) { delete pX1; pX1 = nullptr; }
+    if (!checkY(pY0)) { delete pY0; pY0 = nullptr; }
+    if (!checkY(pY1)) { delete pY1; pY1 = nullptr; }
+    if (!checkZ(pZ0)) { delete pZ0; pZ0 = nullptr; }
+    if (!checkZ(pZ1)) { delete pZ1; pZ1 = nullptr; }
+
+    Vec3D* best = nullptr;
+    int face = -1;
+
+    auto choose = [&](Vec3D* p, int f) {
+        if (p) {
+            if (!best || localStart.distanceSqrt(p) < localStart.distanceSqrt(best)) {
+                best = p;
+                face = f;
+            }
+        }
+    };
+
+    choose(pX0, 4);
+    choose(pX1, 5); 
+    choose(pY0, 0);
+    choose(pY1, 1);
+    choose(pZ0, 2);
+    choose(pZ1, 3);
+
+    if (pX0 != best) delete pX0;
+    if (pX1 != best) delete pX1;
+    if (pY0 != best) delete pY0;
+    if (pY1 != best) delete pY1;
+    if (pZ0 != best) delete pZ0;
+    if (pZ1 != best) delete pZ1;
+
+    if (!best) return nullptr;
+
+    Vec3D worldPoint = best->add((float)x, (float)y, (float)z);
+    HitResult* result = new HitResult(0, x, y, z, face, worldPoint);
+    delete best;
+    return result;
+}
+

@@ -3,6 +3,7 @@
 #include <GL/glu.h>
 #include <cmath>
 #include <gc.h>
+#include "model/Vec3D.hpp"
 
 CrossCraft* CrossCraft::instance = nullptr;
 
@@ -92,6 +93,7 @@ void CrossCraft::init() {
     glViewport(0, 0, this->width, this->height);
     this->level = new Level();
     this->level->cc = this;
+    this->player = new Player(this->level, this->settings);
     this->particleEngine = new ParticleEngine(this->level);
 
     if (!this->mpMode) {
@@ -114,8 +116,14 @@ void CrossCraft::init() {
     }
 
     this->levelRenderer = new LevelRenderer(this->level, this->textures);
-    this->player = new Player(this->level, this->settings);
+    this->gamemode->preparePlayer(this->player);
     this->player->resetPos();
+    // this->level->player = this->player;
+
+    // if (this->level != nullptr) {
+    //     this->level->player = this->player;
+    //     this->level->addEntity(this->player);
+    // }
 
     Mouse::init(window);
     Keyboard::init(window);
@@ -266,71 +274,120 @@ bool CrossCraft::isFree(const AABB &aabb) {
     }
 }
 
-void CrossCraft::handleMouseClick() {
-    if (this->clickDelay > 0) {
+void CrossCraft::handleMouseClick(int mode) {
+    if (!(mode != 0 || this->attackTime <= 0)) {
         return;
     }
 
-    if (this->editMode == 0) {
-        if (this->hitResult != nullptr) {
-            Tile* previousTile = Tile::tiles[this->level->getTile(this->hitResult->x, this->hitResult->y, this->hitResult->z)];
-
-            bool tileChanged = this->level->setTile(this->hitResult->x, this->hitResult->y, this->hitResult->z, 0);
-            if (previousTile != nullptr && tileChanged) {
-                bool particles = true;
-                if (previousTile->id == Tile::unbreakable->id) {
-                    particles = false;
-                    this->level->setTile(this->hitResult->x, this->hitResult->y, this->hitResult->z, previousTile->id);
-                }
-                if (this->mpMode && this->client && this->client->isConnected()) {
-                    // this->level->setTile(this->hitResult->x, this->hitResult->y, this->hitResult->z, previousTile->id);
-                    BlockChangePacket* packet = new BlockChangePacket(
-                        this->hitResult->x, this->hitResult->y, this->hitResult->z, 
-                        0, false);
-                    client->sendPacket(packet);
-                }
-                if ((previousTile->st != &SoundType::none) && particles) {
-                    this->level->playSound("step." + previousTile->st->name, (float)this->hitResult->x, (float)this->hitResult->y, (float)this->hitResult->z, (previousTile->st->getVolume() + 1.0f) / 2.0f, previousTile->st->getPitch() * 0.8f);
-                }
-                // if (Data::survival) {
-                //     this->player->inventory->addItem(previousTile->id);
-                // }
-                if (particles) previousTile->onDestroy(this->level, this->hitResult->x, this->hitResult->y, this->hitResult->z, this->particleEngine, Data::survival);
-            }
+    if (this->hitResult == nullptr) {
+        if (this->gamemode->gmType == 0 && mode == 0) {
+            this->attackTime = 10;
         }
-    } else if (this->hitResult != nullptr) {
-        int x = this->hitResult->x;
-        int y = this->hitResult->y;
-        int z = this->hitResult->z;
-
-        if (this->hitResult->f == 0) y--;
-        if (this->hitResult->f == 1) y++;
-        if (this->hitResult->f == 2) z--;
-        if (this->hitResult->f == 3) z++;
-        if (this->hitResult->f == 4) x--;
-        if (this->hitResult->f == 5) x++;
-
-        if (this->player->inventory->getCurrentBlock() != -1) {
-            AABB* aabb = Tile::tiles[this->player->inventory->getCurrentBlock()]->getAABB(x, y, z);
-        
-            if (aabb == nullptr || this->isFree(*aabb)) {
-                this->level->setTile(x, y, z, this->player->inventory->getCurrentBlock());
-                if (this->mpMode && client && client->isConnected()) {
-                    BlockChangePacket* packet = new BlockChangePacket(
-                            x, y, z, 
-                            this->player->inventory->getCurrentBlock(), true);
-                    client->sendPacket(packet);
-                }
-                if (Data::survival) {
-                    this->player->inventory->removeItem(this->player->inventory->getCurrentBlock());
-                }
+    } else {
+        if (this->hitResult->entityPos == 1) {
+            if (mode == 0) {
+                this->hitResult->e->hurt(this->player, 4);
+                return;
             }
-            
-            if (aabb != nullptr) {
-                delete aabb;
+        } else if (this->hitResult->entityPos == 0) {
+            int x = this->hitResult->x;
+            int y = this->hitResult->y;
+            int z = this->hitResult->z;
+
+            if (mode != 0) {
+                if (this->hitResult->f == 0) y--;
+                if (this->hitResult->f == 1) y++;
+                if (this->hitResult->f == 2) z--;
+                if (this->hitResult->f == 3) z++;
+                if (this->hitResult->f == 4) x--;
+                if (this->hitResult->f == 5) x++;
+            }
+
+            Tile* tile = Tile::tiles[this->level->getTile(x, y, z)];
+            if (mode == 0) {
+                if (tile->id != Tile::unbreakable->id) {
+                    this->gamemode->hitTile(x, y, z);
+                    return;
+                }
+            } else {
+                int selected = this->player->inventory->getCurrentBlock();
+                if (selected <= 0) {
+                    return;
+                }
+
+                Tile* tile2 = Tile::tiles[this->level->getTile(x, y, z)];
+                AABB* tilebb = Tile::tiles[selected]->getAABB(x, y, z);
+                if ((tile2 == nullptr || tile2->id == Tile::water->id || tile2->id == Tile::calmWater->id || tile2->id == Tile::lava->id || tile2->id == Tile::calmLava->id) && (tilebb == nullptr || (this->player->intersects(tilebb->x0, tilebb->y0, tilebb->z0, tilebb->x1, tilebb->y1, tilebb->z1) ? false : this->isFree(AABB(tilebb->x0, tilebb->y0, tilebb->z0, tilebb->x1, tilebb->y1, tilebb->z1))))) {
+                    if (!this->gamemode->canPlace(selected)) {
+                        return;
+                    }
+
+                    this->level->setTile(x, y, z, selected);
+                }
             }
         }
     }
+    // if (mode == 0) {
+    //     if (this->hitResult != nullptr) {
+
+    //         // Tile* previousTile = Tile::tiles[this->level->getTile(this->hitResult->x, this->hitResult->y, this->hitResult->z)];
+
+    //         // bool tileChanged = this->level->setTile(this->hitResult->x, this->hitResult->y, this->hitResult->z, 0);
+    //         // if (previousTile != nullptr && tileChanged) {
+    //         //     bool particles = true;
+    //         //     if (previousTile->id == Tile::unbreakable->id) {
+    //         //         particles = false;
+    //         //         this->level->setTile(this->hitResult->x, this->hitResult->y, this->hitResult->z, previousTile->id);
+    //         //     }
+    //         //     if (this->mpMode && this->client && this->client->isConnected()) {
+    //         //         // this->level->setTile(this->hitResult->x, this->hitResult->y, this->hitResult->z, previousTile->id);
+    //         //         BlockChangePacket* packet = new BlockChangePacket(
+    //         //             this->hitResult->x, this->hitResult->y, this->hitResult->z, 
+    //         //             0, false);
+    //         //         client->sendPacket(packet);
+    //         //     }
+    //         //     if ((previousTile->st != &SoundType::none) && particles) {
+    //         //         this->level->playSound("step." + previousTile->st->name, (float)this->hitResult->x, (float)this->hitResult->y, (float)this->hitResult->z, (previousTile->st->getVolume() + 1.0f) / 2.0f, previousTile->st->getPitch() * 0.8f);
+    //         //     }
+    //         //     // if (Data::survival) {
+    //         //     //     this->player->inventory->addItem(previousTile->id);
+    //         //     // }
+    //         //     if (particles) previousTile->onDestroy(this->level, this->hitResult->x, this->hitResult->y, this->hitResult->z, this->particleEngine, Data::survival);
+    //         // }
+    //     }
+    // } else if (this->hitResult != nullptr && mode == 1) {
+    //     int x = this->hitResult->x;
+    //     int y = this->hitResult->y;
+    //     int z = this->hitResult->z;
+
+    //     if (this->hitResult->f == 0) y--;
+    //     if (this->hitResult->f == 1) y++;
+    //     if (this->hitResult->f == 2) z--;
+    //     if (this->hitResult->f == 3) z++;
+    //     if (this->hitResult->f == 4) x--;
+    //     if (this->hitResult->f == 5) x++;
+
+    //     if (this->player->inventory->getCurrentBlock() != -1) {
+    //         AABB* aabb = Tile::tiles[this->player->inventory->getCurrentBlock()]->getAABB(x, y, z);
+        
+    //         if (aabb == nullptr || this->isFree(*aabb)) {
+    //             this->level->setTile(x, y, z, this->player->inventory->getCurrentBlock());
+    //             if (this->mpMode && client && client->isConnected()) {
+    //                 BlockChangePacket* packet = new BlockChangePacket(
+    //                         x, y, z, 
+    //                         this->player->inventory->getCurrentBlock(), true);
+    //                 client->sendPacket(packet);
+    //             }
+    //             if (Data::survival) {
+    //                 this->player->inventory->removeItem(this->player->inventory->getCurrentBlock());
+    //             }
+    //         }
+            
+    //         if (aabb != nullptr) {
+    //             delete aabb;
+    //         }
+    //     }
+    // }
 }
 
 void CrossCraft::tick() {
@@ -485,12 +542,14 @@ void CrossCraft::tick() {
                     this->grabMouse();
                 } else {
                     if (Mouse::getEventButton() == 0 && Mouse::getEventButtonState()) {
-                        this->handleMouseClick();
-                        this->attackTime = 5;
+                        this->handleMouseClick(0);
+                        this->lastClick = this->ticks;
+                        // this->attackTime = 5;
                     }
 
                     if (Mouse::getEventButton() == 2 && Mouse::getEventButtonState()) {
-                        this->editMode = (this->editMode + 1) % 2;
+                        this->handleMouseClick(1);
+                        this->lastClick = this->ticks;
                     }
                     if (Mouse::getEventButton() == 1 && Mouse::getEventButtonState()) {
                         if (this->hitResult != nullptr) {
@@ -528,13 +587,39 @@ void CrossCraft::tick() {
             }
         }
 
-        if (this->screen == nullptr && glfwGetMouseButton(this->window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
-            if (this->attackTime <= 0) {
-                this->handleMouseClick();
-                this->attackTime = 5; 
+        if (this->screen == nullptr) {
+            if (glfwGetMouseButton(this->window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && ((float)(this->ticks - this->lastClick) >= this->timer->ticksPerSecond / 4.0f)) {
+                this->handleMouseClick(0);
+                this->lastClick = this->ticks;
+            }
+            if (glfwGetMouseButton(this->window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS && ((float)(this->ticks - this->lastClick) >= this->timer->ticksPerSecond / 4.0f)) {
+                this->handleMouseClick(1);
+                this->lastClick = this->ticks;
             }
         }
 
+        if (!this->gamemode->instantBreak && this->attackTime <= 0) {
+            if (this->screen == nullptr && this->hitResult != nullptr && this->hitResult->entityPos == 0 && glfwGetMouseButton(this->window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+                int x = this->hitResult->x;
+                int y = this->hitResult->y;
+                int z = this->hitResult->z;
+                this->gamemode->hitTile(x, y, z, this->hitResult->f);
+            } else {
+                this->gamemode->resetHits();
+            }
+        }
+
+        // if (this->screen == nullptr && glfwGetMouseButton(this->window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+        //     if (this->attackTime <= 0) {
+        //         this->handleMouseClick(0);
+        //         // this->attackTime = 5; 
+        //     }
+        // }
+
+    }
+
+    if (this->screen != nullptr) {
+        this->lastClick = this->ticks + 10000;
     }
 
     if (this->screen != nullptr) {
@@ -572,7 +657,7 @@ update_world:
     this->particleEngine->tick();
 
     this->player->tick();
-    this->player->inventory->tick();
+    // this->player->inventory->tick();
     this->sound->updateListener(this->player->x, this->player->y, this->player->z, this->player->xRot, this->player->yRot);
 
     for (auto const& [id, net_player] : this->level->networkPlayers) {
@@ -588,6 +673,7 @@ update_world:
         );
         client->sendPacket(pos_packet);
     }
+    ++this->ticks;
 }
  
 void CrossCraft::raycast() {
@@ -598,7 +684,7 @@ void CrossCraft::raycast() {
     
     Ray ray = Ray::fromPlayer(this->player);
     
-    this->hitResult = ray.trace(this->level, 5.0f, &this->level->entities);
+    this->hitResult = ray.trace(this->level, this->player, this->gamemode->getReachDistance());
 }
 
 void CrossCraft::render(float partialTicks) {
@@ -610,9 +696,69 @@ void CrossCraft::render(float partialTicks) {
         if (this->settings->invertYMouse) iy = 1;
         this->player->turn(xo, yo * static_cast<float>(iy));
     }
+
+    // if (this->level != nullptr) {
+    //     float pitch = this->player->xRotO + (this->player->xRot - this->player->xRotO) * partialTicks;
+    //     float yaw = this->player->yRotO + (this->player->yRot - this->player->yRotO) * partialTicks;
+
+    //     Vec3D eyePos = this->getPlayerVectorO(partialTicks);
+    //     float rad = M_PI / 180.0f;
+    //     float cosYaw = std::cos(-yaw * rad - M_PI);
+    //     float sinYaw = std::sin(-yaw * rad - M_PI);
+    //     float cosPitch = std::cos(-pitch * rad);
+    //     float sinPitch = std::sin(-pitch * rad);
+
+    //     float dirX = sinYaw * cosPitch;
+    //     float dirY = sinPitch;
+    //     float dirZ = cosYaw * cosPitch;
+
+    //     float reachDistance = this->gamemode->getReachDistance();
+
+    //     Vec3D farPoint = eyePos.add(dirX * reachDistance, dirY * reachDistance, dirZ * reachDistance);
+
+    //     this->hitResult = this->level->clip(eyePos, farPoint);
+    //     float tileDist = reachDistance;
+    //     if (this->hitResult != nullptr) {
+    //         tileDist = this->hitResult->vec.distance(this->getPlayerVector(partialTicks));
+    //     }
+
+    //     float entityReach = 0.0f;
+    //     if (this->gamemode->gmType == 1) {
+    //         entityReach = 32.0f;
+    //     } else {
+    //         entityReach = tileDist;
+    //     }
+
+    //     Vec3D entityFarPoint = eyePos.add(dirX * entityReach, dirY * entityReach, dirZ * entityReach);
+    //     this->hitEntity = nullptr;
+    //     AABB playerBB = this->player->bb.expand(dirX * entityReach, dirY * entityReach, dirZ * entityReach);
+    //     std::vector<Entity*> ents = this->level->emesh->getEntities(this->player, playerBB);
+
+    //     float minDist = 0.0f;
+    //     for (int i = 0; i < ents.size(); i++) {
+    //         Entity* e = ents[i];
+    //         if (!e->isPickable()) continue;
+
+    //         AABB hitbox = e->bb.grow(0.1f, 0.1f, 0.1f);
+    //         HitResult* hit = hitbox.clip(eyePos, entityFarPoint);
+
+    //         if (hit != nullptr) {
+    //             float dist = eyePos.distance(&hit->vec);
+    //             if (dist < minDist || minDist == 0.0f) {
+    //                 this->hitEntity = e;
+    //                 minDist = dist;
+    //             }
+    //         }
+    //     }
+
+    //     if (this->hitEntity != nullptr && this->gamemode->gmType == 0) {
+    //         this->hitResult = new HitResult(this->hitEntity);
+    //     }
+    // }
     
     this->checkGlError("Set viewport");
     this->checkGlError("Rasycasted");
+    this->gamemode->applyCracks(partialTicks);
     glClearColor(this->bgR, this->bgG, this->bgB, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     this->fogDistance = (float)(512 >> (this->levelRenderer->drawDistance << 1));
@@ -629,35 +775,6 @@ void CrossCraft::render(float partialTicks) {
     this->setupFog(0);
     glEnable(GL_FOG);
     this->levelRenderer->render(this->player, 0);
-    if (this->levelRenderer->cracks > 0.0f) {
-        glBlendFunc(GL_DST_COLOR, GL_SRC_COLOR);
-        int texture = this->textures->loadTexture("terrain", GL_NEAREST);
-        glBindTexture(GL_TEXTURE_2D, texture);
-        glColor4f(1.0f, 1.0f, 1.0f, 0.5f);
-        glPushMatrix();
-        int tileId = this->level->getTile(this->hitResult->x, this->hitResult->y, this->hitResult->z);
-        Tile* tile = tileId > 0 ? Tile::tiles[tileId] : nullptr;
-        Tessellator& t = Tessellator::getInstance();
-        float offX = (tile->minX + tile->maxX) / 2.0f;
-        float offY = (tile->minY + tile->maxY) / 2.0f;
-        float offZ = (tile->minZ + tile->maxZ) / 2.0f;
-        glScalef(1.01f, 1.01f, 1.01f);
-        glTranslatef(-((float)tile->x + offX), -((float)tile->y + offY), -((float)tile->z + offZ));
-        t.begin();
-        t._noColor();
-        glDepthMask(false);
-        if (tile == nullptr) {
-            tile = Tile::tiles[Tile::rock->id];
-        }
-
-        for (int face = 0; face < 6; ++face) {
-            tile->renderFace(t, tile->x, tile->y, tile->z, face, (int)(this->levelRenderer->cracks * 10.0f));
-        }
-
-        t.end();
-        glDepthMask(true);
-        glPopMatrix();
-    }
     this->checkGlError("Rendered level");
     // int i;
     // Entity* entity;
@@ -687,7 +804,45 @@ void CrossCraft::render(float partialTicks) {
     if (this->hitResult != nullptr) {
         glDisable(GL_LIGHTING);
         glDisable(GL_ALPHA_TEST);
-        this->levelRenderer->renderHit(this->hitResult, this->player, this->editMode, this->player->inventory->getCurrentBlock());
+        glEnable(GL_BLEND);
+        glEnable(GL_ALPHA_TEST);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+        glColor4f(1.0f, 1.0f, 1.0f, ((float) std::sin(emscripten_get_now() / 100.0f) * 0.2f + 0.4f) * 0.5f);
+        if (this->levelRenderer->cracks > 0.0f) {
+            glBlendFunc(GL_DST_COLOR, GL_SRC_COLOR);
+            int texture = this->textures->loadTexture("terrain", GL_NEAREST);
+            glBindTexture(GL_TEXTURE_2D, texture);
+            glEnable(GL_TEXTURE_2D);
+            glColor4f(1.0f, 1.0f, 1.0f, 0.5f);
+            glPushMatrix();
+            int tileId = this->level->getTile(this->hitResult->x, this->hitResult->y, this->hitResult->z);
+            Tile* tile = tileId > 0 ? Tile::tiles[tileId] : nullptr;
+            Tessellator& t = Tessellator::getInstance();
+            float offX = (tile->minX + tile->maxX) / 2.0f;
+            float offY = (tile->minY + tile->maxY) / 2.0f;
+            float offZ = (tile->minZ + tile->maxZ) / 2.0f;
+            glTranslatef(((float)this->hitResult->x + offX), ((float)this->hitResult->y + offY), ((float)this->hitResult->z + offZ));
+            glScalef(1.01f, 1.01f, 1.01f);
+            glTranslatef(-((float)this->hitResult->x + offX), -((float)this->hitResult->y + offY), -((float)this->hitResult->z + offZ));
+            t.begin();
+            t._noColor();
+            glDepthMask(false);
+            if (tile == nullptr) {
+                tile = Tile::tiles[Tile::rock->id];
+            }
+
+            for (int face = 0; face < 6; ++face) {
+                tile->renderFace(t, this->hitResult->x, this->hitResult->y, this->hitResult->z, face, 240+(int)(this->levelRenderer->cracks*10.0f));
+            }
+
+            t.end();
+            glDisable(GL_TEXTURE_2D);
+            glDepthMask(true);
+            glPopMatrix();
+        }
+        glDisable(GL_BLEND);
+        glDisable(GL_ALPHA_TEST);
+        // this->levelRenderer->renderHit(this->hitResult, this->player, this->editMode, this->player->inventory->getCurrentBlock());
         this->levelRenderer->renderHitOutline(this->hitResult, this->player, this->editMode, this->player->inventory->getCurrentBlock());
         glEnable(GL_ALPHA_TEST);
         glEnable(GL_LIGHTING);
@@ -711,7 +866,7 @@ void CrossCraft::render(float partialTicks) {
     if (this->hitResult != nullptr) {
         glDepthFunc(GL_LESS);
         glDisable(GL_ALPHA_TEST);
-        this->levelRenderer->renderHit(this->hitResult, this->player, this->editMode, this->player->inventory->getCurrentBlock());
+        // this->levelRenderer->renderHit(this->hitResult, this->player, this->editMode, this->player->inventory->getCurrentBlock());
         this->levelRenderer->renderHitOutline(this->hitResult, this->player, this->editMode, this->player->inventory->getCurrentBlock());
         glEnable(GL_ALPHA_TEST);
         glDepthFunc(GL_LEQUAL);
@@ -967,6 +1122,7 @@ bool CrossCraft::loadLevel(const char username[], int levelid) {
         return false;
     } else {
         if (this->player != nullptr) {
+            this->gamemode->preparePlayer(this->player);
             this->player->resetPos();
         }
 
@@ -985,6 +1141,20 @@ void CrossCraft::generateNewLevel(int width, int height, int depth) {
     for (int i = static_cast<int>(this->level->entities.size()) - 1; i >= 0; --i) {
         this->level->entities.erase(this->level->entities.begin() + i);
     }
+}
+
+Vec3D* CrossCraft::getPlayerVector(float partialTicks) {
+    float x = this->player->xo + (this->player->x - this->player->xo) * partialTicks;
+    float y = this->player->yo + (this->player->y - this->player->yo) * partialTicks;
+    float z = this->player->zo + (this->player->z - this->player->zo) * partialTicks;
+    return new Vec3D(x, y, z);
+}
+
+Vec3D CrossCraft::getPlayerVectorO(float partialTicks) {
+    float x = this->player->xo + (this->player->x - this->player->xo) * partialTicks;
+    float y = this->player->yo + (this->player->y - this->player->yo) * partialTicks;
+    float z = this->player->zo + (this->player->z - this->player->zo) * partialTicks;
+    return Vec3D(x, y, z);
 }
 
 void CrossCraft::showErrorScreen(const std::string& title, const std::string& reason) {

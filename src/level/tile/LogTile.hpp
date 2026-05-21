@@ -5,4 +5,6 @@ class LogTile : public Tile {
 public:
     LogTile(int id);
     int getTexture(int face) override;
+    int getDrop() override;
+    int getDropCount() override;
 };

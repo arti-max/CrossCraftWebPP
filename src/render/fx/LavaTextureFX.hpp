@@ -54,7 +54,7 @@ public:
                     extra_energy[index] = 0.0f;
                 }
                 energy_delta[index] -= 0.06f;
-                if (static_cast<float>(std::rand()) / RAND_MAX < 0.005f) {
+                if (static_cast<float>(std::rand()) / (float)RAND_MAX < 0.005f) {
                     energy_delta[index] = 1.5f;
                 }
             }

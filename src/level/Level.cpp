@@ -10,6 +10,7 @@
 Level::Level() :  random() {
     
     this->random = new Random();
+    this->randId = this->random->nextInt();
     randValue = random->nextInt();
     unprocessed = 0;
 }
@@ -108,6 +109,17 @@ void Level::generateCaves() {
     std::cout << "Cave generation completed!" << std::endl;
 }
 
+void Level::initMasks() {
+    m_widthMask  = width  - 1;
+    m_heightMask = height - 1;
+    m_depthMask  = depth  - 1;
+
+    m_widthBits = 1;
+    while ((1 << m_widthBits) < width) ++m_widthBits;
+    m_heightBits = 1;
+    while ((1 << m_heightBits) < height) ++m_heightBits;
+}
+
 float Level::getGroundLevel() const {
     return (float)(this->depth / 2 - 2);
 }
@@ -175,6 +187,7 @@ void Level::setData(int w, int d, int h, const std::vector<uint8_t>& newBlocks) 
     }
 
     this->tickNextTickList.clear();
+    this->initMasks();
     this->findSpawn();
 }
 
@@ -250,6 +263,13 @@ void Level::tick() {
     //     }
     // }
 
+    // const int widthBits  = std::log2(width);
+    // const int heightBits = std::log2(height);
+
+    // const int widthMask  = width  - 1;
+    // const int heightMask = height - 1;
+    // const int depthMask  = depth  - 1;
+
     this->tickEntities();
     for (Entity* e : pendingAdd) {
         this->emesh->addEntity(e);
@@ -277,9 +297,12 @@ void Level::tick() {
         unprocessed -= ticks * TILE_UPDATE_INTERVAL;
         
         for (int i = 0; i < ticks; ++i) {
-            int x = random->nextInt(width);
-            int y = random->nextInt(depth);
-            int z = random->nextInt(height);
+            this->randId = this->randId * 3 + 1013904223;
+            int r = this->randId >> 2;
+
+            int x = r & m_widthMask;
+            int z = (r >> m_widthBits) & m_heightMask;
+            int y = (r >> (m_widthBits + m_heightBits)) & m_depthMask;
             
             int id = getTile(x, y, z);
             if (id != 0) {
@@ -644,4 +667,95 @@ std::vector<Entity*> Level::findEntities(Entity* ignore, const AABB& bbox) {
 
 Entity* Level::getPlayer() {
     return this->player;
+}
+
+HitResult* Level::clip(Vec3D& start, Vec3D& end) {
+    if (std::isnan(start.x) || std::isnan(start.y) || std::isnan(start.z))
+        return nullptr;
+    if (std::isnan(end.x) || std::isnan(end.y) || std::isnan(end.z))
+        return nullptr;
+
+    int curX = (int)std::floor(start.x);
+    int curY = (int)std::floor(start.y);
+    int curZ = (int)std::floor(start.z);
+    int endX = (int)std::floor(end.x);
+    int endY = (int)std::floor(end.y);
+    int endZ = (int)std::floor(end.z);
+
+    Vec3D rayPos = start;
+
+    for (int step = 20; step >= 0; --step) {
+        if (std::isnan(rayPos.x) || std::isnan(rayPos.y) || std::isnan(rayPos.z))
+            return nullptr;
+
+        if (curX == endX && curY == endY && curZ == endZ)
+            return nullptr;
+
+        float nextX = 999.0f, nextY = 999.0f, nextZ = 999.0f;
+        if (endX > curX) nextX = (float)curX + 1.0f;
+        else if (endX < curX) nextX = (float)curX;
+        if (endY > curY) nextY = (float)curY + 1.0f;
+        else if (endY < curY) nextY = (float)curY;
+        if (endZ > curZ) nextZ = (float)curZ + 1.0f;
+        else if (endZ < curZ) nextZ = (float)curZ;
+
+        float dx = end.x - rayPos.x;
+        float dy = end.y - rayPos.y;
+        float dz = end.z - rayPos.z;
+
+        float tx = 999.0f, ty = 999.0f, tz = 999.0f;
+        if (nextX != 999.0f) tx = (nextX - rayPos.x) / dx;
+        if (nextY != 999.0f) ty = (nextY - rayPos.y) / dy;
+        if (nextZ != 999.0f) tz = (nextZ - rayPos.z) / dz;
+
+        int face;
+        if (tx < ty && tx < tz) {
+            if (endX > curX) face = 4; // west
+            else face = 5; // east
+
+            rayPos.x = nextX;
+            rayPos.y += dy * tx;
+            rayPos.z += dz * tx;
+        } else if (ty < tz) {
+            if (endY > curY) face = 0; // bottom
+            else face = 1; // top
+
+            rayPos.x += dx * ty;
+            rayPos.y = nextY;
+            rayPos.z += dz * ty;
+        } else {
+            if (endZ > curZ) face = 2; // north
+            else face = 3; // south
+
+            rayPos.x += dx * tz;
+            rayPos.y += dy * tz;
+            rayPos.z = nextZ;
+        }
+
+        curX = (int)std::floor(rayPos.x);
+        curY = (int)std::floor(rayPos.y);
+        curZ = (int)std::floor(rayPos.z);
+
+        if (face == 5) { --curX; rayPos.x += 1.0f; }
+        else if (face == 1) { --curY; rayPos.y += 1.0f; }
+        else if (face == 3) { --curZ; rayPos.z += 1.0f; }
+
+        int tileId = getTile(curX, curY, curZ);
+        Tile* tile = Tile::tiles[tileId];
+        if (tileId > 0 && tile && tile->getLiquidType() == LiquidType::NOT_LIQUID) {
+            HitResult* hit = tile->clip(curX, curY, curZ, start, rayPos);
+            if (hit) return hit;
+        }
+    }
+
+    return nullptr;
+}
+
+Entity* Level::findSubclassOf(EntityType type) {
+    // for (Entity* entity : emesh->all) {
+    //     if (entity->getEntityType() == type) {
+    //         return entity;
+    //     }
+    // }
+    return nullptr;
 }

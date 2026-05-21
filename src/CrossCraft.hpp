@@ -42,6 +42,8 @@
 #include "mob/Skeleton.hpp"
 #include "Settings.hpp"
 #include "Data.hpp"
+#include "gamemode/GameMode.hpp"
+#include "gamemode/SurvivalGameMode.hpp"
 
 class CrossCraft : public LevelLoaderListener {
 private:
@@ -82,7 +84,6 @@ private:
     float lastSentYaw = 0, lastSentPitch = 0;
 
     Timer* timer = new Timer(20.0f);
-    LevelRenderer* levelRenderer;
     HitResult* hitResult;
     LevelGen* levelGen = new LevelGen(this);
     LevelIO* levelIO = new LevelIO(this);
@@ -103,7 +104,7 @@ private:
     void render(float partialTicks);
     void raycast();
     void destroy();
-    void handleMouseClick();
+    void handleMouseClick(int mode);
     bool isFree(const AABB &aabb);
     void fill(int x0, int y0, int x1, int y1, int col);
 
@@ -129,17 +130,19 @@ public:
     int width, height;
     GLFWwindow* window;
 
-    Level* level;
+    Level* level = nullptr;
     Screen* screen = nullptr;
-    ParticleEngine* particleEngine;
-    Font* font;
+    ParticleEngine* particleEngine = nullptr;
+    LevelRenderer* levelRenderer = nullptr;
+    Font* font = nullptr;
     Textures* textures = nullptr;
-    Player* player;
+    Player* player = nullptr;
     Client* client = nullptr;
-    ChatGui* chatGui;
+    ChatGui* chatGui = nullptr;
     PlayerListScreen* playerListScreen = new PlayerListScreen();
-    SoundManager* sound;
+    SoundManager* sound = nullptr;
     Settings* settings = new Settings();
+    GameMode* gamemode = new SurvivalGameMode(this);
 
     CrossCraft(const char* parent, int width, int height, bool fullscreen);
     ~CrossCraft();
@@ -147,6 +150,9 @@ public:
     bool appletMode = false;
     bool mpMode = false;
     bool waitingForFocus = false;
+    Entity* hitEntity = nullptr;
+    int lastClick = 0;
+    int ticks = 0;
 
     int serverPort;
     std::string serverAddress;
@@ -155,6 +161,9 @@ public:
     int loadMapId = 0;
     std::string loadMapUser = "";
     std::string serverHost = "crosscraftweb.ddns.net";
+
+    Vec3D* getPlayerVector(float partialTicks);
+    Vec3D getPlayerVectorO(float partialTicks);
 
     void run();
     void stop();

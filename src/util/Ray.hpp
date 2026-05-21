@@ -8,6 +8,7 @@
 #include <cmath>
 #include <vector>
 #include <limits>
+#include <cfloat>
 
 class Ray {
 public:
@@ -31,46 +32,53 @@ public:
     }
     
     // Основной метод raycast с проверкой энтити
-    HitResult* trace(Level* level, float maxDistance = 5.0f, const std::vector<Entity*>* entities = nullptr) {
+    HitResult* trace(Level* level, Player* player, float maxDistance = 5.0f) {
         // Сначала проверяем энтити (они в приоритете)
+        float length = std::sqrt(dx * dx + dy * dy + dz * dz);
+        if (length < 0.0001f) return nullptr;
+        float ndx = dx / length;
+        float ndy = dy / length;
+        float ndz = dz / length;
+
+        // --- Поиск пересечений с сущностями (как в Java) ---
         HitResult* entityHit = nullptr;
-        float entityDistance = maxDistance;
-        
-        if (entities != nullptr) {
-            for (Entity* entity : *entities) {
-                if (entity == nullptr) continue;
-                
-                AABB* entityBox = &entity->bb;
-                float distance = rayAABBIntersection(entityBox);
-                
-                if (distance >= 0.0f && distance < entityDistance) {
-                    entityDistance = distance;
-                    entityHit = new HitResult(1, 0, 0, 0, 0);
+        float entityDist = maxDistance;
+
+        if (player && level->emesh) {
+            // Расширенный AABB игрока вдоль луча
+            AABB playerBB = player->bb.expand(ndx * maxDistance, ndy * maxDistance, ndz * maxDistance);
+            std::vector<Entity*> entities = level->emesh->getEntities(player, playerBB);
+
+            for (Entity* ent : entities) {
+                if (!ent->isPickable()) continue;
+
+                // AABB сущности немного расширяем для надёжного касания
+                AABB hitbox = ent->bb.grow(0.1f, 0.1f, 0.1f);
+                float t = rayAABBIntersection(hitbox);
+                if (t >= 0.0f && t < entityDist) {
+                    entityDist = t;
+                    delete entityHit;
+                    entityHit = new HitResult(ent);
                 }
             }
         }
-        
-        // Затем проверяем блоки с DDA алгоритмом
-        HitResult* blockHit = traceBlocks(level, maxDistance);
-        
-        // Возвращаем ближайшее попадание
-        if (blockHit == nullptr) {
-            return entityHit;
+
+        // --- Поиск пересечений с блоками (DDA) ---
+        HitResult* blockHit = traceBlocks(level, maxDistance, ndx, ndy, ndz);
+        float blockDist = maxDistance;
+        if (blockHit) {
+            // расстояние до точки пересечения с блоком
+            float dx = blockHit->vec.x - x;
+            float dy = blockHit->vec.y - y;
+            float dz = blockHit->vec.z - z;
+            blockDist = std::sqrt(dx * dx + dy * dy + dz * dz);
         }
-        
-        if (entityHit == nullptr) {
-            return blockHit;
-        }
-        
-        // Вычисляем расстояние до блока
-        float blockDist = std::sqrt(
-            (blockHit->x - x) * (blockHit->x - x) +
-            (blockHit->y - y) * (blockHit->y - y) +
-            (blockHit->z - z) * (blockHit->z - z)
-        );
-        
+
         // Возвращаем ближайшее
-        if (entityDistance < blockDist) {
+        if (!blockHit) return entityHit;
+        if (!entityHit) return blockHit;
+
+        if (entityDist < blockDist) {
             delete blockHit;
             return entityHit;
         } else {
@@ -81,154 +89,119 @@ public:
     
 private:
     // DDA алгоритм для точного обхода воксельной сетки
-    HitResult* traceBlocks(Level* level, float maxDistance) {
-        // Текущая позиция в сетке
-        int blockX = static_cast<int>(std::floor(x));
-        int blockY = static_cast<int>(std::floor(y));
-        int blockZ = static_cast<int>(std::floor(z));
-        
-        // Нормализуем направление для корректных вычислений
-        float length = std::sqrt(dx * dx + dy * dy + dz * dz);
-        if (length < 0.0001f) return nullptr;
-        
-        float dirX = dx / length;
-        float dirY = dy / length;
-        float dirZ = dz / length;
-        
-        // Направление шага (+1 или -1)
-        int stepX = dirX > 0 ? 1 : -1;
-        int stepY = dirY > 0 ? 1 : -1;
-        int stepZ = dirZ > 0 ? 1 : -1;
-        
-        // Расстояние до следующей границы вокселя в каждом измерении
+    HitResult* traceBlocks(Level* level, float maxDistance,
+                           float ndx, float ndy, float ndz) {
+        int bx = (int)std::floor(x);
+        int by = (int)std::floor(y);
+        int bz = (int)std::floor(z);
+
+        int stepX = (ndx > 0) ? 1 : -1;
+        int stepY = (ndy > 0) ? 1 : -1;
+        int stepZ = (ndz > 0) ? 1 : -1;
+
+        float tDeltaX = std::abs(ndx) < 1e-7f ? FLT_MAX : std::abs(1.0f / ndx);
+        float tDeltaY = std::abs(ndy) < 1e-7f ? FLT_MAX : std::abs(1.0f / ndy);
+        float tDeltaZ = std::abs(ndz) < 1e-7f ? FLT_MAX : std::abs(1.0f / ndz);
+
         float tMaxX, tMaxY, tMaxZ;
-        
-        // Расстояние, которое нужно пройти в мировых координатах 
-        // для перехода на следующий воксель в каждом измерении
-        float tDeltaX = (std::abs(dirX) < 0.0001f) ? std::numeric_limits<float>::max() : std::abs(1.0f / dirX);
-        float tDeltaY = (std::abs(dirY) < 0.0001f) ? std::numeric_limits<float>::max() : std::abs(1.0f / dirY);
-        float tDeltaZ = (std::abs(dirZ) < 0.0001f) ? std::numeric_limits<float>::max() : std::abs(1.0f / dirZ);
-        
-        // Инициализация tMax - расстояние до первой границы
-        if (dirX > 0) {
-            tMaxX = (blockX + 1.0f - x) / dirX;
-        } else if (dirX < 0) {
-            tMaxX = (blockX - x) / dirX;
-        } else {
-            tMaxX = std::numeric_limits<float>::max();
-        }
-        
-        if (dirY > 0) {
-            tMaxY = (blockY + 1.0f - y) / dirY;
-        } else if (dirY < 0) {
-            tMaxY = (blockY - y) / dirY;
-        } else {
-            tMaxY = std::numeric_limits<float>::max();
-        }
-        
-        if (dirZ > 0) {
-            tMaxZ = (blockZ + 1.0f - z) / dirZ;
-        } else if (dirZ < 0) {
-            tMaxZ = (blockZ - z) / dirZ;
-        } else {
-            tMaxZ = std::numeric_limits<float>::max();
-        }
-        
-        float currentDistance = 0.0f;
+        if (ndx > 0) tMaxX = (bx + 1.0f - x) / ndx;
+        else if (ndx < 0) tMaxX = (bx - x) / ndx;
+        else tMaxX = FLT_MAX;
+
+        if (ndy > 0) tMaxY = (by + 1.0f - y) / ndy;
+        else if (ndy < 0) tMaxY = (by - y) / ndy;
+        else tMaxY = FLT_MAX;
+
+        if (ndz > 0) tMaxZ = (bz + 1.0f - z) / ndz;
+        else if (ndz < 0) tMaxZ = (bz - z) / ndz;
+        else tMaxZ = FLT_MAX;
+
+        float t = 0.0f;
         int lastFace = -1;
-        
-        // DDA основной цикл
-        while (currentDistance < maxDistance) {
-            // Проверка выхода за границы уровня
-            if (blockX < 0 || blockX >= level->width ||
-                blockY < 0 || blockY >= level->depth ||
-                blockZ < 0 || blockZ >= level->height) {
+
+        while (t < maxDistance) {
+            if (bx < 0 || bx >= level->width ||
+                by < 0 || by >= level->depth ||
+                bz < 0 || bz >= level->height)
                 break;
-            }
-            
-            // Проверяем текущий блок
-            int tileId = level->getTile(blockX, blockY, blockZ);
-            
-            // ОПТИМИЗАЦИЯ: проверяем только если блок не пустой
+
+            int tileId = level->getTile(bx, by, bz);
             if (tileId != 0) {
                 Tile* tile = Tile::tiles[tileId];
-                
-                // НОВОЕ: проверяем mayPick()
-                if (tile != nullptr && tile->mayPick()) {
-                    // Нашли пикабельный блок
-                    return new HitResult(0, blockX, blockY, blockZ, lastFace);
+                if (tile && tile->mayPick()) {
+                    // Вычисляем точку пересечения луча с гранью
+                    Vec3D hitPoint(
+                        x + ndx * t,
+                        y + ndy * t,
+                        z + ndz * t
+                    );
+                    return new HitResult(0, bx, by, bz, lastFace, hitPoint);
                 }
-                // Если блок не пикабельный (например жидкость), продолжаем луч
             }
-            
-            // Переход к следующему вокселю
-            // Выбираем ось с минимальным tMax (ближайшая граница)
+
+            // Шаг DDA
             if (tMaxX < tMaxY) {
                 if (tMaxX < tMaxZ) {
-                    // X ось ближайшая
-                    currentDistance = tMaxX;
+                    t = tMaxX;
                     tMaxX += tDeltaX;
-                    blockX += stepX;
-                    lastFace = (stepX > 0) ? 4 : 5; // West : East
+                    bx += stepX;
+                    lastFace = (stepX > 0) ? 4 : 5;
                 } else {
-                    // Z ось ближайшая
-                    currentDistance = tMaxZ;
+                    t = tMaxZ;
                     tMaxZ += tDeltaZ;
-                    blockZ += stepZ;
-                    lastFace = (stepZ > 0) ? 2 : 3; // North : South
+                    bz += stepZ;
+                    lastFace = (stepZ > 0) ? 2 : 3;
                 }
             } else {
                 if (tMaxY < tMaxZ) {
-                    // Y ось ближайшая
-                    currentDistance = tMaxY;
+                    t = tMaxY;
                     tMaxY += tDeltaY;
-                    blockY += stepY;
-                    lastFace = (stepY > 0) ? 0 : 1; // Bottom : Top
+                    by += stepY;
+                    lastFace = (stepY > 0) ? 0 : 1;
                 } else {
-                    // Z ось ближайшая
-                    currentDistance = tMaxZ;
+                    t = tMaxZ;
                     tMaxZ += tDeltaZ;
-                    blockZ += stepZ;
-                    lastFace = (stepZ > 0) ? 2 : 3; // North : South
+                    bz += stepZ;
+                    lastFace = (stepZ > 0) ? 2 : 3;
                 }
             }
         }
-        
         return nullptr;
     }
     
     // Ray-AABB intersection test
-    float rayAABBIntersection(AABB* box) {
-        // Нормализуем направление
-        float length = std::sqrt(dx * dx + dy * dy + dz * dz);
-        if (length < 0.0001f) return -1.0f;
-        
-        float dirX = dx / length;
-        float dirY = dy / length;
-        float dirZ = dz / length;
-        
-        // Slab method для ray-AABB intersection
-        float t1 = (box->x0 - x) / (dirX + 0.0001f);
-        float t2 = (box->x1 - x) / (dirX + 0.0001f);
-        float t3 = (box->y0 - y) / (dirY + 0.0001f);
-        float t4 = (box->y1 - y) / (dirY + 0.0001f);
-        float t5 = (box->z0 - z) / (dirZ + 0.0001f);
-        float t6 = (box->z1 - z) / (dirZ + 0.0001f);
-        
-        float tmin = std::max(std::max(std::min(t1, t2), std::min(t3, t4)), std::min(t5, t6));
-        float tmax = std::min(std::min(std::max(t1, t2), std::max(t3, t4)), std::max(t5, t6));
-        
-        // Нет пересечения если tmax < 0 (box позади луча)
-        if (tmax < 0.0f) {
-            return -1.0f;
-        }
-        
-        // Нет пересечения если tmin > tmax
-        if (tmin > tmax) {
-            return -1.0f;
-        }
-        
-        // Возвращаем расстояние до точки входа (или 0 если луч начинается внутри)
-        return std::max(0.0f, tmin);
+    float rayAABBIntersection(const AABB& box) {
+        float tmin = -std::numeric_limits<float>::max();
+        float tmax =  std::numeric_limits<float>::max();
+
+        // X slab
+        if (std::abs(dx) > 1e-6f) {
+            float t1 = (box.x0 - x) / dx;
+            float t2 = (box.x1 - x) / dx;
+            if (t1 > t2) std::swap(t1, t2);
+            tmin = std::max(tmin, t1);
+            tmax = std::min(tmax, t2);
+        } else if (x < box.x0 || x > box.x1) return -1.0f;
+
+        // Y slab
+        if (std::abs(dy) > 1e-6f) {
+            float t1 = (box.y0 - y) / dy;
+            float t2 = (box.y1 - y) / dy;
+            if (t1 > t2) std::swap(t1, t2);
+            tmin = std::max(tmin, t1);
+            tmax = std::min(tmax, t2);
+        } else if (y < box.y0 || y > box.y1) return -1.0f;
+
+        // Z slab
+        if (std::abs(dz) > 1e-6f) {
+            float t1 = (box.z0 - z) / dz;
+            float t2 = (box.z1 - z) / dz;
+            if (t1 > t2) std::swap(t1, t2);
+            tmin = std::max(tmin, t1);
+            tmax = std::min(tmax, t2);
+        } else if (z < box.z0 || z > box.z1) return -1.0f;
+
+        if (tmin > tmax || tmax < 0.0f) return -1.0f;
+        return tmin >= 0.0f ? tmin : 0.0f; // если начало внутри AABB, считаем 0
     }
 };

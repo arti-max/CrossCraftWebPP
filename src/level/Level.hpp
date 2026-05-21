@@ -11,6 +11,8 @@
 #include "level/EntityMesh.hpp"
 #include "level/EntityMeshSlot.hpp"
 #include "level/liquid/LiquidType.hpp"
+#include "HitResult.hpp"
+#include "EntityType.hpp"
 
 class NetworkPlayer;
 class Entity;
@@ -33,9 +35,16 @@ private:
     std::vector<TickEntry> bannedTiles;
     std::vector<Entity*> pendingAdd;
 
+    int m_widthBits = 0;
+    int m_heightBits = 0;
+    int m_widthMask = 0; 
+    int m_heightMask = 0;
+    int m_depthMask = 0;
+
     static const int maxBits = 10;
     int randValue = 0;
     int unprocessed = 0;
+    int randId = 0;
     
     void calcLightDepths(int x0, int z0, int x1, int z1);
     void neighborChanged(int x, int y, int z, int type);
@@ -43,6 +52,7 @@ private:
     bool isActiveLiquidTile(int tileId);
     int encodePosition(int x, int y, int z);
     void decodePosition(int code, int& x, int& y, int& z);
+    void initMasks();
 
 public:
     int width = 0, height = 0, depth = 0;
@@ -109,6 +119,8 @@ public:
     void removeEntity(Entity* e);
     std::vector<Entity*> findEntities(Entity* e, const AABB& bbox);
     Entity* getPlayer();
+    HitResult* clip(Vec3D& start, Vec3D& end);
+    Entity* findSubclassOf(EntityType type);
 
 private:
     void generateMap();

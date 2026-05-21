@@ -4,6 +4,7 @@
 #include "mob/ai/AI.hpp"
 #include "model/ModelManager.hpp"
 #include "util/Random.hpp"
+#include "EntityType.hpp"
 
 class Textures;
 class Level;
@@ -59,10 +60,12 @@ public:
     void render(float partialTicks, Textures* textures) override;
     virtual void renderModel(Textures* textures, float time, float speed, float tick, float headYRot, float headXRot, float scale);
     virtual void heal(int hp);
-    virtual void hurt(Entity* e, int dmg);
+    void hurt(Entity* e, int dmg) override;
     virtual void knockback(Entity* e, int dmg, float dx, float dz);
-    void die(Entity* e);
+    virtual void die(Entity* e);
     bool isShootable() override;
+
+    EntityType getEntityType() const override { return EntityType::Mob; }
 protected:
     void causeFallDamage(float fall) override;
 };

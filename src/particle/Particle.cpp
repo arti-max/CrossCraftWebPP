@@ -7,10 +7,7 @@ double randomDouble() {
     return (double)rand() / RAND_MAX;
 }
 
-Particle::Particle(Level* level, double x, double y, double z, double motionX, double motionY, double motionZ, Tile* tile) : Entity::Entity(level) {
-    this->textureId = tile->textureId;
-    this->gravity = tile->particleGravity;
-
+Particle::Particle(Level* level, double x, double y, double z, double motionX, double motionY, double motionZ) : Entity::Entity(level) {
     this->setSize(0.2f, 0.2f);
     this->heightOffset = this->bbHeight / 2.0f;
 
@@ -74,9 +71,9 @@ Particle* Particle::setScale(float scale) {
 }
 
 void Particle::render(Tessellator& t, float partialTicks, float cameraX, float cameraY, float cameraZ, float cameraXWithY, float cameraZWithY) {
-    float minU = (this->textureId % 16 + this->textureUOffset / 4.0F) / 16.0F;
+    float minU = (this->textureId % 16) / 16.0F;
     float maxU = minU + 999.0F / 64000.0F;
-    float minV = ((float) (this->textureId / 16) + this->textureVOffset / 4.0F) / 16.0F;
+    float minV = ((float) (this->textureId / 16)) / 16.0F;
     float maxV = minV + 999.0F / 64000.0F;
 
     float x = this->xo + (this->x - this->xo) * partialTicks;
@@ -91,4 +88,8 @@ void Particle::render(Tessellator& t, float partialTicks, float cameraX, float c
     t.vertexUV(x - cameraX * size + cameraXWithY * size, y + cameraY * size, z - cameraZ * size + cameraZWithY * size, minU, minV);
     t.vertexUV(x + cameraX * size + cameraXWithY * size, y + cameraY * size, z + cameraZ * size + cameraZWithY * size, maxU, minV);
     t.vertexUV(x + cameraX * size - cameraXWithY * size, y - cameraY * size, z + cameraZ * size - cameraZWithY * size, maxU, maxV);
+}
+
+int Particle::getParticleTexture() {
+    return 0;
 }

@@ -13,8 +13,8 @@ void PauseScreen::init() {
     this->buttons.push_back(new Button(4, this->width / 2 - 100, this->height / 4 + 120, 200, 20, "Back to game"));
 
     if (this->cc->userData == nullptr) {
-        this->buttons[1]->enabled = false;
         this->buttons[2]->enabled = false;
+        this->buttons[3]->enabled = false;
     }
     if (this->cc->mpMode) {
         this->buttons[1]->enabled = false;

@@ -51,7 +51,7 @@ public:
 
                 disturbance_delta[index] -= 0.1f;
 
-                if (static_cast<float>(std::rand()) / RAND_MAX < 0.05f) {
+                if (static_cast<float>(std::rand()) / (float)RAND_MAX < 0.05f) {
                     disturbance_delta[index] = 0.5f;
                 }
             }

@@ -1,5 +1,6 @@
 #include "level/EntityMesh.hpp"
 #include "util/Utils.hpp"
+#include "util/Logger.hpp"
 
 EntityMesh::EntityMesh(int w, int h, int d) {
     this->width = w / 16;
@@ -18,7 +19,14 @@ EntityMesh::EntityMesh(int w, int h, int d) {
 
 void EntityMesh::addEntity(Entity* e) {
     this->all.push_back(e);
-    this->slotStart->init(e->x, e->y, e->z).add(e);
+    EntityMeshSlot& slot = this->slotStart->init(e->x, e->y, e->z);
+    if (slot.xSlot >= 0 && slot.xSlot < this->width &&
+        slot.ySlot >= 0 && slot.ySlot < this->depth &&
+        slot.zSlot >= 0 && slot.zSlot < this->height) {
+        slot.add(e);
+    } else {
+        Logger::logf(PREFIX_WARNING, "Entity at %.1f,%.1f,%.1f outside mesh grid\n", e->x, e->y, e->z);
+    }
     e->xo = e->x;
     e->yo = e->y;
     e->zo = e->z;

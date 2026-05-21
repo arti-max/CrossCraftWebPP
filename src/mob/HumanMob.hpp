@@ -13,4 +13,5 @@ private:
 public:
     HumanMob(Level* level, float x, float y, float z);
     void renderModel(Textures* textures, float time, float speed, float tick, float headYRot, float headXRot, float scale) override;
+    EntityType getEntityType() const override { return EntityType::HumanMob; }
 };

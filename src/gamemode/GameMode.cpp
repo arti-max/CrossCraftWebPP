@@ -37,7 +37,8 @@ void GameMode::breakTile(int x, int y, int z) {
         }
 
 
-        tile->onDestroy(level, x, y, z, cc->particleEngine, true);
+        tile->spawnDestroyParticles(level, x, y, z, cc->particleEngine);
+        // tile->onDestroy(level, x, y, z, cc->particleEngine, true);
     }
 }
 
@@ -65,7 +66,7 @@ void GameMode::spawnMob() {
     // nothing
 }
 
-void GameMode::prepareLevel() {
+void GameMode::prepareLevel(Level* level) {
     // nothing
 }
 
@@ -75,4 +76,8 @@ bool isSurvival() {
 
 void apply(Player* player) {
     // nothing
+}
+
+float GameMode::getReachDistance() {
+    return 5.0f;
 }

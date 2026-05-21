@@ -64,20 +64,8 @@ if(EMSCRIPTEN)
             -lidbfs.js \
             --allow-multiple-definition \
             --shell-file ${CMAKE_CURRENT_SOURCE_DIR}/index.html \
-            --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/terrain.png@terrain.png \
-            --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/char.png@char.png \
-            --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/rock.png@rock.png \
-            --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/rock2.png@rock2.png \
-            --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/dirt.png@dirt.png \
-            --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/water.png@water.png \
-            --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/default.png@default.png \
-            --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/clouds.png@clouds.png \
-            --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/gui.png@gui.png \
-            --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/armor/plate.png@armor/plate.png \
-            --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/armor/chain.png@armor/chain.png \
-            --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/mob/zombie.png@mob/zombie.png \
-            --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/mob/skeleton.png@mob/skeleton.png \
-            --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/mob/pig.png@mob/pig.png"
+            --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/resources@/ \
+        "
     )
     set_target_properties(CrossCraftWebPP PROPERTIES OUTPUT_NAME "game")
     set_target_properties(CrossCraftWebPP PROPERTIES SUFFIX ".html")
@@ -91,7 +79,7 @@ if(EMSCRIPTEN)
         water.png
         default.png
         clouds.png
-        gui.png
+        gui/gui.png
         armor/plate.png
         armor/chain.png
         mob/zombie.png
@@ -99,24 +87,11 @@ if(EMSCRIPTEN)
         mob/pig.png
     )
     
-    foreach(TEXTURE_FILE ${TEXTURE_FILES})
-        add_custom_command(TARGET CrossCraftWebPP POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${CMAKE_CURRENT_SOURCE_DIR}/${TEXTURE_FILE}"
-                "${CMAKE_CURRENT_BINARY_DIR}/${TEXTURE_FILE}"
-            COMMENT "Copying ${TEXTURE_FILE} to build directory"
-        )
-    endforeach()
-    
-    add_custom_target(copy_textures DEPENDS ${TEXTURE_FILES})
-    
-    foreach(TEXTURE_FILE ${TEXTURE_FILES})
-        add_custom_command(TARGET copy_textures PRE_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${CMAKE_CURRENT_SOURCE_DIR}/${TEXTURE_FILE}"
-                "${CMAKE_CURRENT_BINARY_DIR}/${TEXTURE_FILE}"
-        )
-    endforeach()
-    
-    add_dependencies(CrossCraftWebPP copy_textures)
+    add_custom_command(TARGET CrossCraftWebPP POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${CMAKE_CURRENT_SOURCE_DIR}/resources"
+            "${CMAKE_CURRENT_BINARY_DIR}"
+        COMMENT "Copying resources to build directory"
+    )
+
 endif()

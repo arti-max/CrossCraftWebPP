@@ -270,15 +270,40 @@ void Mob::renderModel(Textures* textures, float time, float speed, float tick, f
 }
 
 void Mob::travel(float xxa, float yya) {
-    this->moveRelative(xxa, yya, this->onGround ? 0.1f : 0.02f);
-    this->move(this->xd, this->yd, this->zd);
-    this->xd *= 0.91f;
-    this->yd *= 0.98f;
-    this->zd *= 0.91f;
-    this->yd = (float)((float)this->yd - 0.08f);
-    if (this->onGround) {
-        this->xd *= 0.6f;
-        this->zd *= 0.6f;
+    float oldY = 0.0f;
+    if (this->isInWater()) {
+        oldY = this->y;
+        this->moveRelative(xxa, yya, 0.02f);
+        this->move(this->xd, this->yd, this->zd);
+        this->xd *= 0.8f;
+        this->yd *= 0.8f;
+        this->zd *= 0.8f;
+        this->yd = this->yd - 0.02f;
+        if (this->horizontalCollision && this->isFree(this->xd, this->yd + 0.6f - this->y + oldY, this->zd)) {
+            this->yd = 0.3f;
+        }
+    } else if (this->isInLava()) {
+        oldY = this->y;
+        this->moveRelative(xxa, yya, 0.02f);
+        this->move(this->xd, this->yd, this->zd);
+        this->xd *= 0.5f;
+        this->yd *= 0.5f;
+        this->zd *= 0.5f;
+        this->yd = this->yd - 0.02f;
+        if (this->horizontalCollision && this->isFree(this->xd, this->yd + 0.6f - this->y + oldY, this->zd)) {
+            this->yd = 0.3f;
+        }
+    } else {
+        this->moveRelative(xxa, yya, this->onGround ? 0.1f : 0.02f);
+        this->move(this->xd, this->yd, this->zd);
+        this->xd *= 0.91f;
+        this->yd *= 0.98f;
+        this->zd *= 0.91f;
+        this->yd = (float)((float)this->yd - 0.08f);
+        if (this->onGround) {
+            this->xd *= 0.6f;
+            this->zd *= 0.6f;
+        }
     }
 }
 

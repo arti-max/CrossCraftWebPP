@@ -1,5 +1,7 @@
 #include "phys/AABB.hpp"
 #include <GL/gl.h>
+#include "model/Vec3D.hpp"
+#include "HitResult.hpp"
 
 AABB::AABB(float x0, float y0, float z0, float x1, float y1, float z1)
     : x0(x0), y0(y0), z0(z0), x1(x1), y1(y1), z1(z1) {
@@ -82,6 +84,70 @@ bool AABB::intersects(float x0, float y0, float z0, float x1, float y1, float z1
 void AABB::move(float xa, float ya, float za) {
     x0 += xa; y0 += ya; z0 += za;
     x1 += xa; y1 += ya; z1 += za;
+}
+
+bool AABB::xIntersects(const Vec3D* p) const {
+    if (!p) return false;
+    return p->y >= y0 && p->y <= y1 && p->z >= z0 && p->z <= z1;
+}
+
+bool AABB::yIntersects(const Vec3D* p) const {
+    if (!p) return false;
+    return p->x >= x0 && p->x <= x1 && p->z >= z0 && p->z <= z1;
+}
+
+bool AABB::zIntersects(const Vec3D* p) const {
+    if (!p) return false;
+    return p->x >= x0 && p->x <= x1 && p->y >= y0 && p->y <= y1;
+}
+
+HitResult* AABB::clip(Vec3D& start, Vec3D& end) {
+    Vec3D* pX0 = start.getXIntersection(&end, x0);
+    Vec3D* pX1 = start.getXIntersection(&end, x1);
+    Vec3D* pY0 = start.getYIntersection(&end, y0);
+    Vec3D* pY1 = start.getYIntersection(&end, y1);
+    Vec3D* pZ0 = start.getZIntersection(&end, z0);
+    Vec3D* pZ1 = start.getZIntersection(&end, z1);
+
+    if (!xIntersects(pX0)) { delete pX0; pX0 = nullptr; }
+    if (!xIntersects(pX1)) { delete pX1; pX1 = nullptr; }
+    if (!yIntersects(pY0)) { delete pY0; pY0 = nullptr; }
+    if (!yIntersects(pY1)) { delete pY1; pY1 = nullptr; }
+    if (!zIntersects(pZ0)) { delete pZ0; pZ0 = nullptr; }
+    if (!zIntersects(pZ1)) { delete pZ1; pZ1 = nullptr; }
+
+    Vec3D* best = nullptr;
+    int face = -1;
+
+    auto check = [&](Vec3D* p, int f) {
+        if (p) {
+            if (!best || start.distanceSqrt(p) < start.distanceSqrt(best)) {
+                best = p;
+                face = f;
+            }
+        }
+    };
+
+    check(pX0, 4);
+    check(pX1, 5);
+    check(pY0, 0);
+    check(pY1, 1);
+    check(pZ0, 2);
+    check(pZ1, 3);
+
+    // Удаляем все указатели, кроме best
+    if (pX0 != best) delete pX0;
+    if (pX1 != best) delete pX1;
+    if (pY0 != best) delete pY0;
+    if (pY1 != best) delete pY1;
+    if (pZ0 != best) delete pZ0;
+    if (pZ1 != best) delete pZ1;
+
+    if (!best) return nullptr;
+
+    HitResult* result = new HitResult(0, 0, 0, 0, face, *best);
+    delete best;
+    return result;
 }
 
 void AABB::render() const {

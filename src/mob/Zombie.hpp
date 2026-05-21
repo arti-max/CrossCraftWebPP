@@ -1,6 +1,7 @@
 #pragma once
 #include "mob/HumanMob.hpp"
 #include "mob/ai/BasicAttackAI.hpp"
+#include "EntityType.hpp"
 
 class Level;
 
@@ -16,10 +17,12 @@ public:
         this->ai = attackAi;
     }
 
-    void die(Entity* e) {
+    void die(Entity* e) override {
         if (e != nullptr) {
             // TODO: add score
         }
         HumanMob::die(e);
     }
+
+    EntityType getEntityType() const override { return EntityType::Zombie; }
 };
