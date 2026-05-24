@@ -572,3 +572,31 @@ HitResult* Tile::clip(int x, int y, int z, Vec3D& start, Vec3D& end) {
     return result;
 }
 
+void Tile::renderPreview(Tessellator& t) {
+    t.begin();
+
+    for (int f = 0; f < 6; f++) {
+        if (f == 0) {
+            t.normal(0.0f, 1.0f, 0.0f);
+        }
+        if (f == 1) {
+            t.normal(0.0f, -1.0f, 0.0f);
+        }
+        if (f == 2) {
+            t.normal(0.0f, 0.0f, 1.0f);
+        }
+        if (f == 3) {
+            t.normal(0.0f, 0.0f, -1.0f);
+        }
+        if (f == 4) {
+            t.normal(1.0f, 0.0f, 0.0f);
+        }
+        if (f == 5) {
+            t.normal(-1.0f, 0.0f, 0.0f);
+        }
+
+        this->renderFace(t, 0, 0, 0, f);
+    }
+
+    t.end();
+}

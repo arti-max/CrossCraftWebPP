@@ -256,7 +256,7 @@ float Entity::randomFloat() {
     return dist(randomGenerator);
 }
 
-float Entity::getBrightness() {
+float Entity::getBrightness(float partialTicks) {
     int xTile = static_cast<int>(x);
     int yTile = static_cast<int>(y + heightOffset / 2.0f);
     int zTile = static_cast<int>(z);
@@ -278,7 +278,7 @@ bool Entity::isPlayer() {
 bool Entity::intersects(float x0, float y0, float z0, float x1, float y1, float z1) {
     return this->bb.intersects(x0, y0, z0, x1, y1, z1);
 }
-
+ 
 void Entity::setLevel(Level* level) {
     this->level = level;
 }
@@ -360,4 +360,8 @@ void Entity::playerTouch(Player* player) {
 
 void Entity::hurt(Entity* e, int dmg) {
     // nothing
+}
+
+void Entity::awardKillScore(Entity* e, int score) {
+    
 }

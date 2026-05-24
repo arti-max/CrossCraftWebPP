@@ -158,7 +158,7 @@ public:
         }
     }
 
-private:
+
     void compileDisplayList(float scale) {
 
         displayList = glGenLists(1);

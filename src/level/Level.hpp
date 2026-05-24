@@ -77,6 +77,7 @@ public:
     int rotSpawn = 0;
 
     bool isRemote = false;
+    bool growTrees = false;
 
     Level();
     ~Level() = default;
@@ -121,6 +122,9 @@ public:
     Entity* getPlayer();
     HitResult* clip(Vec3D& start, Vec3D& end);
     Entity* findSubclassOf(EntityType type);
+    bool maybeGrowTree(int x, int y, int z);
+    bool isFree(AABB& box);
+    void explode(Entity* e, float x, float y, float z, float radius);
 
 private:
     void generateMap();

@@ -73,10 +73,10 @@ float SurvivalGameMode::getReachDistance() {
 }
 
 void SurvivalGameMode::preparePlayer(Player* player) {
-    player->inventory->slots[0] = Tile::brownMushroom->id;
-    player->inventory->count[0] = 999;
-    player->inventory->slots[1] = Tile::redMushroom->id;
-    player->inventory->count[1] = 99;
+    // player->inventory->slots[0] = Tile::brownMushroom->id;
+    // player->inventory->count[0] = 10;
+    // player->inventory->slots[1] = Tile::redMushroom->id;
+    // player->inventory->count[1] = 10;
 }
 
 bool SurvivalGameMode::isSurvival() {
@@ -94,4 +94,7 @@ bool SurvivalGameMode::useItem(Player* player, int id) {
     } else {
         return false;
     }
+}
+void SurvivalGameMode::prepareLevel(Level* level) {
+    GameMode::prepareLevel(level);
 }

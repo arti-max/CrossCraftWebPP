@@ -462,7 +462,7 @@
                     console.log(`Setting params: ${targetWidth}x${targetHeight}`);
                     Module.ccall('setAppletParams', 'void', 
                         ['string', 'string', 'string', 'number', 'number', 'number'],
-                        [username || "", sessionid || "", loadmapUser || "", (parseInt(loadmapId) >= 0 && parseInt(loadmapId) <= 4 ? parseInt(loadmapId) : -1 ), targetWidth, targetHeight]
+                        [username || "", sessionid || "", loadmapUser || "", (parseInt(loadmapId) >= 0 && parseInt(loadmapId) <= 4 ? parseInt(loadmapId) : -1 ), targetWidth, targetHeight, 1]
                     );
                     
                     if (server && port > 0) {

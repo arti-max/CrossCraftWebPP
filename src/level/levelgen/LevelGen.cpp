@@ -2,13 +2,15 @@
 #include "level/levelgen/synth/OctaveNoise.hpp"
 #include "level/levelgen/synth/CombinedNoise.hpp"
 #include "level/tile/Tile.hpp"
+#include "mob/Zombie.hpp"
+#include "mob/Skeleton.hpp"
+#include "mob/AnimalMob.hpp"
+#include "mob/Creeper.hpp"
 #include <cmath>
 #include <iostream>
 #include <algorithm>
-#include <chrono>
 
 LevelGen::LevelGen(LevelLoaderListener* listener) : listener(listener), random() {}
-
 LevelGen::~LevelGen() = default;
 
 void LevelGen::generateLevel(Level* level, const char* username, int w, int h, int d) {
@@ -17,17 +19,17 @@ void LevelGen::generateLevel(Level* level, const char* username, int w, int h, i
     this->depth = d;
     this->height = h;
 
-    this->blocks.assign(width * height * depth, 0);
-    this->heightmap.assign(width * height, 0);
-    
+    blocks.assign(width * height * depth, 0);
+    heightmap.assign(width * height, 0);
+
     listener->levelLoadUpdate("Raising..");
-    raise(this->heightmap);
+    raise(heightmap);
 
     listener->levelLoadUpdate("Eroding..");
-    erode(this->heightmap);
+    erode(heightmap);
 
     listener->levelLoadUpdate("Soiling..");
-    soil(this->heightmap);
+    soil(heightmap);
 
     listener->levelLoadUpdate("Carving..");
     carve();
@@ -36,67 +38,61 @@ void LevelGen::generateLevel(Level* level, const char* username, int w, int h, i
     addWaterAndLava();
 
     listener->levelLoadUpdate("Growing..");
-    growSurface(this->heightmap);
-    
+    growSurface(heightmap);
+
     listener->levelLoadUpdate("Planting..");
-    // addFlowersAndMushrooms(this->heightmap);
-    // listener->levelLoadProgress(0);
-    addTrees(this->heightmap);
+    addSurfaceFlowers(heightmap);
+    addUndergroundMushrooms(heightmap);
 
-        listener->levelLoadUpdate("Finalizing..");
-    listener->levelLoadProgress(50);
 
-    level->setData(width, depth, height, this->blocks);
+    level->setData(width, depth, height, blocks);
     level->initTransient();
     level->creationTime = time(nullptr);
     level->creator = username;
     level->name = "A Nice World";
-    
+
+    listener->levelLoadUpdate("Growing trees..");
+    addTrees(level, heightmap);
+
+    listener->levelLoadUpdate("Spawning..");
+    spawnMobs(level);
     listener->levelLoadUpdate("Done");
     listener->levelLoadProgress(100);
 }
 
 void LevelGen::raise(std::vector<int>& map) {
-    CombinedNoise noise1(
-        std::make_unique<OctaveNoise>(random, 8),
-        std::make_unique<OctaveNoise>(random, 8)
-    );
-    CombinedNoise noise2(
-        std::make_unique<OctaveNoise>(random, 8),
-        std::make_unique<OctaveNoise>(random, 8)
-    );
+    CombinedNoise noise1(std::make_unique<OctaveNoise>(random, 8),
+                         std::make_unique<OctaveNoise>(random, 8));
+    CombinedNoise noise2(std::make_unique<OctaveNoise>(random, 8),
+                         std::make_unique<OctaveNoise>(random, 8));
     OctaveNoise cliffNoise(random, 8);
-    
-    float scale = 1.3f;
+    const float scale = 1.3f;
 
     for (int x = 0; x < width; ++x) {
         listener->levelLoadProgress(x * 100 / (width - 1));
         for (int z = 0; z < height; ++z) {
             double h1 = noise1.compute(x * scale, z * scale) / 8.0 - 8.0;
             double h2 = noise2.compute(x * scale, z * scale) / 6.0 + 6.0;
-
-            if (cliffNoise.compute(x, z) / 8.0 > 0.0) {
-                h2 = h1;
-            }
+            if (cliffNoise.compute(x, z) / 8.0 > 0.0) h2 = h1;
 
             double val = std::max(h1, h2) / 2.0;
-            if (val < 0.0) val /= 2.0;
-            
+            if (val < 0.0) val *= 0.8;
             map[x + z * width] = static_cast<int>(val);
         }
     }
 }
 
 void LevelGen::erode(std::vector<int>& map) {
-    CombinedNoise erosionNoise1(std::make_unique<OctaveNoise>(random, 8), std::make_unique<OctaveNoise>(random, 8));
-    CombinedNoise erosionNoise2(std::make_unique<OctaveNoise>(random, 8), std::make_unique<OctaveNoise>(random, 8));
+    CombinedNoise erode1(std::make_unique<OctaveNoise>(random, 8),
+                         std::make_unique<OctaveNoise>(random, 8));
+    CombinedNoise erode2(std::make_unique<OctaveNoise>(random, 8),
+                         std::make_unique<OctaveNoise>(random, 8));
 
     for (int x = 0; x < width; ++x) {
         listener->levelLoadProgress(x * 100 / (width - 1));
         for (int z = 0; z < height; ++z) {
-            double val = erosionNoise1.compute(x * 2.0, z * 2.0) / 8.0;
-            int erosion = erosionNoise2.compute(x * 2.0, z * 2.0) > 0.0 ? 1 : 0;
-
+            double val = erode1.compute(x * 2.0, z * 2.0) / 8.0;
+            int erosion = erode2.compute(x * 2.0, z * 2.0) > 0.0 ? 1 : 0;
             if (val > 2.0) {
                 int h = map[x + z * width];
                 h = ((h - erosion) / 2) * 2 + erosion;
@@ -108,83 +104,40 @@ void LevelGen::erode(std::vector<int>& map) {
 
 void LevelGen::soil(std::vector<int>& map) {
     OctaveNoise soilNoise(random, 8);
-    int waterLevel = depth / 2;
+    const int waterLevel = depth / 2;
 
     for (int x = 0; x < width; ++x) {
         listener->levelLoadProgress(x * 100 / (width - 1));
         for (int z = 0; z < height; ++z) {
             int soilDepth = static_cast<int>(soilNoise.compute(x, z) / 24.0) - 4;
-            
             int dirtTopY = map[x + z * width] + waterLevel;
             int rockTopY = dirtTopY + soilDepth;
             map[x + z * width] = std::max(dirtTopY, rockTopY);
 
             for (int y = 0; y < depth; ++y) {
-                int index = (y * height + z) * width + x;
+                int idx = (y * height + z) * width + x;
                 uint8_t id = 0;
-
-                if (y <= dirtTopY) {
-                    id = Tile::dirt->id;
-                }
-
-                if (y <= rockTopY) {
-                    id = Tile::rock->id;
-                }
-
-                blocks[index] = id;
-            }
-        }
-    }
-}
-
-void LevelGen::growSurface(const std::vector<int>& map) {
-    listener->levelLoadUpdate("Growing..");
-    OctaveNoise sandNoise(random, 8);
-    OctaveNoise gravelNoise(random, 8);
-    int waterLevel = depth / 2;
-
-    for (int x = 0; x < width; ++x) {
-        listener->levelLoadProgress(x * 100 / (width - 1));
-        for (int z = 0; z < height; ++z) {
-            bool placeSand = sandNoise.compute(x, z) > 8.0;
-            bool placeGravel = gravelNoise.compute(x, z) > 12.0;
-            
-            int surfaceY = map[x + z * width];
-            if (surfaceY < 0 || surfaceY >= depth - 1) continue;
-
-            int surfaceIndex = (surfaceY * height + z) * width + x;
-            int blockAboveIndex = ((surfaceY + 1) * height + z) * width + x;
-            int blockAboveId = blocks[blockAboveIndex];
-
-            if ((blockAboveId == Tile::water->id || blockAboveId == Tile::calmWater->id) && surfaceY <= waterLevel - 1 && placeGravel) {
-                blocks[surfaceIndex] = Tile::gravel->id;
-            }
-
-            if (blockAboveId == 0) {
-                uint8_t surfaceID = Tile::grass->id;
-                if (surfaceY <= waterLevel - 1 && placeSand) {
-                    surfaceID = Tile::sand->id;
-                }
-                blocks[surfaceIndex] = surfaceID;
+                if (y <= dirtTopY) id = Tile::dirt->id;
+                if (y <= rockTopY) id = Tile::rock->id;
+                blocks[idx] = id;
             }
         }
     }
 }
 
 void LevelGen::carve() {
-    int numCaves = width * height * depth / 256 / 64;
+    const int numCaves = width * height * depth / 256 / 64;
     for (int i = 0; i < numCaves; ++i) {
         listener->levelLoadProgress(i * 100 / (numCaves - 1));
 
         float x = random.nextFloat() * width;
         float y = random.nextFloat() * depth;
         float z = random.nextFloat() * height;
+        int length = static_cast<int>((random.nextFloat() + random.nextFloat()) * 200.0f);
 
-        int length = static_cast<int>((random.nextFloat() + random.nextFloat()) * 75.0f);
-
-        float yaw = random.nextFloat() * 2.0f * M_PI;
+        float yaw   = random.nextFloat() * 2.0f * M_PI;
         float pitch = 0.0f;
-        float yawMod = 0.0f;
+        float yawMod   = 0.0f;
         float pitchMod = 0.0f;
 
         for (int l = 0; l < length; ++l) {
@@ -195,31 +148,31 @@ void LevelGen::carve() {
             yaw += yawMod * 0.2f;
             yawMod = (yawMod * 0.9f) + (random.nextFloat() - random.nextFloat());
             pitch = (pitch + pitchMod * 0.5f) * 0.5f;
-            pitchMod = (pitchMod * 0.9f) + (random.nextFloat() - random.nextFloat());
+            pitchMod = (pitchMod * 0.75f) + (random.nextFloat() - random.nextFloat());
 
-            if (random.nextFloat() >= 0.25f) {
-                float centerX = x + random.nextFloat() * 4.0f - 2.0f;
-                float centerY = y + random.nextFloat() * 4.0f - 2.0f;
-                float centerZ = z + random.nextFloat() * 4.0f - 2.0f;
-                
-                float size = std::sin(static_cast<float>(l) * M_PI / static_cast<float>(length)) * 2.5f + 1.0f;
+            if (random.nextFloat() < 0.25f) continue;
 
-                for (int ix = static_cast<int>(centerX - size); ix <= static_cast<int>(centerX + size); ++ix) {
-                    for (int iy = static_cast<int>(centerY - size); iy <= static_cast<int>(centerY + size); ++iy) {
-                        for (int iz = static_cast<int>(centerZ - size); iz <= static_cast<int>(centerZ + size); ++iz) {
-                            float dx = ix - centerX;
-                            float dy = iy - centerY;
-                            float dz = iz - centerZ;
+            float depthRatio = 1.0f - (y / depth);
+            float sizeFactor = 1.2f + (depthRatio * 3.5f + 1.0f) * (random.nextFloat() * random.nextFloat());
+            float radius = std::sin(l * M_PI / length) * sizeFactor;
 
-                            if (dx * dx + dy * dy * 2.0f + dz * dz < size * size &&
-                                ix >= 1 && iy >= 1 && iz >= 1 &&
-                                ix < width - 1 && iy < depth - 1 && iz < height - 1) {
+            int minX = std::max(1, (int)(x - radius));
+            int maxX = std::min(width - 2, (int)(x + radius));
+            int minY = std::max(1, (int)(y - radius));
+            int maxY = std::min(depth - 2, (int)(y + radius));
+            int minZ = std::max(1, (int)(z - radius));
+            int maxZ = std::min(height - 2, (int)(z + radius));
 
-                                int index = (iy * height + iz) * width + ix;
-                                if (blocks[index] == Tile::rock->id) {
-                                    blocks[index] = 0;
-                                }
-                            }
+            for (int ix = minX; ix <= maxX; ++ix) {
+                for (int iy = minY; iy <= maxY; ++iy) {
+                    for (int iz = minZ; iz <= maxZ; ++iz) {
+                        float dx = ix - x;
+                        float dy = iy - y;
+                        float dz = iz - z;
+                        if (dx*dx + dy*dy*2.0f + dz*dz < radius*radius) {
+                            int idx = (iy * height + iz) * width + ix;
+                            if (blocks[idx] == Tile::rock->id)
+                                blocks[idx] = 0;
                         }
                     }
                 }
@@ -228,269 +181,325 @@ void LevelGen::carve() {
     }
 
     listener->levelLoadUpdate("Adding minerals..");
-    // listener->levelLoadProgress(25);
-    addVeins(Tile::coalOre->id, 90, 1);
-    // listener->levelLoadProgress(50);
-    addVeins(Tile::ironOre->id, 75, 2);
-    // listener->levelLoadProgress(75);
-    addVeins(Tile::goldOre->id, 50, 3);
+    addOres(Tile::coalOre->id, 90, 1);
+    addOres(Tile::ironOre->id, 75, 2);
+    addOres(Tile::goldOre->id, 50, 3);
     listener->levelLoadProgress(100);
 }
 
-void LevelGen::addWaterAndLava() {
-    int waterLevel = depth / 2;
-    int filled = 0;
-    
-    for (int x = 0; x < width; ++x) {
-        floodFill(x, waterLevel - 1, 0, Tile::water->id);
-        floodFill(x, waterLevel - 1, height - 1, Tile::water->id);
-    }
-    for (int z = 0; z < height; ++z) {
-        floodFill(0, waterLevel - 1, z, Tile::water->id);
-        floodFill(width - 1, waterLevel - 1, z, Tile::water->id);
-    }
-    
-    int waterSources = width * height / 200;
-    for (int i = 0; i < waterSources; ++i) {
-        listener->levelLoadProgress(i * 100 / (waterSources - 1));
-        int x = random.nextInt(width);
-        int y = waterLevel - 1 - random.nextInt(2);
-        int z = random.nextInt(height);
-        if(blocks[(y * height + z) * width + x] == 0)
-            floodFill(x, y, z, Tile::water->id);
-    }
-
-    listener->levelLoadUpdate("Melting..");
-    int lavaSources = width * height * depth / 10000;
-    for (int i = 0; i < lavaSources; i++) {
-        listener->levelLoadProgress(i * 100 / (lavaSources - 1));
-        int x = random.nextInt(width);
-        int y = random.nextInt(depth / 4);
-        int z = random.nextInt(height);
-        if (blocks[(y * height + z) * width + x] == 0) {
-            floodFill(x, y, z, Tile::lava->id);
-        }
-    }
-}
-
-
-void LevelGen::floodFill(int x, int y, int z, uint8_t targetBlock) {
-    std::vector<int> stack;
-    stack.reserve(width * height);
-    stack.push_back((y * height + z) * width + x);
-
-    while(!stack.empty()){
-        int index = stack.back();
-        stack.pop_back();
-
-        if(blocks[index] == 0){
-            blocks[index] = targetBlock;
-
-            int ix = index % width;
-            int temp = index / width;
-            int iz = temp % height;
-            int iy = temp / height;
-            
-            if(ix > 0) stack.push_back(index - 1);
-            if(ix < width - 1) stack.push_back(index + 1);
-            if(iz > 0) stack.push_back(index - width);
-            if(iz < height - 1) stack.push_back(index + width);
-            if(iy > 0) stack.push_back(index - width * height);
-        }
-    }
-}
-
-void LevelGen::addFlowersAndMushrooms(const std::vector<int>& map) {
-    int numFlowersPatches = width * height / 200;
-
-    if (numFlowersPatches <= 1) {
-        if (numFlowersPatches == 1) {
-            listener->levelLoadProgress(50);
-        }
-    }
-
-    for (int i = 0; i < numFlowersPatches; ++i) {
-        if (numFlowersPatches > 1) {
-            listener->levelLoadProgress(i * 100 / (numFlowersPatches - 1));
-        }
-
-        int x = random.nextInt(width);
-        int z = random.nextInt(height);
-        int y = heightmap[x + z * width];
-
-        int index = (y * height + z) * width + x;
-
-        if (blocks[index] == Tile::grass->id) {
-            int aboveIndex = ((y+1) * height + z) * width + x;
-            if (y + 1 < depth && blocks[aboveIndex] == 0) {
-                blocks[aboveIndex] = (random.nextInt(2) == 0) ? Tile::yellowFlower->id : Tile::redFlower->id;
-            }
-        }
-    }
-
-    int numMushroomsPatches = width * height / 500;
-
-    if (numMushroomsPatches <= 1) {
-        if (numMushroomsPatches == 1) {
-            listener->levelLoadProgress(50);
-        }
-    }
-
-    for (int i = 0; i < numMushroomsPatches; ++i) {
-        if (numMushroomsPatches > 1) {
-            listener->levelLoadProgress(i * 100 / (numMushroomsPatches - 1));
-        }
-
-        int x = random.nextInt(width);
-        int z = random.nextInt(height);
-        int y = heightmap[x + z * width];
-
-        int index = (y * height + z) * width + x;
-
-        if (blocks[index] == Tile::grass->id) {
-            int aboveIndex = ((y+1) * height + z) * width + x;
-            if (y + 1 < depth && blocks[aboveIndex] == 0) {
-                blocks[aboveIndex] = (random.nextInt(2) == 0) ? Tile::redMushroom->id : Tile::brownMushroom->id;
-            }
-        }
-    }
-}
-
-void LevelGen::addTrees(const std::vector<int>& map) {
-    int numTreePatches = width * height / 4000;
-
-    if (numTreePatches <= 1) {
-        if (numTreePatches == 1) {
-            listener->levelLoadProgress(50);
-        }
-    }
-
-    for (int i = 0; i < numTreePatches; ++i) {
-        if (numTreePatches > 1) {
-            listener->levelLoadProgress(i * 100 / (numTreePatches - 1));
-        }
-
-        int patchX = random.nextInt(width);
-        int patchZ = random.nextInt(height);
-
-        for (int j = 0; j < 20; ++j) {
-            int treeX = patchX;
-            int treeZ = patchZ;
-
-            for (int k = 0; k < 20; ++k) {
-                treeX += random.nextInt(6) - random.nextInt(6);
-                treeZ += random.nextInt(6) - random.nextInt(6);
-
-                if (treeX >= 0 && treeZ >= 0 && treeX < width && treeZ < height) {
-                    int treeY = map[treeX + treeZ * width] + 1;
-                    int treeHeight = random.nextInt(3) + 4;
-
-                    bool canPlace = true;
-
-                    if (treeY < 1 || treeY + treeHeight + 1 >= depth) {
-                        canPlace = false;
-                    }
-
-                    if (canPlace) {
-                        for (int y = treeY; y <= treeY + 1 + treeHeight && canPlace; ++y) {
-                            int radius = 1;
-                            if (y >= treeY + treeHeight - 2) {
-                                radius = 2;
-                            }
-
-                            for (int x = treeX - radius; x <= treeX + radius && canPlace; ++x) {
-                                for (int z = treeZ - radius; z <= treeZ + radius && canPlace; ++z) {
-                                    if (x >= 0 && y >= 0 && z >= 0 && x < width && y < depth && z < height) {
-                                        if (blocks[(y * height + z) * width + x] != 0) {
-                                            canPlace = false;
-                                        }
-                                    } else {
-                                        canPlace = false;
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    if (canPlace) {
-                        int groundIndex = ((treeY - 1) * height + treeZ) * width + treeX;
-                        if (blocks[groundIndex] == Tile::grass->id && treeY < depth - treeHeight - 1) {
-                            blocks[groundIndex] = Tile::dirt->id;
-
-                            for (int leafY = treeY - 3 + treeHeight; leafY <= treeY + treeHeight; ++leafY) {
-                                int yOff = leafY - (treeY + treeHeight);
-                                int leafRadius = 1 - yOff / 2;
-
-                                for (int leafX = treeX - leafRadius; leafX <= treeX + leafRadius; ++leafX) {
-                                    int xOff = leafX - treeX;
-                                    for (int leafZ = treeZ - leafRadius; leafZ <= treeZ + leafRadius; ++leafZ) {
-                                        int zOff = leafZ - treeZ;
-                                        if (std::abs(xOff) != leafRadius || std::abs(zOff) != leafRadius || (random.nextInt(2) == 0 && yOff != 0)) {
-                                            int leafIndex = (leafY * height + leafZ) * width + leafX;
-                                            if (leafIndex >= 0 && leafIndex < blocks.size())
-                                                blocks[leafIndex] = Tile::leaves->id;
-                                        }
-                                    }
-                                }
-                            }
-
-                            for (int trunkY = 0; trunkY < treeHeight; ++trunkY) {
-                                int trunkIndex = ((treeY + trunkY) * height + treeZ) * width + treeX;
-                                if (trunkIndex >= 0 && trunkIndex < blocks.size())
-                                    blocks[trunkIndex] = Tile::log->id;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    listener->levelLoadProgress(100);
-}
-
-void LevelGen::addVeins(int tileId, int abundance, int num) {
-    int numVeins = width * height * depth / 256 / 64 * abundance / 100;
-
-    for (int i = 0; i < numVeins; ++i) {
-        listener->levelLoadProgress(i * 100 / (numVeins - 1) / 4 + num * 100 / 4);
+void LevelGen::addOres(int tileId, int count, int abundance) {
+    int veinsCount = width * height * depth / 256 / 64 * count / 100;
+    for (int i = 0; i < veinsCount; ++i) {
+        listener->levelLoadProgress(i * 100 / (veinsCount - 1) / 4 + abundance * 100 / 4);
         float x = random.nextFloat() * width;
         float y = random.nextFloat() * depth;
         float z = random.nextFloat() * height;
-        
-        int length = static_cast<int>((random.nextFloat() + random.nextFloat()) * 75.0f * (abundance / 100.0f));
-        
-        float yaw = random.nextFloat() * 2.0f * M_PI;
+        int length = static_cast<int>((random.nextFloat() + random.nextFloat()) * 75.0f * (count / 100.0f));
+
+        float yaw   = random.nextFloat() * 2.0f * M_PI;
         float pitch = random.nextFloat() * 2.0f * M_PI;
-        float yawMod = 0.0f;
-        float pitchMod = 0.0f;
+        float yawMod = 0.0f, pitchMod = 0.0f;
 
         for (int l = 0; l < length; ++l) {
             x += std::sin(yaw) * std::cos(pitch);
             z += std::cos(yaw) * std::cos(pitch);
             y += std::sin(pitch);
-            
+
             yaw += yawMod * 0.2f;
             yawMod = (yawMod * 0.9f) + (random.nextFloat() - random.nextFloat());
             pitch = (pitch + pitchMod * 0.5f) * 0.5f;
             pitchMod = (pitchMod * 0.9f) + (random.nextFloat() - random.nextFloat());
-            
-            float size = std::sin(static_cast<float>(l) * M_PI / static_cast<float>(length)) * (abundance / 100.0f) + 1.0f;
 
-            for (int ix = static_cast<int>(x - size); ix <= static_cast<int>(x + size); ++ix) {
-                for (int iy = static_cast<int>(y - size); iy <= static_cast<int>(y + size); ++iy) {
-                    for (int iz = static_cast<int>(z - size); iz <= static_cast<int>(z + size); ++iz) {
-                        float dx = ix - x;
-                        float dy = iy - y;
-                        float dz = iz - z;
+            float radius = std::sin(l * M_PI / length) * (count / 100.0f) + 1.0f;
+            int minX = std::max(1, (int)(x - radius));
+            int maxX = std::min(width - 2, (int)(x + radius));
+            int minY = std::max(1, (int)(y - radius));
+            int maxY = std::min(depth - 2, (int)(y + radius));
+            int minZ = std::max(1, (int)(z - radius));
+            int maxZ = std::min(height - 2, (int)(z + radius));
 
-                        if (dx * dx + dy * dy * 2.0f + dz * dz < size * size &&
-                            ix >= 1 && iy >= 1 && iz >= 1 && 
-                            ix < width - 1 && iy < depth - 1 && iz < height - 1) {
-                            
-                            int index = (iy * height + iz) * width + ix;
+            for (int ix = minX; ix <= maxX; ++ix) {
+                for (int iy = minY; iy <= maxY; ++iy) {
+                    for (int iz = minZ; iz <= maxZ; ++iz) {
+                        float dx = ix - x, dy = iy - y, dz = iz - z;
+                        if (dx*dx + dy*dy*2.0f + dz*dz < radius*radius) {
+                            int idx = (iy * height + iz) * width + ix;
+                            if (blocks[idx] == Tile::rock->id)
+                                blocks[idx] = tileId;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
-                            if (blocks[index] == Tile::rock->id) {
-                                blocks[index] = tileId;
+void LevelGen::floodFill(int x, int y, int z, uint8_t targetBlock) {
+    std::vector<int> stack;
+    stack.reserve(width * height * 2);
+    stack.push_back((y * height + z) * width + x);
+
+    while (!stack.empty()) {
+        int idx = stack.back();
+        stack.pop_back();
+        if (blocks[idx] != 0) continue;
+        blocks[idx] = targetBlock;
+
+        int ix = idx % width;
+        int temp = idx / width;
+        int iz = temp % height;
+        int iy = temp / height;
+
+        if (ix > 0)          stack.push_back(idx - 1);
+        if (ix < width - 1)  stack.push_back(idx + 1);
+        if (iz > 0)          stack.push_back(idx - width);
+        if (iz < height - 1) stack.push_back(idx + width);
+        if (iy > 0)          stack.push_back(idx - width * height);
+    }
+}
+
+void LevelGen::addWaterAndLava() {
+    const int waterLevel = depth / 2;
+    for (int x = 0; x < width; ++x) {
+        floodFill(x, waterLevel - 1, 0, Tile::calmWater->id);
+        floodFill(x, waterLevel - 1, height - 1, Tile::calmWater->id);
+    }
+    for (int z = 0; z < height; ++z) {
+        floodFill(0, waterLevel - 1, z, Tile::calmWater->id);
+        floodFill(width - 1, waterLevel - 1, z, Tile::calmWater->id);
+    }
+
+    int waterSources = width * height / 8000;
+    for (int i = 0; i < waterSources; ++i) {
+        listener->levelLoadProgress(i * 100 / (waterSources - 1));
+        int wx = random.nextInt(width);
+        int wy = waterLevel - 1 - random.nextInt(2);
+        int wz = random.nextInt(height);
+        if (blocks[(wy * height + wz) * width + wx] == 0)
+            floodFill(wx, wy, wz, Tile::water->id);
+    }
+
+    listener->levelLoadUpdate("Melting..");
+    int lavaSources = width * height * depth / 20000;
+    for (int i = 0; i < lavaSources; ++i) {
+        listener->levelLoadProgress(i * 100 / (lavaSources - 1));
+        int lx = random.nextInt(width);
+        int ly = (int)(random.nextFloat() * random.nextFloat() * (waterLevel - 3));
+        int lz = random.nextInt(height);
+        if (blocks[(ly * height + lz) * width + lx] == 0)
+            floodFill(lx, ly, lz, Tile::lava->id);
+    }
+
+    for (int x = 0; x < width; ++x) {
+        for (int z = 0; z < height; ++z) {
+            int idx = (0 * height + z) * width + x;
+            if (blocks[idx] != 0) {
+                blocks[idx] = Tile::calmLava->id;
+            }
+        }
+    }
+
+    listener->levelLoadProgress(100);
+}
+
+void LevelGen::growSurface(const std::vector<int>& map) {
+    OctaveNoise sandNoise(random, 8);
+    OctaveNoise gravelNoise(random, 8);
+    const int waterLevel = depth / 2;
+
+    for (int x = 0; x < width; ++x) {
+        listener->levelLoadProgress(x * 100 / (width - 1));
+        for (int z = 0; z < height; ++z) {
+            bool placeSand = sandNoise.compute(x, z) > 8.0;
+            bool placeGravel = gravelNoise.compute(x, z) > 12.0;
+            int surfaceY = map[x + z * width];
+            if (surfaceY < 0 || surfaceY >= depth - 1) continue;
+
+            int surfaceIdx = (surfaceY * height + z) * width + x;
+            int aboveIdx   = ((surfaceY + 1) * height + z) * width + x;
+            int aboveId    = blocks[aboveIdx];
+
+            if ((aboveId == Tile::water->id || aboveId == Tile::calmWater->id) &&
+                surfaceY <= waterLevel - 1 && placeGravel) {
+                blocks[surfaceIdx] = Tile::gravel->id;
+            }
+            else if (aboveId == 0) {
+                uint8_t topId = Tile::grass->id;
+                if (surfaceY <= waterLevel - 1 && placeSand)
+                    topId = Tile::sand->id;
+                blocks[surfaceIdx] = topId;
+            }
+        }
+    }
+}
+
+void LevelGen::addSurfaceFlowers(const std::vector<int>& map) {
+    int attempts = width * height / 3000;
+    for (int i = 0; i < attempts; ++i) {
+        int type = random.nextInt(2);
+        listener->levelLoadProgress(i * 50 / (attempts - 1));
+        int x = random.nextInt(width);
+        int z = random.nextInt(height);
+
+        for (int j = 0; j < 10; ++j) {
+            int mx = x, mz = z;
+            for (int k = 0; k < 5; ++k) {
+                mx += random.nextInt(6) - random.nextInt(6);
+                mz += random.nextInt(6) - random.nextInt(6);
+                if (mx >= 0 && mz >= 0 && mx < width && mz < height) {
+                    int surfaceY = map[mx + mz * width] + 1;
+                    if (surfaceY <= 1 || surfaceY >= depth) continue;
+                    int aboveIdx = (surfaceY * height + mz) * width + mx;
+                    int groundIdx = ((surfaceY - 1) * height + mz) * width + mx;
+                    if (blocks[aboveIdx] == 0 && blocks[groundIdx] == Tile::grass->id) {
+                        blocks[aboveIdx] = (type == 0) ? Tile::redFlower->id : Tile::yellowFlower->id;
+                    }
+                }
+            }
+        }
+    }
+}
+void LevelGen::addUndergroundMushrooms(const std::vector<int>& map) {
+    int attempts = width * height * depth / 2000;
+    int spawned = 0;
+    for (int i = 0; i < attempts; ++i) {
+        int type = random.nextInt(2);
+        listener->levelLoadProgress(i * 50 / (attempts - 1) + 50);
+        int x = random.nextInt(width);
+        int y = random.nextInt(depth);
+        int z = random.nextInt(height);
+
+        for (int j = 0; j < 20; ++j) {
+            int mx = x, my = y, mz = z;
+            for (int k = 0; k < 5; ++k) {
+                mx += random.nextInt(6) - random.nextInt(6);
+                my += random.nextInt(2) - random.nextInt(2);
+                mz += random.nextInt(6) - random.nextInt(6);
+                if (mx >= 0 && mz >= 0 && my >= 1 && mx < width && mz < height && my < map[mx + mz * width] - 1) {
+                    int idx = (my * height + mz) * width + mx;
+                    int belowIdx = ((my - 1) * height + mz) * width + mx;
+                    if (blocks[idx] == 0 && blocks[belowIdx] == Tile::rock->id) {
+                        blocks[idx] = (type == 0) ? Tile::redMushroom->id : Tile::brownMushroom->id;
+                        ++spawned;
+                    }
+                }
+            }
+        }
+    }
+    std::cout << "Added " << spawned << " underground mushrooms" << std::endl;
+}
+
+void LevelGen::addFlowersAndMushrooms(const std::vector<int>& map) {
+
+    int patches = width * height / 200;
+    for (int i = 0; i < patches; ++i) {
+        if (patches > 1) listener->levelLoadProgress(i * 100 / (patches - 1));
+        int x = random.nextInt(width);
+        int z = random.nextInt(height);
+        int y = map[x + z * width];
+        if (y < 0 || y + 1 >= depth) continue;
+        int groundIdx = (y * height + z) * width + x;
+        int aboveIdx  = ((y + 1) * height + z) * width + x;
+        if (blocks[groundIdx] == Tile::grass->id && blocks[aboveIdx] == 0) {
+            uint8_t flower = random.nextInt(2) == 0 ? Tile::yellowFlower->id : Tile::redFlower->id;
+            blocks[aboveIdx] = flower;
+        }
+    }
+
+    patches = width * height / 500;
+    for (int i = 0; i < patches; ++i) {
+        if (patches > 1) listener->levelLoadProgress(i * 100 / (patches - 1));
+        int x = random.nextInt(width);
+        int z = random.nextInt(height);
+        int y = map[x + z * width];
+        if (y < 0 || y + 1 >= depth) continue;
+        int groundIdx = (y * height + z) * width + x;
+        int aboveIdx  = ((y + 1) * height + z) * width + x;
+        if (blocks[groundIdx] == Tile::grass->id && blocks[aboveIdx] == 0) {
+            uint8_t mushroom = random.nextInt(2) == 0 ? Tile::redMushroom->id : Tile::brownMushroom->id;
+            blocks[aboveIdx] = mushroom;
+        }
+    }
+    listener->levelLoadProgress(100);
+}
+
+void LevelGen::addTrees(Level* level, const std::vector<int>& map) {
+    int patches = width * height / 4000;
+    for (int i = 0; i < patches; ++i) {
+        if (patches > 1) listener->levelLoadProgress(i * 100 / (patches - 1));
+        int px = random.nextInt(width);
+        int pz = random.nextInt(height);
+        for (int attempt = 0; attempt < 20; ++attempt) {
+            int treeX = px, treeZ = pz;
+            for (int step = 0; step < 20; ++step) {
+                treeX += random.nextInt(6) - random.nextInt(6);
+                treeZ += random.nextInt(6) - random.nextInt(6);
+                if (treeX >= 0 && treeZ >= 0 && treeX < width && treeZ < height) {
+                    int treeY = map[treeX + treeZ * width] + 1;
+                    if (random.nextInt(4) == 0) {
+                        level->maybeGrowTree(treeX, treeY, treeZ);
+                    }
+                }
+            }
+        }
+    }
+    listener->levelLoadProgress(100);
+}
+
+void LevelGen::spawnMobs(Level* level) {
+    int mobsToSpawn = width * height * depth / 800;
+    int spawned = 0;
+    for (int i = 0; i < mobsToSpawn; ++i) {
+        if (mobsToSpawn > 1)
+            listener->levelLoadProgress(i * 100 / (mobsToSpawn - 1));
+
+        int type = random.nextInt(4);
+        int x = random.nextInt(width);
+        int y = (int)(std::min(random.nextFloat(), random.nextFloat()) * depth);
+        int z = random.nextInt(height);
+
+        if (x < 0 || x >= width || y < 0 || y >= depth || z < 0 || z >= height)
+            continue;
+
+        if (level->isSolidTile(x, y, z))
+            continue;
+
+        int tileId = level->getTile(x, y, z);
+        Tile* tile = Tile::tiles[tileId];
+        if (tile && tile->getLiquidType() != LiquidType::NOT_LIQUID)
+            continue;
+
+        if (!level->isLit(x, y, z) || random.nextInt(5) == 0) {
+            for (int attempt = 0; attempt < 3; ++attempt) {
+                int mx = x, my = y, mz = z;
+                for (int step = 0; step < 3; ++step) {
+                    mx += random.nextInt(6) - random.nextInt(6);
+                    my += random.nextInt(1) - random.nextInt(1);
+                    mz += random.nextInt(6) - random.nextInt(6);
+
+                    if (mx < 0 || mx >= width || my < 0 || my >= depth - 2 || mz < 0 || mz >= height)
+                        continue;
+
+                    if (level->isSolidTile(mx, my - 1, mz) && !level->isSolidTile(mx, my, mz) && !level->isSolidTile(mx, my + 1, mz)) {
+                        float fx = mx + 0.5f;
+                        float fy = my + 1.0f;
+                        float fz = mz + 0.5f;
+
+                        Entity* mob = nullptr;
+                        switch (type) {
+                            case 0: mob = new Zombie(level, fx, fy, fz); break;
+                            case 1: mob = new Skeleton(level, fx, fy, fz); break;
+                            case 2: mob = new AnimalMob(level, fx, fy, fz); break;
+                            case 3: mob = new Creeper(level, fx, fy, fz); break;
+                        }
+
+                        if (mob) {
+                            AABB bb = ((Mob*)mob)->bb;
+                            if (level->isFree(bb)) {
+                                ++spawned;
+                                level->addEntity(mob);
+                            } else {
+                                delete mob;
                             }
                         }
                     }
@@ -498,4 +507,5 @@ void LevelGen::addVeins(int tileId, int abundance, int num) {
             }
         }
     }
+    std::cout << spawned << " mobs spawned" << std::endl;
 }

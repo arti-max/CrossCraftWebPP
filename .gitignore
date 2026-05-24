@@ -1,1 +1,5 @@
-build
+build/
+backups/
+old/
+test_spam.py
+build.bat

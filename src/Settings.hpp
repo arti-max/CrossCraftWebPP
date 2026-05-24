@@ -14,7 +14,9 @@ public:
     bool invertYMouse = false;
     bool showFPS = false;
     int renderDistance = 0;
+    bool viewBobbing = true;
 
+    int settingsCount = 6;
     KeyMap* key_forward = new KeyMap("Forward", GLFW_KEY_W);
     KeyMap* key_left = new KeyMap("Left", GLFW_KEY_A);
     KeyMap* key_back = new KeyMap("Back", GLFW_KEY_S);

@@ -26,9 +26,13 @@ private:
     void addOres(int tileId, int count, int abundance);
     void addWaterAndLava();
     void addFlowersAndMushrooms(const std::vector<int>& map);
-    void addTrees(const std::vector<int>& map);
+    void addTrees(Level* level, const std::vector<int>& map);
     void growSurface(const std::vector<int>& map);
+    void spawnMobs(Level* level);
     
+    void addSurfaceFlowers(const std::vector<int>& map);
+    void addUndergroundMushrooms(const std::vector<int>& map);
+
     void floodFill(int x, int y, int z, uint8_t targetBlock);
     void addVeins(int tileId, int abundance, int num);
 

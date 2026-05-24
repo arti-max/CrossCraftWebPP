@@ -4,6 +4,9 @@
 #include "level/Level.hpp"
 #include <GLFW/glfw3.h>
 #include "player/PlayerAI.hpp"
+#include "render/Textures.hpp"
+#include "CrossCraft.hpp"
+#include "model/ModelManager.hpp"
 
 Player::Player(Level* level, Settings* settings) : Mob(level) {
     // if (level != nullptr) {
@@ -90,6 +93,48 @@ void Player::aiStep() {
     }
 }
 
+void Player::bindTexture(CrossCraft* cc) {
+    if (this->newTextureId < 0) {
+        this->newTextureId = cc->textures->loadTexture("char", GL_NEAREST);
+    }
+
+    glBindTexture(GL_TEXTURE_2D, this->newTextureId);
+}
+
+HumanModel* Player::getModel() {
+    return (HumanModel*)this->modelManager->getModel(this->modelName);
+}
+
+void Player::die(Entity* e) {
+    this->setSize(0.2f, 0.2f);
+    this->setPos(this->x, this->y, this->z);
+    this->yd = 0.1f;
+    if (e != nullptr) {
+        this->xd = -std::cos((this->hurtDir + this->yRot) * M_PI / 180.0f) * 0.1f;
+        this->zd = -std::sin((this->hurtDir + this->yRot) * M_PI / 180.0f) * 0.1f;
+    } else {
+        this->xd = this->zd = 0.0f;
+    }
+
+    this->heightOffset = 0.1f;
+}
+
+void Player::awardKillScore(Entity* e, int score) {
+    this->score += score;
+}
+
+int Player::getScore() {
+    return this->score;
+}
+
+void Player::hurt(Entity* e, int dmg) {
+    Mob::hurt(e, dmg);
+}
+
+bool Player::isPlayer() {
+    return true;
+}
+
 // void Player::tick() {
 //     this->xo = x;
 //     this->yo = y;
@@ -165,14 +210,3 @@ void Player::aiStep() {
 
 // }
 
-void Player::hurt(Entity* e, int dmg) {
-    Mob::hurt(e, dmg);
-}
-
-void Player::die(Entity* e) {
-
-}
-
-bool Player::isPlayer() {
-    return true;
-}

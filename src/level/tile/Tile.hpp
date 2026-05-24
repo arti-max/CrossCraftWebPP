@@ -101,4 +101,5 @@ public:
     virtual void spawnDestroyParticles(Level* level, int x, int y, int z, ParticleEngine* engine);
     virtual void spawnHitParticles(Level* level, int x, int y, int z, int face, ParticleEngine* engine);
     virtual HitResult* clip(int x, int y, int z, Vec3D& start, Vec3D& end);
+    virtual void renderPreview(Tessellator& t);
 };

@@ -51,7 +51,7 @@ void ParticleEngine::render(Player* player, float partialTicks, int layer, Textu
     t.begin();
 
     for (Particle* p : particles) {
-        float brightness = p->getBrightness() * 0.8f;
+        float brightness = p->getBrightness(partialTicks) * 0.8f;
         t.color(brightness, brightness, brightness);
         p->render(t, partialTicks, cameraX, cameraY, cameraZ, cameraXWithY, cameraZWithY);
     }

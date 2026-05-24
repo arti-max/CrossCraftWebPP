@@ -19,7 +19,7 @@ public:
 
     void die(Entity* e) override {
         if (e != nullptr) {
-            // TODO: add score
+            e->awardKillScore(this, 100);
         }
         HumanMob::die(e);
     }

@@ -4,6 +4,8 @@
 #include <cmath>
 #include <gc.h>
 #include "model/Vec3D.hpp"
+#include "model/ModelPart.hpp"
+#include "mob/AnimalMob.hpp"
 
 CrossCraft* CrossCraft::instance = nullptr;
 
@@ -146,12 +148,18 @@ void CrossCraft::init() {
     this->hotbarIndex = 0;
     this->selectedTile = this->hotbarSlots[this->hotbarIndex];
 
+    this->gamemode->apply(this->level);
     this->checkGlError("Post startup");
     
 }
 
 void CrossCraft::setScreen(Screen* screen) {
     if (this->screen != nullptr) this->screen->onClose();
+
+    if (screen == nullptr && this->player->health <= 0) {
+        screen = new DeathScreen();
+    }
+
     if (this->screen == nullptr && screen != nullptr) {
         Keyboard::clearEvents();
         Mouse::clearEvents();
@@ -278,10 +286,14 @@ void CrossCraft::handleMouseClick(int mode) {
     if (!(mode != 0 || this->attackTime <= 0)) {
         return;
     }
+    if (mode == 0) {
+        this->heldBlock->offset = -1;
+        this->heldBlock->moving = true;
+    }
 
     int selected = this->player->inventory->getCurrentBlock();
     if (mode == 1 && selected > 0 && this->gamemode->useItem(this->player, selected)) {
-        // TODO: Arm Animation
+        this->heldBlock->pos = 0.0f;
     } else if (this->hitResult == nullptr) {
         if (this->gamemode->gmType == 0 && mode == 0) {
             this->attackTime = 10;
@@ -326,6 +338,7 @@ void CrossCraft::handleMouseClick(int mode) {
                     }
 
                     this->level->setTile(x, y, z, selected);
+                    this->heldBlock->pos = 0.0f;
                 }
             }
         }
@@ -411,6 +424,9 @@ void CrossCraft::tick() {
 
     bool isActuallyGrabbed = Mouse::isGrabbed();
 
+    if (this->screen == nullptr && this->player != nullptr && this->player->health <= 0) {
+        this->setScreen((Screen*)nullptr);
+    }
 
     if (this->mouseGrabbed && !isActuallyGrabbed) {
         printf("CrossCraft: Pointer lock lost\n");
@@ -482,11 +498,16 @@ void CrossCraft::tick() {
                 //     this->isDrop == true ? this->isDrop = false : this->isDrop = true;
                 // }
 
+                if (Keyboard::getEventKey() == GLFW_KEY_TAB) {
+                    this->level->addEntity(new Arrow(this, this->player, this->player->x, this->player->y, this->player->z, this->player->yRot, this->player->xRot));
+                }
+
                 if (Keyboard::getEventKey() == this->settings->key_build->keyCode) {
-                    this->player->releaseAllKeys();
-                    this->setScreen(new BlockSelectScreen());
-                    this->releaseMouse();
-                    break;
+                    // this->player->releaseAllKeys();
+                    // this->setScreen(new BlockSelectScreen());
+                    // this->releaseMouse();
+                    // break;
+                    this->level->addEntity(new Sign(this, this->player->x, this->player->y, this->player->z, this->player->yRot));
                 }
 
                 if (Keyboard::getEventKey() == this->settings->key_save->keyCode) {
@@ -495,7 +516,7 @@ void CrossCraft::tick() {
                 }
 
                 if (Keyboard::getEventKey() == this->settings->key_load->keyCode) {
-                    this->player->resetPos();
+                    // this->player->resetPos();
                 }
                 if (Keyboard::getEventKey() >= GLFW_KEY_1 && Keyboard::getEventKey() <= GLFW_KEY_9) {
                     int keyIndex = Keyboard::getEventKey() - GLFW_KEY_1;
@@ -508,11 +529,13 @@ void CrossCraft::tick() {
                     this->settings->toggleSetting(4, 1);
                 }
                 if (Keyboard::getEventKey() == GLFW_KEY_G && !this->mpMode && this->level->entities.size() < 256) {
-                    if (Random::random() < 0.5f) {
-                        this->level->addEntity((Entity*)new Zombie(this->level, this->player->x, this->player->y, this->player->z));
-                    } else {
-                        this->level->addEntity((Entity*)new Skeleton(this->level, this->player->x, this->player->y, this->player->z));
-                    }
+                    // if (Random::random() < 0.5f) {
+                    //     this->level->addEntity((Entity*)new Zombie(this->level, this->player->x, this->player->y, this->player->z));
+                    // } else if (Random::random() < 0.5f){
+                    //     this->level->addEntity((Entity*)new Skeleton(this->level, this->player->x, this->player->y, this->player->z));
+                    // } else {
+                    //     this->level->addEntity((Entity*)new AnimalMob(this->level, this->player->x, this->player->y, this->player->z));
+                    // }
                 }
             }
         }
@@ -566,7 +589,9 @@ void CrossCraft::tick() {
                                 pickedID = Tile::rock->id;
                             }
 
-                            this->player->inventory->pickTile(pickedID);
+                            if (this->player->inventory->inInventory(pickedID) != -1) {
+                                this->player->inventory->pickTile(pickedID);
+                            }
 
                             // if (pickedID > 0 && Tile::tiles[pickedID] != nullptr && Tile::tiles[pickedID]->mayPick()) {
                             //     for (int i = 0; i < this->player->inventory->slots.size(); ++i) {
@@ -659,6 +684,37 @@ update_world:
     ++this->hud->ticks;
     this->level->tick();
     this->particleEngine->tick();
+
+    if (this->level != nullptr) {
+        this->heldBlock->lastPos = this->heldBlock->pos;
+        if (this->heldBlock->moving) {
+            ++this->heldBlock->offset;
+            if (this->heldBlock->offset == 7) {
+                this->heldBlock->offset = 0;
+                this->heldBlock->moving = false;
+            }
+        }
+
+        int selected = this->player->inventory->getCurrentBlock();
+        Tile* tile = nullptr;
+        if (selected > 0) {
+            tile = Tile::tiles[selected];
+        }
+
+        float maxStep = 0.4f;
+        float step = 0.0f;
+        if (tile != nullptr) {
+            step = (tile->id == this->heldBlock->tile->id ? 1.0f : 0.0f) - this->heldBlock->pos;
+        } else {
+            step = (this->heldBlock->tile == nullptr ? 1.0f : 0.0f) - this->heldBlock->pos;
+        }
+        if (step < -maxStep) step = -maxStep;
+        if (step > maxStep) step = maxStep;
+        this->heldBlock->pos += step;
+        if (this->heldBlock->pos < 0.1f) {
+            this->heldBlock->tile = tile;
+        }
+    }
 
     this->player->tick();
     // this->player->inventory->tick();
@@ -791,11 +847,13 @@ void CrossCraft::render(float partialTicks) {
     glEnable(GL_BLEND);
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_FOG);
+    glDisable(GL_CULL_FACE);
     glColorMask(false, false, false, false);
     this->levelRenderer->render(this->player, 1);
     glColorMask(true, true, true, true);
     this->levelRenderer->render(this->player, 1);
     this->checkGlError("Color Mask");
+    glEnable(GL_CULL_FACE);
     glDisable(GL_BLEND);
     glDisable(GL_LIGHTING);
     glDisable(GL_TEXTURE_2D);
@@ -813,6 +871,18 @@ void CrossCraft::render(float partialTicks) {
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
     glPopMatrix();
+    glDepthMask(true);
+    glDisable(GL_BLEND);
+    glDisable(GL_FOG);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glLoadIdentity();
+    this->hurtEffect(partialTicks);
+    if (this->settings->viewBobbing) {
+        this->applyBobbing(partialTicks);
+    }
+    glEnable(GL_TEXTURE_2D);
+    this->renderHeldBlock(partialTicks);
+    glDisable(GL_TEXTURE_2D);
     this->drawGui(partialTicks);
     this->checkGlError("Rendered gui");
     glfwSwapBuffers(window);
@@ -900,8 +970,17 @@ void CrossCraft::fill(int x0, int y0, int x1, int y1, int col) {
 void CrossCraft::setupCamera(float partialTicks) {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
+    float fov = 70.0f;
+    if (this->player->health <= 0) {
+        float zoom = this->player->deathTime + partialTicks;
+        fov /= (1.0f - 500.0f / (zoom + 500.0f)) * 2.0f + 1.0f;
+    }
     float aspectRatio = static_cast<float>(this->width) / static_cast<float>(this->height);
-    gluPerspective(70.0, aspectRatio, 0.05, this->fogDistance);
+    gluPerspective(fov, aspectRatio, 0.05, this->fogDistance);
+    this->hurtEffect(partialTicks);
+    if (this->settings->viewBobbing) {
+        this->applyBobbing(partialTicks);
+    }
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     this->moveCameraToPlayer(partialTicks);
@@ -976,6 +1055,111 @@ void CrossCraft::setupFog(int layer) {
         glEnable(GL_COLOR_MATERIAL);
         glColorMaterial(GL_FRONT, GL_AMBIENT);
         glEnable(GL_LIGHTING);
+    }
+}
+
+void CrossCraft::applyBobbing(float partialTicks) {
+    float dist = this->player->walkDist - this->player->walkDistO;
+    dist = this->player->walkDist + dist * partialTicks;
+    float bob = this->player->oBob + (this->player->bob - this->player->oBob) * partialTicks;
+    float tilt = this->player->oTilt + (this->player->tilt - this->player->oTilt) * partialTicks;
+    glTranslatef(std::sin(dist * M_PI) * bob * 0.5f, -std::abs(std::cos(dist * M_PI) * bob), 0.0f);
+    glRotatef(std::sin(dist * M_PI) * bob * 3.0f, 0.0f, 0.0f, 1.0f);
+    glRotatef(std::abs(std::cos(dist * M_PI + 0.2f) * bob) * 5.0f, 1.0f, 0.0f, 0.0f);
+    glRotatef(tilt, 1.0f, 0.0f, 0.0f);
+}
+
+void CrossCraft::renderHeldBlock(float partialTicks) {
+    HeldBlock* held = this->heldBlock;
+    float iPos = held->lastPos + (held->pos - held->lastPos) * partialTicks;
+    Player* player = this->player;
+    glPushMatrix();
+    glRotatef(player->xRotO + (player->xRot - player->xRotO) * partialTicks, 1.0f, 0.0f, 0.0f);
+    glRotatef(player->yRotO + (player->yRot - player->yRotO) * partialTicks, 0.0f, 1.0f, 0.0f);
+    this->setLighting(true);
+    glPopMatrix();
+    glPushMatrix();
+    float scale = 0.8f;
+    if (held->moving) {
+        float walkCycle = ((float)held->offset + partialTicks) / 7.0f;
+        float sinWalk = std::sin(walkCycle * M_PI);
+        glTranslatef(-std::sin(std::sqrt(walkCycle) * M_PI) * 0.4f, std::sin(std::sqrt(walkCycle) * M_PI * 2.0f) * 0.2f, -sinWalk * 0.2f);
+
+    }
+
+    glTranslatef(0.7f * scale, -0.65f * scale - (1.0f - iPos) * 0.6f, -0.9f * scale);
+    glRotatef(45.0f, 0.0f, 1.0f, 0.0f);
+    glEnable(GL_NORMALIZE);
+    if (held->moving) {
+        float walkCycle = (held->offset + partialTicks) / 7.0f;
+        float motionAngle = std::sin(walkCycle * walkCycle * M_PI);
+        glRotatef(std::sin(std::sqrt(walkCycle) * M_PI) * 80.0f, 0.0f, 1.0f, 0.0f);
+        glRotatef(-motionAngle * 20.0f, 1.0f, 0.0f, 0.0f);
+    }
+
+    float brightness = held->cc->level->getBrightness((int)player->x, (int)player->y, (int)player->z);
+    // float brightness = 1.0f;
+    glColor4f(brightness, brightness, brightness, 1.0f);
+    Tessellator& t = Tessellator::getInstance();
+
+    if (held->tile != nullptr) {
+        float tileScale = 0.4f;
+        glScalef(tileScale, tileScale, tileScale);
+        glTranslatef(-0.5f, -0.5f, -0.5f);
+        glBindTexture(GL_TEXTURE_2D, this->textures->loadTexture("terrain", GL_NEAREST));
+        held->tile->renderPreview(t);
+    } else {
+        player->bindTexture(this);
+        glScalef(1.0f, -1.0f, -1.0f);
+        glTranslatef(0.0f, 0.2f, 0.0f);
+        glRotatef(-120.0f, 0.0f, 0.0f, 1.0f);
+        glScalef(1.0f, 1.0f, 1.0f);
+
+        float modelScale = 0.0625f;
+        ModelPart* leftArm = player->getModel()->arm0;
+        if (!leftArm->compiled) {
+            leftArm->compileDisplayList(modelScale);
+        }
+        glCallList(leftArm->displayList);
+    }
+
+    glDisable(GL_NORMALIZE);
+    glPopMatrix();
+
+    this->setLighting(false);
+}
+
+void CrossCraft::hurtEffect(float partialTicks) {
+    float hurtTime = this->player->hurtTime - partialTicks;
+    if (this->player->health <= 0) {
+        float deathProgress = partialTicks + this->player->deathTime;
+        glRotatef(40.0f - 8000.0f / (deathProgress + 200.0f), 0.0f, 0.0f, 1.0f);
+    }
+
+    if (hurtTime >= 0.0f) {
+        float progress = hurtTime / this->player->hurtDuration;
+        float shakeAngle = std::sin(progress * progress * progress * progress * M_PI);
+        float direction = this->player->hurtDir;
+        glRotatef(-direction, 0.0f, 1.0f, 0.0f);
+        glRotatef(-shakeAngle * 14.0f, 0.0f, 0.0f, 1.0f);
+        glRotatef(direction, 0.0f, 1.0f, 0.0f);
+    }
+}
+
+void CrossCraft::setLighting(bool enable) {
+    if (!enable) {
+        glDisable(GL_LIGHTING);
+        glDisable(GL_LIGHT0);
+    } else {
+        glEnable(GL_LIGHTING);
+        glEnable(GL_LIGHT0);
+        glEnable(GL_COLOR_MATERIAL);
+        glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+        Vec3D vec = Vec3D(0.0f, -1.0f, 0.5f).normalize();
+        glLightfv(GL_LIGHT0, GL_POSITION, this->getBuffer(vec.x, vec.y, vec.z, 0.0f));
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, this->getBuffer(0.3f, 0.3f, 0.3f, 1.0f));
+        glLightfv(GL_LIGHT0, GL_AMBIENT, this->getBuffer(0.0f, 0.0f, 0.0f, 1.0f));
+        glLightModelfv(GL_LIGHT_MODEL_AMBIENT, this->getBuffer(0.7f, 0.7f, 0.7f, 1.0f));
     }
 }
 
@@ -1059,6 +1243,7 @@ bool CrossCraft::loadLevel(const char username[], int levelid) {
     if (!this->levelIO->loadOnline(this->level, this->serverHost, username, levelid)) {
         return false;
     } else {
+        this->gamemode->apply(this->level);
         if (this->player != nullptr) {
             this->gamemode->preparePlayer(this->player);
             this->player->resetPos();
@@ -1076,6 +1261,9 @@ void CrossCraft::generateNewLevel(int width, int height, int depth) {
     const char* username = (this->userData != nullptr) ? this->userData->username.c_str() : "noname";
     this->levelGen->generateLevel(this->level, username, width, height, depth);
     this->player->resetPos();
+    this->gamemode->preparePlayer(this->player);
+    this->gamemode->prepareLevel(this->level);
+    this->gamemode->apply(this->level);
     for (int i = static_cast<int>(this->level->entities.size()) - 1; i >= 0; --i) {
         this->level->entities.erase(this->level->entities.begin() + i);
     }

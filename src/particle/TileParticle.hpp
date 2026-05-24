@@ -4,7 +4,7 @@
 
 class TileParticle : public Particle {
 public:
-    TileParticle(Level* level, double x, double y, double z, double motionX, double motionY, double motionZ, Tile* tile) : Particle(level, x, y, z, motionX, motionY, motionZ) {
+    TileParticle(Level* level, float x, float y, float z, float motionX, float motionY, float motionZ, Tile* tile) : Particle(level, x, y, z, motionX, motionY, motionZ) {
         this->textureId = tile->textureId;
         this->gravity = tile->particleGravity;
         this->rCol = 0.6f;
@@ -26,7 +26,7 @@ public:
         float y = this->yo + (this->y - this->yo) * partialTicks;
         float z = this->zo + (this->z - this->zo) * partialTicks;
 
-        float brightness = this->getBrightness();
+        float brightness = this->getBrightness(partialTicks);
 
         float size = this->size * 0.1f;
         t.color(brightness, brightness, brightness);

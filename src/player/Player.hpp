@@ -5,6 +5,9 @@
 #include "Settings.hpp"
 #include "EntityType.hpp"
 
+class Textures;
+class CrossCraft;
+
 class Player : public Mob {
 public:
     static const int MAX_HEALTH = 20;
@@ -19,6 +22,10 @@ public:
     float input_xxa = 0.0f;
     float input_yya = 0.0f;
     bool input_jumping = false;
+    
+    int score = 0;
+
+    int newTextureId = -1;
 
 private:
     bool keys[10] = {false};
@@ -38,6 +45,10 @@ public:
     void setKey();
     void releaseAllKeys();
     void resetPos() override;
+    void bindTexture(CrossCraft* cc);
+    HumanModel* getModel();
+    void awardKillScore(Entity* e, int score) override;
+    int getScore();
 
     EntityType getEntityType() const override { return EntityType::Player; }
 };

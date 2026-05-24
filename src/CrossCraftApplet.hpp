@@ -19,6 +19,7 @@ private:
     int loadMapId = 0;
     int width = 854;
     int height = 480;
+    int gamemode = 1;
 
     std::string serverAddress;
     int serverPort = -1;
@@ -29,7 +30,7 @@ public:
     ~CrossCraftApplet();
     
     void setParams(const std::string& user, const std::string& session, 
-                  const std::string& mapUser, int mapId, int w, int h);
+                  const std::string& mapUser, int mapId, int w, int h, int gamemode);
     void setServerParams(const std::string& server, int port);
     void start();
     void pause();
@@ -46,7 +47,7 @@ public:
 extern "C" {
     void EMSCRIPTEN_KEEPALIVE setAppletParams(const char* username, const char* sessionid, 
                                             const char* loadmapUser, int loadmapId, 
-                                            int width, int height);
+                                            int width, int height, int gamemode=1);
     void EMSCRIPTEN_KEEPALIVE startApplet();
     void EMSCRIPTEN_KEEPALIVE setServerParams(const char* server, int port);
 }

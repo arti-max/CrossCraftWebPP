@@ -10,7 +10,7 @@ GameMode::GameMode(CrossCraft* cc) {
 }
 
 void GameMode::apply(Level* level) {
-    // nothing
+    level->growTrees = true;
 }
 
 void GameMode::openInventory() {
@@ -67,7 +67,7 @@ void GameMode::spawnMob() {
 }
 
 void GameMode::prepareLevel(Level* level) {
-    // nothing
+    ((Player*)level->getPlayer())->score = 0;
 }
 
 bool isSurvival() {

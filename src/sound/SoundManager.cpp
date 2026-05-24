@@ -7,6 +7,7 @@
 #define AL_SOURCE_SPATIALIZE_SOFT  0x1214
 #define AL_AUTO_SOFT               0x0002
 
+static const int MAX_SOURCES = 128;
 
 SoundManager::SoundManager() {}
 SoundManager::~SoundManager() {}
@@ -18,8 +19,8 @@ void SoundManager::initOpenAL(Settings* settings) {
     this->context = alcCreateContext(this->device, nullptr);
     alcMakeContextCurrent(this->context);
     alcIsExtensionPresent(device, "ALC_SOFT_HRTF");
-    this->sources.resize(32);
-    alGenSources(32, this->sources.data());
+    this->sources.resize(MAX_SOURCES);
+    alGenSources(MAX_SOURCES, this->sources.data());
 
     alDistanceModel(AL_INVERSE_DISTANCE_CLAMPED);
 
@@ -208,11 +209,9 @@ void SoundManager::playAt(const std::string& name, float x, float y, float z, fl
     ALuint source = this->getFreeSource();
     if (source == 0) return;
 
-    if (alcIsExtensionPresent(device, "AL_SOFT_source_spatialize")) {
-        alSourcei(source, AL_SOURCE_SPATIALIZE_SOFT, AL_FALSE);
-    }
-
+    alSourceStop(source);
     alSourcei(source, AL_BUFFER, 0);
+    alGetError();
 
     alSourcei(source, AL_BUFFER, bufferId);
     alSourcef(source, AL_PITCH, pitch);
@@ -225,11 +224,15 @@ void SoundManager::playAt(const std::string& name, float x, float y, float z, fl
     alSourcef(source, AL_MAX_DISTANCE, 20.0f);
     alSourcef(source, AL_ROLLOFF_FACTOR, 0.5f);
 
+    if (alcIsExtensionPresent(device, "AL_SOFT_source_spatialize")) {
+        alSourcei(source, AL_SOURCE_SPATIALIZE_SOFT, AL_FALSE);
+    }
+
     alSourcePlay(source);
 
     ALenum err = alGetError();
     if (err != AL_NO_ERROR) {
-        Logger::logf(PREFIX_ERROR, "OpenAL play error: %d\n", err);
+        Logger::logf(PREFIX_ERROR, "OpenAL play error: %d for sound '%s'\n", err, name.c_str());
     }
 }
 
@@ -250,7 +253,9 @@ void SoundManager::playCentered(const std::string& name, float pitch, float gain
     ALuint source = this->getFreeSource();
     if (source == 0) return;
 
+    alSourceStop(source);
     alSourcei(source, AL_BUFFER, 0);
+    alGetError();
 
     alSourcei(source, AL_BUFFER, bufferId);
     alSourcef(source, AL_PITCH, pitch);
@@ -287,14 +292,24 @@ void SoundManager::updateListener(float x, float y, float z, float yaw, float pi
 }
 
 ALuint SoundManager::getFreeSource() {
-    ALint state;
     for (ALuint src : this->sources) {
+        ALint state;
         alGetSourcei(src, AL_SOURCE_STATE, &state);
         if (state != AL_PLAYING) {
             return src;
         }
     }
-    return (ALuint)0;
+
+    for (ALuint src : this->sources) {
+        ALint state;
+        alGetSourcei(src, AL_SOURCE_STATE, &state);
+        if (state == AL_PLAYING) {
+            alSourceStop(src);
+            return src;
+        }
+    }
+
+    return 0;
 }
 
 void SoundManager::toggleMute() {

@@ -23,6 +23,7 @@
 #include "gui/ingame/PlayerListScreen.hpp"
 #include "gui/ingame/Hud.hpp"
 #include "gui/ingame/BlockSelectScreen.hpp"
+#include "gui/ingame/DeathScreen.hpp"
 #include "User.hpp"
 #include "util/Logger.hpp"
 #include "level/LevelLoaderListener.hpp"
@@ -44,10 +45,13 @@
 #include "Data.hpp"
 #include "gamemode/GameMode.hpp"
 #include "gamemode/SurvivalGameMode.hpp"
+#include "render/HeldBlock.hpp"
+#include "item/Sign.hpp"
+#include "item/Arrow.hpp"
 
 class CrossCraft : public LevelLoaderListener {
 private:
-    const std::string VERSION_STRING = "0.14";
+    const std::string VERSION_STRING = "0.14_SURVIVAL_TEST";
     int lastFpsTime = 0;
     int frames = 0;
     int lastProgress = -1;
@@ -78,6 +82,7 @@ private:
     int attackTime = 0;
     int clickDelay = 0;
     bool isDrop = false;
+    bool raining = false;
 
 
     float lastSentX = 0, lastSentY = 0, lastSentZ = 0;
@@ -107,6 +112,10 @@ private:
     void handleMouseClick(int mode);
     bool isFree(const AABB &aabb);
     void fill(int x0, int y0, int x1, int y1, int col);
+    void applyBobbing(float partialTicks);
+    void renderHeldBlock(float partialTicks);
+    void setLighting(bool enable);
+    void hurtEffect(float partialTicks);
 
     int getSelectedTile();
 
@@ -143,6 +152,7 @@ public:
     SoundManager* sound = nullptr;
     Settings* settings = new Settings();
     GameMode* gamemode = new SurvivalGameMode(this);
+    HeldBlock* heldBlock = new HeldBlock(this);
 
     CrossCraft(const char* parent, int width, int height, bool fullscreen);
     ~CrossCraft();

@@ -42,6 +42,7 @@ void Settings::load() {
         else if (key == "invertYMouse") this->invertYMouse = (value == "1");
         else if (key == "showFPS") this->showFPS = (value == "1");
         else if (key == "renderDistance") this->renderDistance = std::stoi(value);
+        else if (key == "viewBobbing") this->viewBobbing = (value == "1");
         else {
             for (auto& binding : this->keys) {
                 if (key == "key_" + binding->keyName) {
@@ -67,6 +68,7 @@ void Settings::save() {
     file << "invertYMouse:" << (this->invertYMouse ? "1" : "0") << "\n";
     file << "showFPS:" << (this->showFPS ? "1" : "0") << "\n";
     file << "renderDistance:" << this->renderDistance << "\n";
+    file << "viewBobbing" << (this->viewBobbing ? "1" : "0") << "\n";
 
     for (const auto& binding : this->keys) {
         file << "key_" + binding->keyName << ":" << binding->keyCode << "\n";
@@ -102,6 +104,10 @@ void Settings::toggleSetting(int id, int d) {
         this->renderDistance = this->renderDistance + d & 3;
     }
 
+    if (id == 5) {
+        this->viewBobbing = !this->viewBobbing;
+    }
+
     this->save();
 }
 
@@ -116,6 +122,8 @@ std::string Settings::getSettingStateStr(int id) {
         return ("Show FPS: " + std::string(this->showFPS ? "ON" : "OFF"));
     } else if (id == 4) {
         return ("Render distance: " + this->renderVariantsText[this->renderDistance]);
+    } else if (id == 5) {
+        return ("View bobbing: " + std::string(this->viewBobbing ? "ON" : "OFF"));
     }
     return "";
 }

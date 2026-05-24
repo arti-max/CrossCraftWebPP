@@ -6,7 +6,7 @@ public:
     int damage = 6;
 
     void update() override;
-    void doAttack();
-    bool attack(Entity* e);
+    virtual void doAttack();
+    virtual bool attack(Entity* e);
     void hurt(Entity* e, int dmg) override;
 };

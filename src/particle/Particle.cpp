@@ -80,7 +80,7 @@ void Particle::render(Tessellator& t, float partialTicks, float cameraX, float c
     float y = this->yo + (this->y - this->yo) * partialTicks;
     float z = this->zo + (this->z - this->zo) * partialTicks;
 
-    float brightness = this->getBrightness();
+    float brightness = this->getBrightness(partialTicks);
 
     float size = this->size * 0.1f;
     t.color(brightness, brightness, brightness);

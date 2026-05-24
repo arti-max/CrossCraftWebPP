@@ -6,16 +6,16 @@
 void BasicAI::tick(Level* level, Mob* mob) {
     ++this->noActionTime;
     Entity* player = level->getPlayer();
-    if (this->noActionTime > 600 && this->random->nextInt(800) == 0 && (player != nullptr)) {
-        float dx = player->x - mob->x;
-        float dy = player->y - mob->y;
-        float dz = player->z - mob->z;
-        if (dx*dx + dy*dy + dz*dz < 1024.0f) {
-            this->noActionTime = 0;
-        } else {
-            mob->remove();
-        }
-    }
+    // if (this->noActionTime > 600 && this->random->nextInt(800) == 0 && (player != nullptr)) {
+    //     float dx = player->x - mob->x;
+    //     float dy = player->y - mob->y;
+    //     float dz = player->z - mob->z;
+    //     if (dx*dx + dy*dy + dz*dz < 1024.0f) {
+    //         this->noActionTime = 0;
+    //     } else {
+    //         mob->remove();
+    //     }
+    // }
 
     this->level = level;
     this->mob = mob;

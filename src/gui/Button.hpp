@@ -12,6 +12,15 @@ public:
     bool visible = true;
     bool enabled = true;
 
+    Button(int id, int x, int y, std::string msg) {
+        this->x = x;
+        this->id = id;
+        this->y = y;
+        this->w = 200;
+        this->h = 20;
+        this->msg = std::move(msg);
+    }
+
     Button(int id, int x, int y, int w, int h, std::string msg) {
         this->id = id;
         this->x = x;

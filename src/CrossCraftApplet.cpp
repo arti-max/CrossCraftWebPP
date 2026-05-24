@@ -1,6 +1,8 @@
 #include "CrossCraftApplet.hpp"
 #include <iostream>
 #include <emscripten.h>
+#include "gamemode/GameMode.hpp"
+#include "gamemode/SurvivalGameMode.hpp"
 
 CrossCraftApplet* CrossCraftApplet::instance = nullptr;
 
@@ -26,13 +28,14 @@ CrossCraftApplet::~CrossCraftApplet() {
 }
 
 void CrossCraftApplet::setParams(const std::string& user, const std::string& session, 
-                               const std::string& mapUser, int mapId, int w, int h) {
+                               const std::string& mapUser, int mapId, int w, int h, int gm) {
     username = user;
     sessionid = session;
     loadMapUser = mapUser;
     loadMapId = mapId;
     width = w;
     height = h;
+    gamemode = gm;
     
     std::cout << "Applet params set: user=" << username << ", session=" << sessionid 
               << ", size=" << width << "x" << height << std::endl;
@@ -66,6 +69,8 @@ void CrossCraftApplet::start() {
         std::cout << "Creating CrossCraft instance..." << std::endl;
         game = new CrossCraft("#canvas", width, height, false);
         game->appletMode = true;
+        if (gamemode == 1) game->gamemode = new GameMode(game);
+        else game->gamemode = new SurvivalGameMode(game);
         
         if (!username.empty() && !sessionid.empty()) {
             game->userData = new Data(username, sessionid);
@@ -130,7 +135,7 @@ void CrossCraftApplet::initFS() {
 extern "C" {
     void EMSCRIPTEN_KEEPALIVE setAppletParams(const char* username, const char* sessionid, 
                                             const char* loadmapUser, int loadmapId, 
-                                            int width, int height) {
+                                            int width, int height, int gamemode) {
         std::string user = username ? username : "";
         std::string session = sessionid ? sessionid : "";
         std::string mapUser = loadmapUser ? loadmapUser : "";
@@ -140,7 +145,7 @@ extern "C" {
         std::cout << "  sessionid: " << session << std::endl;
         std::cout << "  size: " << width << "x" << height << std::endl;
         
-        CrossCraftApplet::getInstance()->setParams(user, session, mapUser, loadmapId, width, height);
+        CrossCraftApplet::getInstance()->setParams(user, session, mapUser, loadmapId, width, height, gamemode);
     }
 
     void EMSCRIPTEN_KEEPALIVE setServerParams(const char* server, int port) {

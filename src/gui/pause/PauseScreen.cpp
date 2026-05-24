@@ -46,7 +46,7 @@ void PauseScreen::buttonClicked(Button* btn) {
 }
 
 void PauseScreen::render(int xMouse, int yMouse) {
-    this->fillGradient(0, 0, this->width, this->height, 0x20050500, 0xA0303060);
+    this->fillGradient(0, 0, this->width, this->height, 1610941696, -1607454624);
     this->drawCenteredString("Game Menu", this->width / 2, 40, 0xFFFFFFFF);
     Screen::render(xMouse, yMouse);
 }

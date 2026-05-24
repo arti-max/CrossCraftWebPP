@@ -44,6 +44,11 @@ public:
         std::uniform_int_distribution<int> dist(0, 1);
         return dist(generator) == 1;
     }
+
+    float nextGaussian() {
+        std::normal_distribution<float> dist(0.0f, 1.0f);
+        return dist(generator);
+    }
     
     static float random() {
         static Random staticRandom;

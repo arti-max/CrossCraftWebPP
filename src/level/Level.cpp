@@ -633,7 +633,7 @@ bool Level::isBanned(int x, int y, int z) {
 
 void Level::playSound(const std::string& name, Entity* entity, float volume, float pitch) {
     CrossCraft* cc = this->cc;
-    if (this->cc != nullptr && cc->sound != nullptr) {
+    if (this->cc != nullptr && cc->sound != nullptr && (entity->distanceToSqr(cc->player) < 1024.0f)) {
         cc->sound->playAt(name, entity->x, entity->y, entity->z, pitch, volume);
     }
 }
@@ -752,10 +752,118 @@ HitResult* Level::clip(Vec3D& start, Vec3D& end) {
 }
 
 Entity* Level::findSubclassOf(EntityType type) {
-    // for (Entity* entity : emesh->all) {
-    //     if (entity->getEntityType() == type) {
-    //         return entity;
-    //     }
-    // }
+    for (Entity* entity : emesh->all) {
+        if (entity->getEntityType() == type) {
+            return entity;
+        }
+    }
     return nullptr;
+}
+
+bool Level::maybeGrowTree(int x, int y, int z) {
+    int treeHeight = this->random->nextInt(3) + 4;
+    bool canGrow = true;
+
+    for (int cy = y; cy <= y + 1 + treeHeight; ++cy) {
+        int radius = 1;
+        if (cy == y) {
+            radius = 0;
+        }
+        if (cy >= y + 1 + treeHeight - 2) {
+            radius = 2;
+        }
+
+        for (int cx = x - radius; cx <= x + radius && canGrow; ++cx) {
+            for (int cz = z - radius; cz <= z + radius && canGrow; ++cz) {
+                if (cx >= 0 && cy >= 0 && cz >= 0 && cx < this->width && cy < this->depth && cz < this->height) {
+                    if ((this->blocks[(cy * this->height + cz) * this->width + cx] & 255) != 0) {
+                        canGrow = false;
+                    }
+                } else {
+                    canGrow = false;
+                }
+            }
+        }
+    }
+
+    if (!canGrow) {
+        return false;
+    }
+
+    if (this->getTile(x, y-1, z) == Tile::grass->id && y < this->depth - treeHeight - 1) {
+        this->setTile(x, y-1, z, Tile::dirt->id);
+
+        // generate leaves
+        for (int leafY = y - 3 + treeHeight; leafY <= y + treeHeight; ++leafY) {
+            int offsetY = leafY - (y+treeHeight);
+            int leafRadius = 1 - offsetY / 2;
+
+            for (int leafX = x - leafRadius; leafX <= x + leafRadius; ++leafX) {
+                int offsetX = leafX - x;
+                for (int leafZ = z - leafRadius; leafZ <= z + leafRadius; ++leafZ) {
+                    int offsetZ = leafZ - z;
+
+                    if (std::abs(offsetX) != leafRadius || std::abs(offsetZ) != leafRadius || this->random->nextInt(2) != 0 && offsetY != 0) {
+                        this->setTile(leafX, leafY, leafZ, Tile::leaves->id);
+                    }
+                }
+            }
+        }
+
+        for (int yy = 0; yy < treeHeight; ++yy) {
+            this->setTile(x, y+yy, z, Tile::log->id);
+        }
+
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool Level::isFree(AABB& box) {
+    return this->emesh->getEntities((Entity*)nullptr, box).size() == 0;
+}
+
+void Level::explode(Entity* e, float x, float y, float z, float radius) {
+    int x0 = (int)(x-radius-1.0f);
+    int y0 = (int)(y-radius-1.0f);
+    int z0 = (int)(z-radius-1.0f);
+    int x1 = (int)(x+radius+1.0f);
+    int y1 = (int)(y+radius+1.0f);
+    int z1 = (int)(z+radius+1.0f);
+
+    for (int bx = x0; bx < x1; ++bx) {
+        for (int by = y1 - 1; by >= y0; --by) {
+            for (int bz = z0; bz < z1; ++bz) {
+                float dx = (float)bx + 0.5f - x;
+                float dy = (float)by + 0.5f - y;
+                float dz = (float)bz + 0.5f - z;
+
+                if (bx >= 0 && by >= 0 && bz >= 0 && bx < this->width && by < this->depth && bz < this->height) {
+                    if (dx*dx+dy*dy+dz*dz < radius*radius) {
+                        int tileid = this->getTile(bx, by, bz);
+                        if (tileid > 0) {
+                            Tile::tiles[tileid]->onDestroy(this, bx, by, bz);
+                            this->setTile(bx, by, bz, 0);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    EntityMesh* map = this->emesh;
+    map->tmp.clear();
+    std::vector<Entity*> hitEntities = map->getEntities(e, x0, y0, z0, x1, y1, z1, map->tmp);
+
+    for (int i = 0; i < hitEntities.size(); ++i) {
+        Entity* ent = hitEntities[i];
+        float dist = ent->distanceTo(e);
+        float distRatio = dist / radius;
+
+        if (distRatio <= 1.0f) {
+            float dmg = (1.0f - distRatio) * 15.0f + 1.0f;
+            ent->hurt(e, (int)dmg);
+        }
+    }
 }

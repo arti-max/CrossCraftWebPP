@@ -38,7 +38,7 @@ void EntityMesh::removeEntity(Entity* e) {
     utils::remove_all(this->all, e);
 }
 
-std::vector<Entity*> EntityMesh::getEntities(Entity* ignore, float x0, float y0, float z0, float x1, float y1, float z1, std::vector<Entity*> result) {
+std::vector<Entity*> EntityMesh::getEntities(Entity* ignore, float x0, float y0, float z0, float x1, float y1, float z1, std::vector<Entity*>& result) {
     EntityMeshSlot& ss = this->slotStart->init(x0, y0, z0);
     EntityMeshSlot& se = this->slotEnd->init(x1, y1, z1);
 

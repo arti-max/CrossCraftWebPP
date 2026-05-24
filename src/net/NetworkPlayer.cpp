@@ -130,7 +130,7 @@ void NetworkPlayer::render(Textures* textures, float partialTicks, Font* font, P
     float modelHeadRot = interpYHeadRot - interpYBodyRot;
 
     glPushMatrix();
-    float brightness = this->getBrightness();
+    float brightness = this->getBrightness(partialTicks);
     glColor3f(brightness, brightness, brightness);
     float bob = -std::abs(std::sin(interpAnimStep * 0.6662f)) * 5.0f * interpRun - 23.0f;
     

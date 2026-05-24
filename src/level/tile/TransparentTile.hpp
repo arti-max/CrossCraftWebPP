@@ -6,4 +6,6 @@ public:
     TransparentTile(int id, int textureId);
     bool isSolid() override;
     bool blocksLight() override;
+    int getDrop() override;
+    int getDropCount() override;
 };

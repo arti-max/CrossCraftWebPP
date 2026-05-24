@@ -9,19 +9,19 @@
 
 class EntityMesh {
 private:
-    std::vector<Entity*> tmp;
 
 public:
     int width = 0, height = 0, depth = 0;
     std::vector<std::vector<Entity*>> grid; // entities
     std::vector<Entity*> all; // all entities
+    std::vector<Entity*> tmp;
 
     EntityMeshSlot* slotStart = new EntityMeshSlot(this);
     EntityMeshSlot* slotEnd = new EntityMeshSlot(this);
 
     EntityMesh(int w, int h, int d);
 
-    std::vector<Entity*> getEntities(Entity* ignore, float x0, float y0, float z0, float x1, float y1, float z1, std::vector<Entity*> result);
+    std::vector<Entity*> getEntities(Entity* ignore, float x0, float y0, float z0, float x1, float y1, float z1, std::vector<Entity*>& result);
     std::vector<Entity*> getEntities(Entity* ignore, const AABB& box);
 
     void addEntity(Entity* e);

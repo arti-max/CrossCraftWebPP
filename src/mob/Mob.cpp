@@ -203,7 +203,7 @@ void Mob::render(float partialTicks, Textures* textures) {
         interpHeadYaw -= interpBodyYaw;
         glPushMatrix();
         float interpAnimStep = this->animStepO + (this->animStep - this->animStepO) * partialTicks;
-        float brightness = this->getBrightness();
+        float brightness = this->getBrightness(partialTicks);
         glColor3f(brightness, brightness, brightness);
         float scale = 0.0625f;
         float bobOffset = (float)(-std::abs(std::cos((float)interpAnimStep * 0.6662f)) * 5.0f * interpRun * this->bobStrength - 23.0f);

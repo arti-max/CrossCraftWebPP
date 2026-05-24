@@ -60,7 +60,8 @@ bool BasicAttackAI::attack(Entity* target) {
     } else {
         this->mob->attackTime = 5;
         this->attackDelay = this->random->nextInt(20) + 10;
-        int dmg = (this->random->nextFloat() + this->random->nextFloat()) / 2.0f * (float)this->damage + 1.0f;
+        // int dmg = (this->random->nextFloat() + this->random->nextFloat()) / 2.0f * (float)this->damage + 1.0f;
+        int dmg = this->random->nextInt(4) + this->random->nextInt(4) + 1;
         target->hurt(this->mob, dmg);
         this->noActionTime = 0;
         return true;

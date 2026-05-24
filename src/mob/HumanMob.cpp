@@ -15,11 +15,15 @@ void HumanMob::renderModel(Textures* textures, float time, float speed, float ti
         glEnable(GL_CULL_FACE);
     }
 
-    if (this->armor) {
+    if (this->armor || this->helmet) {
         glBindTexture(GL_TEXTURE_2D, textures->loadTexture("/armor/plate.png", GL_NEAREST));
         glDisable(GL_CULL_FACE);
         HumanModel* armorModel = (HumanModel*)this->modelManager->getModel("human.armor");
         HumanModel* hmodel = (HumanModel*)model;
+        armorModel->head->isHidden = !this->helmet;
+        armorModel->body->isHidden = !this->armor;
+        armorModel->arm0->isHidden = !this->armor;
+        armorModel->arm1->isHidden = !this->armor;
         armorModel->head->yaw = hmodel->head->yaw;
         armorModel->head->pitch = hmodel->head->pitch;
         armorModel->arm0->pitch = hmodel->arm0->pitch;

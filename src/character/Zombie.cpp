@@ -81,7 +81,7 @@ glEnable(GL_TEXTURE_2D);
     auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
     double time = (static_cast<double>(milliseconds) / 1000.0 * 10.0 * static_cast<double>(this->speed)) + static_cast<double>(this->timeOffs);
     
-    float brightness = this->getBrightness();
+    float brightness = this->getBrightness(partialTicks);
 
     float interpX = this->xo + (this->x - this->xo) * partialTicks;
     float interpY = this->yo + (this->y - this->yo) * partialTicks;

@@ -1,6 +1,18 @@
 cmake_minimum_required(VERSION 3.16)
 project(CrossCraftWebPP)
 
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/build.cfg")
+    file(READ "${CMAKE_CURRENT_SOURCE_DIR}/build.cfg" BUILD_CFG_CONTENT)
+    string(REGEX MATCH "gamemode=([0-9]+)" _ ${BUILD_CFG_CONTENT})
+    set(GAMEMODE ${CMAKE_MATCH_1})
+    string(REGEX MATCH "debug=([0-9]+)" _ ${BUILD_CFG_CONTENT})
+    set(DEBUG_MODE ${CMAKE_MATCH_1})
+else()
+    set(GAMEMODE 1)
+    set(DEBUG_MODE 0)
+endif()
+message(STATUS "Game mode: ${GAMEMODE} (0=survival, 1=creative), Debug: ${DEBUG_MODE}")
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -38,8 +50,22 @@ if(EMSCRIPTEN)
         "${CMAKE_CURRENT_SOURCE_DIR}/lib/libGL.a"
     )
 
+    if(GAMEMODE EQUAL 0)
+        set(OUTPUT_NAME "survival")
+        set(SHELL_FILE "${CMAKE_CURRENT_SOURCE_DIR}/shell_survival.html")
+    else()
+        set(OUTPUT_NAME "game")
+        set(SHELL_FILE "${CMAKE_CURRENT_SOURCE_DIR}/shell_creative.html")
+    endif()
+
+    if(DEBUG_MODE EQUAL 1)
+        set(OPTIM_FLAGS "-O0 -g -sASSERTIONS=2 -sSAFE_HEAP=1")
+    else()
+        set(OPTIM_FLAGS "-O3 -flto")
+    endif()
+
     set_target_properties(CrossCraftWebPP PROPERTIES 
-        COMPILE_FLAGS "-sUSE_ZLIB=1"
+        COMPILE_FLAGS "-sUSE_ZLIB=1 ${OPTIM_FLAGS}"
         LINK_FLAGS "\
             -s WASM=1 \
             -s USE_GLFW=3 \
@@ -52,7 +78,6 @@ if(EMSCRIPTEN)
             -s FETCH=1 \
             -s LEGACY_GL_EMULATION=0 \
             -s GL_FFP_ONLY=0 \
-            -s ASSERTIONS=1 \
             -s EXPORTED_FUNCTIONS=['_main','_setAppletParams','_startApplet','_testAsyncify','_setServerParams','_showCrashScreen'] \
             -s EXPORTED_RUNTIME_METHODS=['ccall','cwrap','allocate','intArrayFromString','UTF8ToString'] \
             -s ERROR_ON_UNDEFINED_SYMBOLS=0 \
@@ -60,14 +85,14 @@ if(EMSCRIPTEN)
             -s INITIAL_MEMORY=536870912 \
             -s NO_EXIT_RUNTIME=1 \
             -l openal \
-            -fsanitize=undefined \
             -lidbfs.js \
             --allow-multiple-definition \
-            --shell-file ${CMAKE_CURRENT_SOURCE_DIR}/index.html \
+            --shell-file ${SHELL_FILE} \
             --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/resources@/ \
+            ${OPTIM_FLAGS} \
         "
     )
-    set_target_properties(CrossCraftWebPP PROPERTIES OUTPUT_NAME "game")
+    set_target_properties(CrossCraftWebPP PROPERTIES OUTPUT_NAME "${OUTPUT_NAME}")
     set_target_properties(CrossCraftWebPP PROPERTIES SUFFIX ".html")
     
     set(TEXTURE_FILES
