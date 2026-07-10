@@ -35,4 +35,11 @@ public:
     void normal(float x, float y, float z);
     void vertexUV(float x, float y, float z, float u, float v);
     void _noColor();
+
+    std::vector<float>& getBuffer() { return buffer; }
+    int getVertexCount() const { return vertices; }
+    int getStride() const { return len * sizeof(float); }
+    bool getHasTexture() const { return hasTexture; }
+    bool getHasColor() const { return hasColor; }
+    bool getHasNormal() const { return hasNormal; }
 };

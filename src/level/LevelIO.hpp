@@ -14,6 +14,7 @@ private:
     void writeInt32(std::vector<uint8_t>& buffer, int32_t value);
     void writeInt16(std::vector<uint8_t>& buffer, int16_t value);
     void writeByte(std::vector<uint8_t>& buffer, uint8_t value);
+    void writeBool(std::vector<uint8_t>& buffer, bool value);
     void writeInt64(std::vector<uint8_t>& buffer, int64_t value);
     void writeUTF(std::vector<uint8_t>& buffer, const std::string& str);
     void writeFloat(std::vector<uint8_t>& buffer, float value);
@@ -21,6 +22,7 @@ private:
     int32_t readInt32(const uint8_t* data, size_t& offset);
     int16_t readInt16(const uint8_t* data, size_t& offset);
     int8_t readInt8(const uint8_t* data, size_t& offset);
+    bool readBool(const uint8_t* data, size_t& offset);
     int64_t readInt64(const uint8_t* data, size_t& offset);
     std::string readUTF(const uint8_t* data, size_t& offset);
     float readFloat(const uint8_t* data, size_t& offset);

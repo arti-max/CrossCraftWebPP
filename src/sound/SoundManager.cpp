@@ -7,7 +7,7 @@
 #define AL_SOURCE_SPATIALIZE_SOFT  0x1214
 #define AL_AUTO_SOFT               0x0002
 
-static const int MAX_SOURCES = 128;
+static const int MAX_SOURCES = 256;
 
 SoundManager::SoundManager() {}
 SoundManager::~SoundManager() {}

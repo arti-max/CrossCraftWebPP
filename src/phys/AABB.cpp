@@ -170,3 +170,10 @@ void AABB::render() const {
     glVertex3f(x0, y0, z1); glVertex3f(x0, y1, z1);
     glEnd();
 }
+
+float AABB::getSize() const {
+    float x = this->x1 - this->x0;
+    float y = this->y1 - this->y0;
+    float z = this->z1 - this->z0;
+    return (x+y+z) / 3.0f;
+}

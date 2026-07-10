@@ -2,6 +2,7 @@
 
 std::vector<const Tile*> Data::allowedTiles;
 bool Data::survival = true;
+bool Data::showHitboxes = false;
 
 void Data::initAllowedTiles() {
     Data::allowedTiles.clear();

@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 project(CrossCraftWebPP)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/build.cfg")
     file(READ "${CMAKE_CURRENT_SOURCE_DIR}/build.cfg" BUILD_CFG_CONTENT)
@@ -59,7 +60,9 @@ if(EMSCRIPTEN)
     endif()
 
     if(DEBUG_MODE EQUAL 1)
-        set(OPTIM_FLAGS "-O0 -g -sASSERTIONS=2 -sSAFE_HEAP=1")
+        set(OPTIM_FLAGS "-O0 -g")
+    elseif(DEBUG_MODE EQUAL 2)
+        set(OPTIM_FLAGS "-O0 -g -s SAFE_HEAP=1")
     else()
         set(OPTIM_FLAGS "-O3 -flto")
     endif()
@@ -71,7 +74,9 @@ if(EMSCRIPTEN)
             -s USE_GLFW=3 \
             -s FULL_ES2=1 \
             -s ALLOW_MEMORY_GROWTH=1 \
+            -s MAXIMUM_MEMORY=4GB \
             -s ASYNCIFY \
+            -s ASYNCIFY_ADD=['_levelLoadProgress','_beginLevelLoading','_updateProgressStatus','_updateProgressState','_startProgressBar'] \
             -s ASYNCIFY_STACK_SIZE=2097152 \
             -s ASYNCIFY_IMPORTS=[emscripten_sleep,emscripten_wget_data] \
             -s USE_ZLIB=1 \

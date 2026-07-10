@@ -17,7 +17,7 @@ Item::Item(Level* level, float x, float y, float z, int resourceId) : Entity(lev
     this->xd = (float)(Random::random() * 0.20000000298023224 - 0.10000000149011612);
     this->zd = (float)(Random::random() * 0.20000000298023224 - 0.10000000149011612);
     this->rot = (float)(Random::random() * 360.0);
-    Logger::logf(PREFIX_DEBUG, "Item spawned at: %f %f %f ID: %d\n", x, y, z, resourceId);
+    // Logger::logf(PREFIX_DEBUG, "Item spawned at: %f %f %f ID: %d\n", x, y, z, resourceId);
     this->makeStepSound = false;
 }
 
@@ -44,6 +44,7 @@ void Item::tick() {
 }
 
 void Item::render(float partialTicks, Textures* textures) {
+    Entity::render(partialTicks, textures);
     Tessellator& t = Tessellator::getInstance();
     glBindTexture(GL_TEXTURE_2D, textures->loadTexture("terrain", GL_NEAREST));
     float brightness = this->level->getBrightness((int)this->x, (int)this->y, (int)this->z);
@@ -96,6 +97,10 @@ void Item::playerTouch(Player* player) {
         this->level->addEntity(new TakeEntityAnim(this->level, this, player));
         this->remove();
     }
+}
+
+int Item::getResourceId() {
+    return this->resourceId;
 }
 
 void Item::initModels() {

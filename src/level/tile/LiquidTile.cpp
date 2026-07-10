@@ -83,6 +83,10 @@ bool LiquidTile::shouldRenderFace(Level* level, int x, int y, int z, int layer, 
     }
     
     int neighborId = level->getTile(x, y, z);
+
+    if (Tile::tiles[neighborId] && Tile::tiles[neighborId]->getLiquidType() != LiquidType::NOT_LIQUID) {
+        return false;
+    }
     
     if (neighborId != this->tileId && neighborId != this->calmTileId) {
         return face != 1 || level->getTile(x-1, y, z) != 0 && level->getTile(x+1, y, z != 0) && level->getTile(x, y, z-1) != 0 && level->getTile(x, y, z+1) != 0 ? Tile::shouldRenderFace(level, x, y, z, -1, face) : true;

@@ -18,7 +18,7 @@
                 "__EMSCRIPTEN__"
             ],
             "compilerPath": "C:/dev/emsdk/upstream/emscripten/emcc.bat",
-            "cStandard": "c11", 
+            "cStandard": "c11",
             "cppStandard": "c++17",
             "intelliSenseMode": "gcc-x64",
             "compilerArgs": [

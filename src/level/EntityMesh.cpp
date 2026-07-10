@@ -11,11 +11,24 @@ EntityMesh::EntityMesh(int w, int h, int d) {
     if (this->height == 0) this->height = 1;
     if (this->depth == 0) this->depth = 1;
 
+    this->grid.clear();
+    this->all.clear();
+    this->tmp.clear();
+
     this->grid.resize(this->width * this->height * this->depth);
     this->all.resize(this->width * this->height * this->depth);
     this->tmp.resize(this->width * this->height * this->depth);
 }
 
+void EntityMesh::clear() {
+    this->grid.clear();
+    this->all.clear();
+    this->tmp.clear();
+
+    this->grid.resize(this->width * this->height * this->depth);
+    this->all.resize(this->width * this->height * this->depth);
+    this->tmp.resize(this->width * this->height * this->depth);
+}
 
 void EntityMesh::addEntity(Entity* e) {
     this->all.push_back(e);
@@ -34,8 +47,10 @@ void EntityMesh::addEntity(Entity* e) {
 }
 
 void EntityMesh::removeEntity(Entity* e) {
-    this->slotStart->init(e->x, e->y, e->z).remove(e);
-    utils::remove_all(this->all, e);
+    bool removed = this->slotStart->init(e->x, e->y, e->z).remove(e);
+    if (removed) {
+        utils::remove_all(this->all, e);
+    }
 }
 
 std::vector<Entity*> EntityMesh::getEntities(Entity* ignore, float x0, float y0, float z0, float x1, float y1, float z1, std::vector<Entity*>& result) {
@@ -67,7 +82,7 @@ std::vector<Entity*> EntityMesh::getEntities(Entity* ignore, const AABB& box) {
     return this->getEntities(ignore, box.x0, box.y0, box.z0, box.x1, box.y1, box.z1, this->tmp);
 }
 
-void EntityMesh::render(Frustum& frustum, Textures* textures, float partialTicks) {
+void EntityMesh::render(Vec3D vec, Frustum& frustum, Textures* textures, float partialTicks) {
     for (int x = 0; x < this->width; ++x) {
         float minX = (float)((x << 4) - 2);
         float maxX = (float)((x + 1 << 4) + 2);
@@ -88,8 +103,10 @@ void EntityMesh::render(Frustum& frustum, Textures* textures, float partialTicks
                     if (isVisible) {
                         for (int i = 0; i < entityRow.size(); ++i) {
                             Entity* e = entityRow[i];
-                            if (isFullyVisible || frustum.isVisible(e->bb)) {
-                                e->render(partialTicks, textures);
+                            if ((isFullyVisible || frustum.isVisible(e->bb)) && e) {
+                                if (e->shouldRender(vec)) {
+                                    e->render(partialTicks, textures);
+                                }
                             }
                         }
                     }
@@ -97,4 +114,21 @@ void EntityMesh::render(Frustum& frustum, Textures* textures, float partialTicks
             }
         }
     }
+}
+
+int EntityMesh::getMobCount() {
+    int cnt = 0;
+    if (this->all.size() <= 0) {
+        return 0;
+    }
+    for (int i = 0; i < this->all.size(); i++) {
+        if (this->all[i]) {
+        Entity* e = this->all[i];
+            if (e->getEntityType() != EntityType::Entity && e != nullptr) {
+                cnt++;
+            }
+        }
+    }
+
+    return cnt;
 }

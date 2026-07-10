@@ -1,12 +1,26 @@
 #include "LevelIO.hpp"
 #include "CrossCraft.hpp"
-#include "character/Zombie.hpp"
 #include "Entity.hpp"
+#include "player/Player.hpp"
 #include <emscripten.h>
 #include <emscripten/fetch.h>
 #include <zlib.h>
 #include <cstring>
 #include <iostream>
+// mobs
+#include "mob/Zombie.hpp"
+#include "mob/Creeper.hpp"
+#include "mob/Skeleton.hpp"
+#include "mob/AnimalMob.hpp"
+#include "mob/HumanMob.hpp"
+// items
+#include "item/Item.hpp"
+#include "item/Arrow.hpp"
+#include "item/Sign.hpp"
+
+const int ITEM_ENTITY = 32356;
+
+static int SPAWNED_MOBS = 0;
 
 LevelIO::LevelIO(CrossCraft* cc) : cc(cc) {}
 
@@ -26,6 +40,14 @@ void LevelIO::writeInt16(std::vector<uint8_t>& buffer, int16_t value) {
 
 void LevelIO::writeByte(std::vector<uint8_t>& buffer, uint8_t value) {
     buffer.push_back(value);
+}
+
+void LevelIO::writeBool(std::vector<uint8_t>& buffer, bool value) {
+    if (value == true) {
+        buffer.push_back(1);
+    } else {
+        buffer.push_back(0);
+    }
 }
 
 void LevelIO::writeInt64(std::vector<uint8_t>& buffer, int64_t value) {
@@ -69,6 +91,16 @@ int8_t LevelIO::readInt8(const uint8_t* data, size_t& offset) {
     int8_t value = data[offset];
     offset += 1;
     return value;
+}
+
+bool LevelIO::readBool(const uint8_t* data, size_t& offset) {
+    int8_t value = data[offset];
+    offset += 1;
+    if (value == 1) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 int64_t LevelIO::readInt64(const uint8_t* data, size_t& offset) {
@@ -206,7 +238,7 @@ bool LevelIO::loadOnline(Level* level, const std::string& serverUrl, const std::
     cc->beginLevelLoading("Loading level");
     cc->levelLoadUpdate("Connecting...");
     
-    std::string url = "http://" + serverUrl + "/level/load.html?id=" + std::to_string(levelId) + "&user=" + user;
+    std::string url = "https://" + serverUrl + "/level/load.html?id=" + std::to_string(levelId) + "&user=" + user;
     std::cout << "Loading level from: " << url << std::endl;
     
     LoadContext* ctx = new LoadContext{this, level};
@@ -247,7 +279,7 @@ bool LevelIO::load(Level* level, const uint8_t* data, size_t length) {
         }
         
         int8_t version = readInt8(decompressed.data(), offset);
-        if (version > 2) {
+        if (version > 3) {
             std::cerr << "Unsupported format version: " << (int)version << std::endl;
             return false;
         }
@@ -264,20 +296,26 @@ bool LevelIO::load(Level* level, const uint8_t* data, size_t length) {
         std::vector<uint8_t> blocks(decompressed.begin() + offset, decompressed.begin() + offset + blocksLength);
         offset += blocksLength;
         
+        Player* player = (Player*)level->player;
+        if (player == nullptr) {
+            std::cerr << "LEVELIO: PLAYEr IS EMPTY!!!!" << std::endl;
+            return false;
+        }
+        
         level->setData(width, depth, height, blocks);
         level->name = name;
         level->creator = creator;
         level->creationTime = creationTime;
-        level->entities.clear();
 
-        if (version >= 2) {
+        level->addEntity(player);
+
+        if (version == 2) {
             level->xSpawn = readInt16(decompressed.data(), offset);
             level->ySpawn = readInt16(decompressed.data(), offset);
             level->zSpawn = readInt16(decompressed.data(), offset);
             level->rotSpawn = readInt16(decompressed.data(), offset);
 
             int32_t entityCount = readInt32(decompressed.data(), offset);
-            level->entities.clear();
 
             for (int i = 0; i < entityCount; ++i) {
                 int32_t entityTypeId = readInt32(decompressed.data(), offset);
@@ -289,22 +327,107 @@ bool LevelIO::load(Level* level, const uint8_t* data, size_t length) {
                     float loadedXRot = readFloat(decompressed.data(), offset);
                     float loadedYRot = readFloat(decompressed.data(), offset);
                     
-                    HZombie* zombie = new HZombie(level, this->cc->textures, loadedX, loadedY, loadedZ);
+                    HumanMob* zombie = new HumanMob(level, loadedX, loadedY, loadedZ);
                     zombie->xRot = loadedXRot;
                     zombie->yRot = loadedYRot;
                     zombie->setPos(loadedX, loadedY, loadedZ);
-                    level->entities.push_back(zombie);
+                    level->addEntity(zombie);
                 } else {
                     offset += sizeof(float) * 5; 
                 }
             }
+
+            for (int i = 0; i < 9; i++) {
+                player->inventory->slots[i] = -1;
+                player->inventory->count[i] = 0;
+            }
         }
 
-        cc->levelLoadUpdate("Finalizing..");
+        if (version >= 3) {
+            SPAWNED_MOBS = 0;
+            // read player position
+            level->xSpawn = readInt16(decompressed.data(), offset);
+            level->ySpawn = readInt16(decompressed.data(), offset);
+            level->zSpawn = readInt16(decompressed.data(), offset);
+            level->rotSpawn = readInt16(decompressed.data(), offset);
+
+            // read player stats
+            player->health = readInt16(decompressed.data(), offset);
+            player->airSupply = readInt16(decompressed.data(), offset);
+            player->score = readInt16(decompressed.data(), offset);
+
+            // read inventory data
+            player->inventory->arrows = readInt16(decompressed.data(), offset);
+            for (int i = 0; i < 9; i++) {
+                player->inventory->slots[i] = readInt16(decompressed.data(), offset);
+                player->inventory->count[i] = readInt16(decompressed.data(), offset);
+            }
+
+            // read entity data
+            int32_t entityCount = readInt32(decompressed.data(), offset);
+            Logger::logf(PREFIX_DEBUG, "Entity Count: %i, offset: %i\n", entityCount, offset);
+            for (int i = 0; i < entityCount; ++i) {
+                int32_t entityTypeId = readInt32(decompressed.data(), offset);
+                Entity* mob = nullptr;
+                if (entityTypeId == ITEM_ENTITY) {
+                    int8_t itemId = readInt8(decompressed.data(), offset);
+                    if (itemId == 1) { // Block Drop
+                        int8_t resourceId = readInt8(decompressed.data(), offset);
+                        float loadedX = readFloat(decompressed.data(), offset);
+                        float loadedY = readFloat(decompressed.data(), offset);
+                        float loadedZ = readFloat(decompressed.data(), offset);
+
+                        mob = new Item(level, loadedX, loadedY, loadedZ, resourceId);
+                    }
+                    if (itemId == 2) { // Arrow
+                        int8_t arrowType = readInt8(decompressed.data(), offset);
+                        if (arrowType == 0) {
+                            bool hit = readBool(decompressed.data(), offset);
+                            float gravity = readFloat(decompressed.data(), offset);
+                            float loadedX = readFloat(decompressed.data(), offset);
+                            float loadedY = readFloat(decompressed.data(), offset);
+                            float loadedZ = readFloat(decompressed.data(), offset);
+                            float xRot = readFloat(decompressed.data(), offset);
+                            float yRot = readFloat(decompressed.data(), offset);
+
+                            mob = new Arrow(level, player, loadedX, loadedY, loadedZ, xRot, yRot, gravity);
+                            Arrow* newArrow = (Arrow*)mob;
+                            newArrow->hasHit = hit;
+                            newArrow->type = arrowType;
+                        }
+                    }
+                    if (mob != nullptr) {
+                        SPAWNED_MOBS++;
+                        level->addEntity(mob);
+                    } else {
+                        std::cerr << "Item is nullptr!" << std::endl;
+                    }
+                } else {
+                    float loadedX = readFloat(decompressed.data(), offset);
+                    float loadedY = readFloat(decompressed.data(), offset);
+                    float loadedZ = readFloat(decompressed.data(), offset);
+                    
+                    switch(entityTypeId) {
+                        case 1: mob = new Zombie(level, loadedX, loadedY, loadedZ); break;
+                        case 2: mob = new Skeleton(level, loadedX, loadedY, loadedZ); break;
+                        case 3: mob = new AnimalMob(level, loadedX, loadedY, loadedZ); break;
+                        case 4: mob = new Creeper(level, loadedX, loadedY, loadedZ); break;
+                        // case 5: mob = new HumanMob(level, loadedX, loadedY, loadedZ); break;
+                    }
+
+                    if (mob != nullptr) {
+                        level->addEntity(mob);
+                    } else {
+                        std::cerr << "Mob is nullptr! Type: " << entityTypeId << ", offset: " << offset << std::endl;
+                    }
+                }
+            }
+        }
+
+        cc->levelLoadUpdate("Finalizing.."); 
         cc->levelLoadProgress(90);
-        level->initTransient();
         
-        std::cout << "Level loaded: " << name << " (" << width << "x" << height << "x" << depth << ")" << std::endl;
+        std::cout << "Level loaded: " << name << " (" << width << "x" << height << "x" << depth << ") spawned: " << SPAWNED_MOBS << std::endl;
         
         cc->levelLoadProgress(100);
         return true;
@@ -317,9 +440,11 @@ bool LevelIO::load(Level* level, const uint8_t* data, size_t length) {
 
 std::vector<uint8_t> LevelIO::serializeLevelToByteArray(Level* level) {
     std::vector<uint8_t> buffer;
+
+    Player* player = (Player*)level->player;
     
     writeInt32(buffer, 656127880);
-    writeByte(buffer, 2);
+    writeByte(buffer, 3); // level format
     writeUTF(buffer, level->name);
     writeUTF(buffer, level->creator);
     writeInt64(buffer, level->creationTime);
@@ -330,20 +455,85 @@ std::vector<uint8_t> LevelIO::serializeLevelToByteArray(Level* level) {
     
     buffer.insert(buffer.end(), level->blocks.begin(), level->blocks.end());
     
-    writeInt16(buffer, level->xSpawn);
-    writeInt16(buffer, level->ySpawn);
-    writeInt16(buffer, level->zSpawn);
-    writeInt16(buffer, level->rotSpawn);
+    // player position
+    writeInt16(buffer, (int)level->player->x);
+    writeInt16(buffer, (int)level->player->y);
+    writeInt16(buffer, (int)level->player->z);
+    writeInt16(buffer, (int)level->player->xRot);
 
-    writeInt32(buffer, level->entities.size());
-    for (Entity* entity : level->entities) {
+    // player stats
+    writeInt16(buffer, player->health);
+    writeInt16(buffer, player->airSupply);
+    writeInt16(buffer, player->score);
+
+    // save inventory
+    writeInt16(buffer, player->inventory->arrows);
+    for (int i = 0; i < 9; i++) {
+        writeInt16(buffer, player->inventory->slots[i]);
+        writeInt16(buffer, player->inventory->count[i]);
+    }
+    
+    if (level->emesh->all.size() <= 0) {
+        std::cerr << "Entity list is null!" << std::endl;
+    }
+
+    // entities
+    writeInt32(buffer, level->emesh->all.size());
+    for (Entity* entity : level->emesh->all) {
         if (dynamic_cast<Zombie*>(entity)) {
-            writeInt32(buffer, 1); // 1 = Zombie (type)
+            writeInt32(buffer, 1); // 1 = Zombie
             writeFloat(buffer, entity->x);
             writeFloat(buffer, entity->y);
             writeFloat(buffer, entity->z);
-            writeFloat(buffer, entity->xRot);
-            writeFloat(buffer, entity->yRot);
+        }
+        if (dynamic_cast<Skeleton*>(entity)) {
+            writeInt32(buffer, 2); // 2 = Skeleton
+            writeFloat(buffer, entity->x);
+            writeFloat(buffer, entity->y);
+            writeFloat(buffer, entity->z);
+        }
+        if (dynamic_cast<AnimalMob*>(entity)) {
+            writeInt32(buffer, 3); // 3 = Animal
+            writeFloat(buffer, entity->x);
+            writeFloat(buffer, entity->y);
+            writeFloat(buffer, entity->z);
+        }
+        if (dynamic_cast<Creeper*>(entity)) {
+            writeInt32(buffer, 4); // 4 = Creeper
+            writeFloat(buffer, entity->x);
+            writeFloat(buffer, entity->y);
+            writeFloat(buffer, entity->z);
+        }
+        if (dynamic_cast<HumanMob*>(entity)) {
+            writeInt32(buffer, 5); // 5 = Human Mob
+            writeFloat(buffer, entity->x);
+            writeFloat(buffer, entity->y);
+            writeFloat(buffer, entity->z);
+        }
+        // items
+        if (dynamic_cast<Item*>(entity)) {
+            Item* item = (Item*)entity;
+            writeInt32(buffer, ITEM_ENTITY);
+            writeByte(buffer, 1); // 1 = Block Drop
+            writeByte(buffer, item->getResourceId());
+            writeFloat(buffer, entity->x);
+            writeFloat(buffer, entity->y);
+            writeFloat(buffer, entity->z);
+        }
+        if (dynamic_cast<Arrow*>(entity)) {
+            Arrow* arrow = (Arrow*)entity;
+            if (arrow->type == 0) {
+                writeInt32(buffer, ITEM_ENTITY);
+                writeByte(buffer, 2); // 2 = Arrow
+                writeByte(buffer, arrow->type);
+                writeBool(buffer, arrow->hasHit);
+                writeFloat(buffer, arrow->gravity);
+                writeFloat(buffer, entity->x);
+                writeFloat(buffer, entity->y);
+                writeFloat(buffer, entity->z);
+                writeFloat(buffer, entity->xRot);
+                writeFloat(buffer, entity->yRot);
+            }
         }
     }
 
@@ -421,7 +611,6 @@ bool LevelIO::saveOnline(Level* level, const std::string& serverUrl, const std::
     
     std::vector<uint8_t> body;
     
-    // ОТЛАДКА: Выводим данные перед отправкой
     std::cout << "DEBUG: username length: " << username.length() << ", value: " << username << std::endl;
     std::cout << "DEBUG: sessionId length: " << sessionId.length() << ", value: " << sessionId << std::endl;
     std::cout << "DEBUG: levelName length: " << levelName.length() << ", value: " << levelName << std::endl;

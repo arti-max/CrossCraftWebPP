@@ -1,4 +1,6 @@
 #include "CrossCraft.hpp"
+#include <malloc.h>
+#include <emscripten/heap.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <cmath>
@@ -63,6 +65,11 @@ void CrossCraft::init() {
         Logger::logf(PREFIX_ERROR, "Failed to initialize GLFW\n");
     }
 
+    glfwWindowHint(GLFW_ALPHA_BITS, 0);
+    glfwWindowHint(GLFW_SAMPLES, 0);
+    glfwWindowHint(GLFW_STENCIL_BITS, 0);
+    glfwWindowHint(GLFW_DEPTH_BITS, 24);
+
     const char* canvas = parent.empty() ? nullptr : parent.c_str();
 
     window = glfwCreateWindow(width, height, "CrossCraft", NULL, NULL);
@@ -97,6 +104,7 @@ void CrossCraft::init() {
     this->level->cc = this;
     this->player = new Player(this->level, this->settings);
     this->particleEngine = new ParticleEngine(this->level);
+    this->progressbar = new Progressbar(this->width, this->height, this->textures);
 
     if (!this->mpMode) {
         if (this->loadMapUser.empty() || this->loadMapId == -1) {
@@ -472,8 +480,10 @@ void CrossCraft::tick() {
     }
 
     if (this->screen == nullptr || this->screen->grabMouse) {
-        while (Keyboard::next()) { 
-            this->player->setKey();
+        while (Keyboard::next()) {
+            if (this->player != nullptr) {
+                this->player->setKey();
+            }
             if (Keyboard::getEventKeyState()) {
                 if (this->mpMode) {
                     playerListScreen->updateKeyboardEvents();
@@ -498,8 +508,8 @@ void CrossCraft::tick() {
                 //     this->isDrop == true ? this->isDrop = false : this->isDrop = true;
                 // }
 
-                if (Keyboard::getEventKey() == GLFW_KEY_TAB) {
-                    this->level->addEntity(new Arrow(this, this->player, this->player->x, this->player->y, this->player->z, this->player->yRot, this->player->xRot));
+                if (Keyboard::getEventKey() == GLFW_KEY_TAB && (this->player->inventory->removeArrow())) {
+                    this->level->addEntity(new Arrow(this->level, this->player, this->player->x, this->player->y, this->player->z, this->player->yRot, this->player->xRot, 1.2f));
                 }
 
                 if (Keyboard::getEventKey() == this->settings->key_build->keyCode) {
@@ -680,6 +690,7 @@ update_world:
         fx->tick();
         textures->updateTextureFX(fx->pixels, fx->textureId);
     }
+    this->gamemode->spawnMob();
     ++this->levelRenderer->cloudTicks;
     ++this->hud->ticks;
     this->level->tick();
@@ -716,7 +727,7 @@ update_world:
         }
     }
 
-    this->player->tick();
+    // this->player->tick();
     // this->player->inventory->tick();
     this->sound->updateListener(this->player->x, this->player->y+1.62, this->player->z, this->player->yRot, this->player->xRot);
 
@@ -777,12 +788,15 @@ void CrossCraft::render(float partialTicks) {
     glEnable(GL_FOG);
     this->levelRenderer->render(this->player, 0);
     this->checkGlError("Rendered level");
-    this->level->emesh->render(frustum, this->textures, partialTicks);
+    Vec3D rvec = this->getPlayerVectorO(partialTicks);
+    this->setLighting(true);
+    this->level->emesh->render(rvec, frustum, this->textures, partialTicks);
     for (auto const& [id, net_player] : this->level->networkPlayers) {
         if (net_player != nullptr) {
             net_player->render(this->textures, partialTicks, this->font, this->player);
         }
     }
+    this->setLighting(false);
     this->checkGlError("Rendered entities");
     this->particleEngine->render(this->player, partialTicks, 0, this->textures);
     this->checkGlError("Rendered particles (0)");
@@ -847,13 +861,14 @@ void CrossCraft::render(float partialTicks) {
     glEnable(GL_BLEND);
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_FOG);
-    glDisable(GL_CULL_FACE);
+    glDepthMask(true);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
     glColorMask(false, false, false, false);
     this->levelRenderer->render(this->player, 1);
     glColorMask(true, true, true, true);
     this->levelRenderer->render(this->player, 1);
     this->checkGlError("Color Mask");
-    glEnable(GL_CULL_FACE);
     glDisable(GL_BLEND);
     glDisable(GL_LIGHTING);
     glDisable(GL_TEXTURE_2D);
@@ -922,8 +937,31 @@ void CrossCraft::drawGui(float partialTicks) {
     glPopMatrix();
     this->checkGlError("GUI: Draw selected");
     this->font->drawShadow(VERSION_STRING, 2, 2, 0xFFFFFF);
-    if (this->settings->showFPS)
+    if (this->settings->showFPS) {
+        size_t maxMemory = emscripten_get_heap_max();
+        size_t totalMemory = emscripten_get_heap_size();
+
+        struct mallinfo info = mallinfo();
+        size_t usedMemory = info.uordblks;
+        size_t freeMemory = totalMemory - usedMemory;
+
+        size_t showFM = maxMemory - freeMemory;
+
+        size_t maxMB = maxMemory / (1024 * 1024);
+        size_t totalMB = totalMemory / (1024 * 1024);
+
+        if (maxMemory == 0) maxMemory = 1;
+
+        size_t freePercent = ((uint64_t)(showFM) * 100) / maxMemory;
+        std::string strFree = "Free memory: " + std::to_string(freePercent) + "% of " + std::to_string(maxMB) + "MB";
+
+        size_t allocPercent = ((uint64_t)(totalMemory) * 100) / maxMemory;
+        std::string strAlloc = "Allocated memory: " + std::to_string(allocPercent) + "% (" + std::to_string(totalMB) + "MB)";
+
         this->font->drawShadow(this->fpsString, 2, 12, 0xFFFFFF);
+        this->font->drawShadow(strFree.c_str(), 2, 22, 0xFFFFFF);
+        this->font->drawShadow(strAlloc.c_str(), 2, 32, 0xFFFFFF);
+    }
     this->checkGlError("GUI: Draw text");
     int wc = screenWidth / 2;
     int hc = screenHeight / 2;
@@ -997,6 +1035,7 @@ void CrossCraft::moveCameraToPlayer(float partialTicks) {
 }
 
 void CrossCraft::checkGlError(const char str[]) {
+    return;
     GLenum errorCode = glGetError();
     if (errorCode != GL_NO_ERROR) {
         const GLubyte* errorString = gluErrorString(errorCode);
@@ -1005,7 +1044,7 @@ void CrossCraft::checkGlError(const char str[]) {
         printf("@ %s\n", errorString);
         printf("%i: %s\n", errorCode, errorString);
     }
-}
+} 
 
 void CrossCraft::setupFog(int layer) {
     if (layer == -1) {
@@ -1164,90 +1203,30 @@ void CrossCraft::setLighting(bool enable) {
 }
 
 void CrossCraft::beginLevelLoading(const char title[]) {
-    this->title = title;
-    this->status = "";
-    this->lastProgress = -1;
-    int screenWidth = this->width * 240 / this->height;
-    int screenHeight = this->height * 240 / this->height;
-    glClear(GL_DEPTH_BUFFER_BIT);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(0.0f, (double)screenWidth, (double)screenHeight, 0.0f, 100.0f, 300.0f);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glTranslatef(0.0f, 0.0f, -200.0f);
+    std::string t = std::string(title);
+    this->progressbar->startProgressBar(t);
 }
 
 void CrossCraft::levelLoadUpdate(const char* status) {
-    this->status = status;
+    std::string s = std::string(status);
+    this->progressbar->updateProgressStatus(s);
 }
 
 void CrossCraft::levelLoadProgress(int progress) {
-    if (progress == this->lastProgress) {
-        return;
-    }
-    this->lastProgress = progress;
-    int screenWidth = this->width * 240 / this->height;
-    int screenHeight = this->height * 240 / this->height;
-
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    Tessellator& t = Tessellator::getInstance();
-    glEnable(GL_TEXTURE_2D);
-    int id = this->textures->loadTexture("dirt", GL_NEAREST);
-    glBindTexture(GL_TEXTURE_2D, id);
-    t.begin();
-    t.color(64.0f / 255.0f, 64.0f / 255.0f, 64.0f / 255.0f);
-    float s = 32.0f;
-    t.vertexUV(0.0f, (float)screenHeight, 0.0f, 0.0f, (float)screenHeight / s);
-    t.vertexUV((float)screenWidth, (float)screenHeight, 0.0f, (float)screenWidth / s, (float)screenHeight / s);
-    t.vertexUV((float)screenWidth, 0.0f, 0.0f, (float)screenWidth / s, 0.0f);
-    t.vertexUV(0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-    t.end();
-
-    if (progress >= 0) {
-        glDisable(GL_TEXTURE_2D);
-        int barX = screenWidth / 2 - 50;
-        int barY = screenHeight / 2 + 16;
-        int barWidth = 100;
-        int barHeight = 2;
-
-        glColor3f(128.0f / 255.0f, 128.0f / 255.0f, 128.0f / 255.0f);
-        glBegin(GL_QUADS);
-            glVertex2f(barX, barY);
-            glVertex2f(barX, barY + barHeight);
-            glVertex2f(barX + barWidth, barY + barHeight);
-            glVertex2f(barX + barWidth, barY);
-        glEnd();
-
-        glColor3f(128.0f / 255.0f, 255.0f / 255.0f, 128.0f / 255.0f);
-        glBegin(GL_QUADS);
-            glVertex2f(barX, barY);
-            glVertex2f(barX, barY + barHeight);
-            glVertex2f(barX + progress, barY + barHeight);
-            glVertex2f(barX + progress, barY);
-        glEnd();
-        
-
-        glEnable(GL_TEXTURE_2D);
-    }
-    
-    this->font->drawShadow(this->title, (screenWidth - this->font->width(this->title)) / 2, screenHeight / 2 - 4 - 16, 0xFFFFFF);
-    this->font->drawShadow(this->status, (screenWidth - this->font->width(this->status)) / 2, screenHeight / 2 - 4 + 8, 0xFFFFFF);
-    
-    glfwSwapBuffers(window);
-    
-    emscripten_sleep(1); 
+    this->progressbar->updateProgressState(progress);
 }
 
 bool CrossCraft::loadLevel(const char username[], int levelid) {
-    if (!this->levelIO->loadOnline(this->level, this->serverHost, username, levelid)) {
+    bool loaded = this->levelIO->loadOnline(this->level, this->serverHost, username, levelid);
+
+    if (!loaded) {
+        this->level->player = this->player;
         return false;
     } else {
+        this->player = (Player*)this->level->player;
+        this->player->resetPos();
+        this->gamemode->prepareLevel(this->level);
         this->gamemode->apply(this->level);
-        if (this->player != nullptr) {
-            this->gamemode->preparePlayer(this->player);
-            this->player->resetPos();
-        }
 
         return true;
     }
@@ -1260,13 +1239,18 @@ void CrossCraft::saveLevel(int levelId, const char levelname[]) {
 void CrossCraft::generateNewLevel(int width, int height, int depth) {
     const char* username = (this->userData != nullptr) ? this->userData->username.c_str() : "noname";
     this->levelGen->generateLevel(this->level, username, width, height, depth);
+    this->level->player = nullptr;
+    delete this->player;
+    this->player = new Player(this->level, this->settings);
+
     this->player->resetPos();
     this->gamemode->preparePlayer(this->player);
     this->gamemode->prepareLevel(this->level);
     this->gamemode->apply(this->level);
-    for (int i = static_cast<int>(this->level->entities.size()) - 1; i >= 0; --i) {
-        this->level->entities.erase(this->level->entities.begin() + i);
-    }
+    // if (this->level != nullptr) {
+    //     this->level->player = this->player;
+    //     this->level->addEntity(this->player);
+    // }
 }
 
 Vec3D* CrossCraft::getPlayerVector(float partialTicks) {

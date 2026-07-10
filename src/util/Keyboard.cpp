@@ -2,11 +2,30 @@
 #include <iostream>
 #include <cctype>
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten/emscripten.h>
+#include <cstring>
+#endif
+
 std::queue<KeyEvent> Keyboard::events;
 KeyEvent Keyboard::currentEvent;
 GLFWwindow* Keyboard::window = nullptr;
 std::array<bool, GLFW_KEY_LAST + 1> Keyboard::keyStates = {};
 bool Keyboard::repeatEventsEnabled = true;
+
+#ifdef __EMSCRIPTEN__
+EM_BOOL Keyboard::emscriptenKeyCallback(int eventType, const EmscriptenKeyboardEvent *e, void *userData) {
+    if (std::strcmp(e->key, getKeyName(GLFW_KEY_F5)) == 0) {
+        EmscriptenPointerlockChangeEvent pointerlockStatus;
+        emscripten_get_pointerlock_status(&pointerlockStatus);
+
+        if (pointerlockStatus.isActive) {
+            return EM_TRUE; 
+        }
+    }
+    return EM_FALSE;
+}
+#endif
 
 void Keyboard::create() {
     keyStates.fill(false);
@@ -29,6 +48,10 @@ void Keyboard::init(GLFWwindow* win) {
     glfwSetCharCallback(window, charCallback);
     
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GLFW_TRUE);
+
+#ifdef __EMSCRIPTEN__
+    emscripten_set_keydown_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, nullptr, EM_TRUE, emscriptenKeyCallback);
+#endif
 }
 
 bool Keyboard::next() {

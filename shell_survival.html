@@ -89,7 +89,7 @@
             height: 576px;
             background-color: #000;
             position: relative;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            /* box-shadow: 0 0 20px rgba(0,0,0,0.5); */
             display: block;
             margin: 0 auto; /* Центрируем сам канвас */
             max-width: 100%; /* Чтобы не вылезал на мобилках */
@@ -242,6 +242,8 @@
     <div id="content">
         
         <br><br>
+        <h1>Survival Mode Test</h1>
+        <br>
 
         <!-- Предупреждение о логине -->
         <center>
@@ -267,6 +269,8 @@
         
         <h2>Thank you for testing survival mode.</h2>
         <p>Hey, did you know that cats are much cuter than dogs?</p>
+        <!-- TODO: random msgs-->
+        <!-- Hey, did you know that yetis do exist?-->
         
         <!-- Консоль отладки (скрыта) -->
         <div id="output"></div>
@@ -400,6 +404,13 @@
 
         // Настройка Emscripten Module
         var Module = {
+            preloadedContextAttributes: {
+                alpha: false,
+                antialias: false,
+                depth: true,
+                powerPreference: "high-performance",
+                preserveDrawingBuffer: false
+            },
             canvas: canvas,
             preRun: [],
             postRun: [],
@@ -411,7 +422,7 @@
                     if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
                     console.log(text);
                     if (element) {
-                        element.innerHTML += text + "<br>";
+                        // element.innerHTML += text + "<br>";
                         element.scrollTop = element.scrollHeight;
                     }
                 };

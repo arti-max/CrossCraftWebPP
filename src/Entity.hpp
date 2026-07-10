@@ -1,6 +1,7 @@
 #pragma once
 #include "phys/AABB.hpp"
 #include "EntityType.hpp"
+#include "model/Vec3D.hpp"
 #include <vector>
 #include <cmath>
 #include <random>
@@ -19,6 +20,9 @@ protected:
     float bbHeight = 1.8f;
     
     static std::mt19937 randomGenerator;
+
+private:
+    std::vector<AABB> aabbs;
 
 public:
     float xo = 0.0f;
@@ -98,6 +102,8 @@ public:
     virtual bool isUnderWater();
     virtual void hurt(Entity* e, int dmg);
     virtual EntityType getEntityType() const { return EntityType::Entity; }
+    virtual bool shouldRender(Vec3D vec);
+    virtual bool shouldRenderAtSqrDistance(float dist);
 
 private:
     float randomFloat();

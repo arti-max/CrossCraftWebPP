@@ -40,6 +40,7 @@ void Sign::tick() {
 }
 
 void Sign::render(float partialTicks, Textures* textures) {
+    Entity::render(partialTicks, textures);
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, textures->loadTexture("/item/sign.png", GL_NEAREST));
     float bright = this->level->getBrightness((int)this->x, (int)this->y, (int)this->z);

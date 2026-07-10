@@ -12,7 +12,7 @@ public:
     ModelPart* leg4;
 
     CreeperModel() {
-        this->head->addBox(-4.0f, -8.0f, -8.0f, 8, 8, 8, 0.0f);
+        this->head->addBox(-4.0f, -8.0f, -4.0f, 8, 8, 8, 0.0f);
         this->body = new ModelPart(16, 16);
         this->body->addBox(-4.0f, 0.0f, -2.0f, 8, 12, 4, 0.0f);
         this->leg1 = new ModelPart(0, 16);

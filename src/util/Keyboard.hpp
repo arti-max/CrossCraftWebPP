@@ -3,6 +3,10 @@
 #include <queue>
 #include <array>
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten/html5.h>
+#endif
+
 struct KeyEvent {
     int key;
     bool state;
@@ -16,6 +20,10 @@ private:
     static GLFWwindow* window;
     static std::array<bool, GLFW_KEY_LAST + 1> keyStates;
     static bool repeatEventsEnabled;
+
+#ifdef __EMSCRIPTEN__
+    static EM_BOOL emscriptenKeyCallback(int eventType, const EmscriptenKeyboardEvent *e, void *userData);
+#endif
 
 public:
     static void create();

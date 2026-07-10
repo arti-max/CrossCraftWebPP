@@ -166,6 +166,7 @@ void Mob::bindTexture(Textures* textures) {
 }
 
 void Mob::render(float partialTicks, Textures* textures) {
+    Entity::render(partialTicks, textures);
     if (this->modelName != "") {
         float attackProgress = (float)this->attackTime - partialTicks;
         if (attackProgress < 0.0f) {

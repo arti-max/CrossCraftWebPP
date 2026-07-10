@@ -1,0 +1,6 @@
+name=Bedrock Steps
+version=1.0
+author=arti
+description=Adds Bedrock underr your legs
+api_version=1
+dependencies=

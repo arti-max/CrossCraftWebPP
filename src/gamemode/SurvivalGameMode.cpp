@@ -7,6 +7,8 @@ SurvivalGameMode::SurvivalGameMode(CrossCraft* cc) : GameMode(cc) {}
 
 void SurvivalGameMode::apply(Level* level) {
     GameMode::apply(level);
+
+    this->spawner = new MobSpawner(level);
 }
 
 void SurvivalGameMode::hitTile(int x, int y, int z, int side) {
@@ -97,4 +99,14 @@ bool SurvivalGameMode::useItem(Player* player, int id) {
 }
 void SurvivalGameMode::prepareLevel(Level* level) {
     GameMode::prepareLevel(level);
+}
+
+void SurvivalGameMode::spawnMob() {
+    Level* level = this->cc->level;
+
+    int area = level->width * level->height * level->depth / 64 / 64 / 64;
+
+    if (level->random->nextInt(100) < area && level->emesh->getMobCount() < 20 * area) {
+        this->spawner->spawn(area, level->player, nullptr);
+    }
 }

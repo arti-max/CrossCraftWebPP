@@ -9,6 +9,7 @@
 #include <cmath>
 #include <iostream>
 #include <algorithm>
+#include "CrossCraft.hpp"
 
 LevelGen::LevelGen(LevelLoaderListener* listener) : listener(listener), random() {}
 LevelGen::~LevelGen() = default;

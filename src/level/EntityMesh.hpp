@@ -6,6 +6,7 @@
 #include "phys/AABB.hpp"
 #include "render/Frustum.hpp"
 #include "render/Textures.hpp"
+#include "model/Vec3D.hpp"
 
 class EntityMesh {
 private:
@@ -27,8 +28,11 @@ public:
     void addEntity(Entity* e);
     void removeEntity(Entity* e);
 
-    void render(Frustum& frustum, Textures* textures, float partialTicks);
+    void render(Vec3D vec, Frustum& frustum, Textures* textures, float partialTicks);
     void tickAll();
+
+    int getMobCount();
+    void clear();
 };
 
 

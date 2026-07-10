@@ -31,4 +31,6 @@ public:
 
     void move(float xa, float ya, float za);
     void render() const;
+
+    float getSize() const;
 };

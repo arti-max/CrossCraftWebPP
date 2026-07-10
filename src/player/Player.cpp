@@ -9,11 +9,14 @@
 #include "model/ModelManager.hpp"
 
 Player::Player(Level* level, Settings* settings) : Mob(level) {
-    // if (level != nullptr) {
-    //     level->player = this;
-    //     level->removeEntity(this);
-    //     level->addEntity(this);
-    // }
+    if (level != nullptr) {
+        if (level->player == this) {
+            Logger::logf(PREFIX_DEBUG, "Remove old player...\n");
+            level->removeEntity(this);
+        }
+        level->player = this;
+        level->addEntity(this);
+    }
     this->heightOffset = 1.62f;
     this->settings = settings;
     this->health = 20;
@@ -29,6 +32,8 @@ void Player::setKey() {
     keys[KEY_RIGHT] = Keyboard::isKeyDown(this->settings->key_right->keyCode);
     keys[KEY_JUMP] = Keyboard::isKeyDown(this->settings->key_jump->keyCode);
 }
+
+void Player::render(float partialTicks, Textures* textures) {}
 
 void Player::releaseAllKeys() {
     for (int i = 0; i < 10; ++i) {
@@ -132,6 +137,10 @@ void Player::hurt(Entity* e, int dmg) {
 }
 
 bool Player::isPlayer() {
+    return true;
+}
+
+bool Player::isShootable() {
     return true;
 }
 

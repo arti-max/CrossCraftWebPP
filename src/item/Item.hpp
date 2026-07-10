@@ -23,5 +23,6 @@ public:
     void render(float partialTicks, Textures* textures) override;
     void renderFace(Tessellator& t, int x, int y, int z, int face);
     void playerTouch(Player* p) override;
+    int getResourceId();
     static void initModels(); 
 };

@@ -48,14 +48,16 @@
 #include "render/HeldBlock.hpp"
 #include "item/Sign.hpp"
 #include "item/Arrow.hpp"
+#include "Progressbar.hpp"
 
 class CrossCraft : public LevelLoaderListener {
+public:
+    const std::string VERSION_STRING = "0.15  SURVIVAL TEST";
+    std::string fpsString = "";
 private:
-    const std::string VERSION_STRING = "0.14_SURVIVAL_TEST";
     int lastFpsTime = 0;
     int frames = 0;
     int lastProgress = -1;
-    std::string fpsString;
     std::string title = "";
     std::string status = "";
     bool inErrorState = false;
@@ -153,6 +155,7 @@ public:
     Settings* settings = new Settings();
     GameMode* gamemode = new SurvivalGameMode(this);
     HeldBlock* heldBlock = new HeldBlock(this);
+    Progressbar* progressbar = nullptr;
 
     CrossCraft(const char* parent, int width, int height, bool fullscreen);
     ~CrossCraft();

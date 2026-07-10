@@ -28,16 +28,17 @@ void EntityMeshSlot::add(Entity* e) {
     }
 }
 
-void EntityMeshSlot::remove(Entity* e) {
+bool EntityMeshSlot::remove(Entity* e) {
     if (this->xSlot >= 0 && this->ySlot >= 0 && this->zSlot >= 0) {
         auto& cell = this->mesh->grid[(this->ySlot * this->mesh->height + this->zSlot) * this->mesh->width + this->xSlot];
         for (size_t i = 0; i < cell.size(); ++i) {
             if (cell[i] == e) {
                 cell.erase(cell.begin() + i);
-                break;
+                return true;
             }
         }
     }
+    return false;
 }
 
 int EntityMeshSlot::getXSlot(EntityMeshSlot* slot) {

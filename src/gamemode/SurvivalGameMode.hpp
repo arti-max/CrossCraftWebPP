@@ -1,7 +1,10 @@
 #pragma once
 #include "gamemode/GameMode.hpp"
+#include "level/MobSpawner.hpp"
 
 class SurvivalGameMode : public GameMode {
+private:
+    MobSpawner* spawner = nullptr;
 public:
     int hitX = 0;
     int hitY = 0;

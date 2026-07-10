@@ -26,10 +26,13 @@ void Bush::tick(Level* level, int x, int y, int z, Random* random) {
 }
 
 bool Bush::render(Tessellator& t, Level* level, int layer, int x, int y, int z) {
-    if (level->isLit(x, y, z) ^ (layer != 1)) {
-        return false;
-    }
+    float color = level->getBrightness(x, y, z);
+    t.color(color, color, color);
+    this->render(t, (float)x, (float)y, (float)z);
+    return true;
+}
 
+bool Bush::render(Tessellator& t, float x, float y, float z) {
     int textureId = this->textureId;
 
     const float atlasSize = 16.0f;
@@ -81,4 +84,11 @@ bool Bush::blocksLight() {
 
 bool Bush::isSolid() {
     return false;
+}
+
+void Bush::renderPreview(Tessellator& t) {
+    t.normal(0.0f, 1.0f, 0.0f);
+    t.begin();
+    this->render(t, 0.0f, 0.4f, -0.3f);
+    t.end();
 }

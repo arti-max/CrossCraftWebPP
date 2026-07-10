@@ -5,6 +5,7 @@
 #include "level/tile/Tile.hpp"
 #include "level/Level.hpp"
 #include "util/Random.hpp"
+#include "util/TinyFormat.hpp"
 #include <vector>
 
 class CrossCraft;

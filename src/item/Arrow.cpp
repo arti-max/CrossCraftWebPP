@@ -1,13 +1,24 @@
 #include "item/Arrow.hpp"
 #include "CrossCraft.hpp"
+#include "level/Level.hpp"
 #include "render/Textures.hpp"
 #include "level/EntityMesh.hpp"
+#include "item/TakeEntityAnim.hpp"
+#include "util/UVMapper.hpp"
 
-Arrow::Arrow(CrossCraft* cc, Player* player, float x, float y, float z, float yaw, float pitch) : Entity(cc->level) {
-    this->owner = player;
-    this->setSize(0.25f, 0.5f);
+Arrow::Arrow(Level* level, Entity* owner, float x, float y, float z, float yaw, float pitch, float gravity) : Entity(level) {
+    this->owner = owner;
+    this->setSize(0.3f, 0.5f);
     // this->heightOffset = this->bbHeight / 2.0f;
     this->heightOffset = 0.25f;
+
+    this->dmg = 3;
+
+    if (!(this->owner->getEntityType() == EntityType::Player)) {
+        this->type = 1;
+    } else {
+        this->dmg = 7;
+    }
 
     float cosYaw = std::cos((-yaw) * M_PI / 180.0f - M_PI);
     float sinYaw = std::sin((-yaw) * M_PI / 180.0f - M_PI);
@@ -15,16 +26,16 @@ Arrow::Arrow(CrossCraft* cc, Player* player, float x, float y, float z, float ya
     float sinPitch = std::sin((-pitch) * M_PI / 180.0f);
 
     this->slide = false;
-    float speed = 0.8f;
+    this->gravity = 1.0f / gravity;
 
     this->xo -= cosYaw * 0.2f;
     this->zo += sinYaw * 0.2f;
     x -= cosYaw * 0.2f;
     z += sinYaw * 0.2f;
 
-    this->xd = sinYaw * cosPitch * speed;
-    this->yd = sinPitch * speed;
-    this->zd = cosYaw * cosPitch * speed;
+    this->xd = sinYaw * cosPitch * gravity;
+    this->yd = sinPitch * gravity;
+    this->zd = cosYaw * cosPitch * gravity;
 
     this->setPos(x, y, z);
 
@@ -45,25 +56,30 @@ void Arrow::tick() {
 
     if (this->hasHit) {
         ++this->stickTime;
-        if (this->stickTime >= 20) {
+        if (this->type == 0) {
+            if (this->stickTime >= 300 && Random::random() < 0.009999999776482582f) {
+                this->remove();
+            }
+        } else if (this->type == 1 && this->stickTime >= 20) {
             this->remove();
-            return;
         }
     } else {
         this->xd *= 0.992f;
         this->yd *= 0.992f;
         this->zd *= 0.992f;
-        this->yd -= 0.02f;
+        this->yd -= 0.02f * this->gravity;
 
-        int steps = std::sqrt(this->xd*this->xd + this->yd*this->yd + this->zd*this->zd) / 2.0f + 1.0f;
+        int steps = std::sqrt(this->xd*this->xd + this->yd*this->yd + this->zd*this->zd) / 0.2f + 1.0f;
         float sx = this->xd / steps;
         float sy = this->yd / steps;
         float sz = this->zd / steps;
 
         for (int i = 0; i < steps && !this->collision; ++i) {
             AABB bbox = this->bb.expand(sx, sy, sz);
+            std::vector<AABB> cubes;
+            this->level->getCubes(bbox, &cubes);
 
-            if (this->level->getCubes(bbox).size() > 0) {
+            if (cubes.size() > 0) {
                 this->collision = true;
             }
             if (this->level != nullptr) {
@@ -71,10 +87,11 @@ void Arrow::tick() {
                 Entity* e = nullptr;
                 for (int i = 0; i<entities.size(); ++i) {
                     e = entities[i];
-                    if (e->isShootable() && e->getEntityType() != this->owner->getEntityType() && this->time <= 20) {
-                        e->hurt(this, 3);
+                    if (e->isShootable() && (e->getEntityType() != this->owner->getEntityType() || this->time > 5)) {
+                        e->hurt(this, this->dmg);
                         this->collision = true;
-                        this->stickTime = 20;
+                        this->remove();
+                        return;
                     }
                 }
 
@@ -106,6 +123,7 @@ void Arrow::tick() {
 }
 
 void Arrow::render(float partialTicks, Textures* textures) {
+    Entity::render(partialTicks, textures);
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, textures->loadTexture("/item/arrows.png", GL_NEAREST));
 
@@ -125,24 +143,55 @@ void Arrow::render(float partialTicks, Textures* textures) {
     glRotatef(45.0f, 1.0f, 0.0f, 0.0f);
 
     Tessellator& t = Tessellator::getInstance();
-    float texU = 0.5f;
-    float texV = 0.15625f;
     float scale = 0.05625f;
+
+    UVCoords uv1 = UVMapper::map(0, 0 + this->type*10, 16, 5, 32, 32);
+
     glScalef(scale, scale, scale);
+
+    UVCoords uv2 = UVMapper::map(0, 5 + this->type*10, 5, 5, 32, 32);
+
+    glNormal3f(scale, 0.0f, 0.0f);
+
+    t.begin();
+    t.vertexUV(-7.0f, -2.0f, -2.0f, uv2.u1, uv2.v0);
+    t.vertexUV(-7.0f, -2.0f, 2.0f, uv2.u0, uv2.v0);
+    t.vertexUV(-7.0f, 2.0f, 2.0f, uv2.u0, uv2.v1);
+    t.vertexUV(-7.0f, 2.0f, -2.0f, uv2.u1, uv2.v1);
+    t.end();
+
+    glNormal3f(-scale, 0.0f, 0.0f);
+
+    t.begin();
+    t.vertexUV(-7.0f, 2.0f, -2.0f, uv2.u1, uv2.v1);
+    t.vertexUV(-7.0f, 2.0f, 2.0f, uv2.u0, uv2.v1);
+    t.vertexUV(-7.0f, -2.0f, 2.0f, uv2.u0, uv2.v0);
+    t.vertexUV(-7.0f, -2.0f, -2.0f, uv2.u1, uv2.v0);
+    t.end();
 
     for (int f = 0; f < 4; ++f) {
         glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
         glNormal3f(0.0f, -scale, 0.0f);
         t.begin();
-        t.vertexUV(-8.0f, -2.0f, 0.0f, 0.0f, 0.0f);
-        t.vertexUV(8.0f, -2.0f, 0.0f, texU, 0.0f);
-        t.vertexUV(8.0f, 2.0f, 0.0f, texU, texV);
-        t.vertexUV(-8.0f, 2.0f, 0.0f, 0.0f, texV);
+        t.vertexUV(-8.0f, -2.0f, 0.0f, uv1.u0, uv1.v0);
+        t.vertexUV(8.0f, -2.0f, 0.0f, uv1.u1, uv1.v0);
+        t.vertexUV(8.0f, 2.0f, 0.0f, uv1.u1, uv1.v1);
+        t.vertexUV(-8.0f, 2.0f, 0.0f, uv1.u0, uv1.v1);
         t.end();
     }
 
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     glPopMatrix();
+}
+
+void Arrow::playerTouch(Player* player) {
+
+    if (this->hasHit && owner->getEntityType() == player->getEntityType() && player->inventory->getArrowCount() < 99) {
+        TakeEntityAnim* takeAnim = new TakeEntityAnim(level, this, player);
+        level->addEntity(takeAnim);
+        player->inventory->addArrow();
+        this->remove();
+    }
 }
 
 void Arrow::awardKillScore(Entity* e, int score) {

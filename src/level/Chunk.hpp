@@ -17,6 +17,15 @@ private:
     int x1 = 0, y1 = 0, z1 = 0;
     int lists = 0;
     bool dirty = true;
+
+    // UNUSED: 
+    unsigned int vbo[2];
+    int vertexCount[2] = {0, 0};
+    int stride[2] = {0, 0};
+    bool hasTex[2] = {false, false};
+    bool hasCol[2] = {false, false};
+    bool hasNorm[2] = {false, false};
+
 public:
     static int rebuiltThisFrame;
     static int updates;

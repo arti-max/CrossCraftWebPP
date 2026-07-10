@@ -10,9 +10,11 @@ private:
 
 public:
     static const int POP_TIME_DURATION = 5;
+    static const int DEFAULT_ARROWS = 20;
 
     Inventory(Player* player);
     int selectedSlot = 0;
+    int arrows = DEFAULT_ARROWS;
     std::vector<int> slots; 
     std::vector<int> count;
     std::vector<int> popTime;
@@ -26,4 +28,7 @@ public:
     bool addItem(int id);
     bool removeItem(int id);
     void tick();
+    void addArrow();
+    bool removeArrow();
+    int getArrowCount();
 };

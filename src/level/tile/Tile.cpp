@@ -154,37 +154,37 @@ bool Tile::render(Tessellator& t, Level* level, int layer, int x, int y, int z) 
     if (this->shouldRenderFace(level, x, y - 1, z, layer, 0)) {
         float brightness = this->getBrightness(level, x, y - 1, z);
         t.color(brightness * c1, brightness * c1, brightness * c1);
-        this->renderFace(t, x, y, z, 0, this->getTexture(0));
+        this->renderFace(t, x, y, z, 0);
         rendered = true;
     }
     if (this->shouldRenderFace(level, x, y + 1, z, layer, 1)) {
         float brightness = this->getBrightness(level, x, y + 1, z);
         t.color(brightness * 1.0f, brightness * 1.0f, brightness * 1.0f);
-        this->renderFace(t, x, y, z, 1, this->getTexture(1));
+        this->renderFace(t, x, y, z, 1);
         rendered = true;
     }
     if (this->shouldRenderFace(level, x, y, z - 1, layer, 2)) {
         float brightness = this->getBrightness(level, x, y, z - 1);
         t.color(brightness * c2, brightness * c2, brightness * c2);
-        this->renderFace(t, x, y, z, 2, this->getTexture(2));
+        this->renderFace(t, x, y, z, 2);
         rendered = true;
     }
     if (this->shouldRenderFace(level, x, y, z + 1, layer, 3)) {
         float brightness = this->getBrightness(level, x, y, z + 1);
         t.color(brightness * c2, brightness * c2, brightness * c2);
-        this->renderFace(t, x, y, z, 3, this->getTexture(3));
+        this->renderFace(t, x, y, z, 3);
         rendered = true;
     }
     if (this->shouldRenderFace(level, x - 1, y, z, layer, 4)) {
         float brightness = this->getBrightness(level, x - 1, y, z);
         t.color(brightness * c3, brightness * c3, brightness * c3);
-        this->renderFace(t, x , y, z, 4, this->getTexture(4));
+        this->renderFace(t, x , y, z, 4);
         rendered = true;
     }
     if (this->shouldRenderFace(level, x + 1, y, z, layer, 5)) {
         float brightness = this->getBrightness(level, x + 1, y, z);
         t.color(brightness * c3, brightness * c3, brightness * c3);
-        this->renderFace(t, x, y, z, 5, this->getTexture(5));
+        this->renderFace(t, x, y, z, 5);
         rendered = true;
     }
 

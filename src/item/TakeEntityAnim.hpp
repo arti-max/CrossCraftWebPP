@@ -1,6 +1,6 @@
 #pragma once
 #include "Entity.hpp"
-#include "Level.hpp"
+#include "level/Level.hpp"
 #include "render/Textures.hpp"
 
 class TakeEntityAnim : public Entity {

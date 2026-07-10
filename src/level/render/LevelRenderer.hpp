@@ -10,8 +10,8 @@
 #include "render/Textures.hpp"
 #include "HitResult.hpp"
 #include "player/Player.hpp"
-#include "sort/DistanceSorter.hpp"
-#include "sort/DirtyChunkSorter.hpp"
+#include "level/sort/DistanceSorter.hpp"
+#include "level/sort/DirtyChunkSorter.hpp"
 #include "character/Vec3.hpp"
 #include "gui/Font.hpp"
 #include <GL/gl.h>
@@ -30,9 +30,11 @@ private:
     std::vector<Chunk*> sortedChunks;
     int xChunks = 0, yChunks = 0, zChunks = 0;
     GLuint surroundLists;
+    GLuint skyLists;
     float lX = 0.0f;
     float lY = 0.0f;
     float lZ = 0.0f;
+    bool skyCompiled = false;
     std::vector<NameTagInfo> nameTagsToRender;
 
 public:

@@ -4,6 +4,7 @@
 #include "sound/SoundType.hpp"
 #include "level/tile/Tile.hpp"
 #include "level/EntityMesh.hpp"
+#include "Data.hpp"
 #include <random>
 
 std::mt19937 Entity::randomGenerator(std::random_device{}());
@@ -23,7 +24,9 @@ void Entity::resetPos() {
 
     for (float z = (float)this->level->zSpawn + 0.5f; y > 0.0f; ++y) {
         this->setPos(x, y, z);
-        if (this->level->getCubes(this->bb).size() == 0) {
+        std::vector<AABB> bbs;
+        this->level->getCubes(this->bb, &bbs);
+        if (bbs.size() == 0) {
             break;
         }
         if (y > this->level->depth + 10) { 
@@ -66,6 +69,8 @@ void Entity::setPos(float x, float y, float z) {
     float h = bbHeight / 2.0f;
     bb = AABB(x - w, y - h, z - w, x + w, y + h, z + w);
 }
+// 0.875
+// 1.125
 
 void Entity::turn(float xo, float yo) {
     float oldXR = this->xRot;
@@ -103,7 +108,8 @@ void Entity::tick() {
 
 bool Entity::isFree(float xa, float ya, float za) {
     AABB box = bb.cloneMove(xa, ya, za);
-    std::vector<AABB> aabbs = level->getCubes(box);
+    this->aabbs.clear();
+    level->getCubes(box, &this->aabbs);
     
     if (aabbs.size() > 0) {
         // Logger::logf(PREFIX_DEBUG, "isFree [1]  ");
@@ -127,7 +133,12 @@ void Entity::move(float xa, float ya, float za) {
     float yaOrg = ya;
     float zaOrg = za;
     
-    std::vector<AABB> aabbs = level->getCubes(bb.expand(xa, ya, za));
+    aabbs.clear();
+    level->getCubes(bb.expand(xa, ya, za), &aabbs);
+
+    // if (aabbs.size() <= 0 && this->getEntityType() == EntityType::Player) {
+    //     Logger::logf(PREFIX_ERROR, "WHAT?!?! AABBS IS ZERO!!\n");
+    // }
 
     for (size_t i = 0; i < aabbs.size(); ++i) {
         ya = aabbs[i].clipYCollide(bb, ya);
@@ -246,7 +257,7 @@ bool Entity::isLit() {
 }
 
 void Entity::render(float partialTicks, Textures* textures) {
-    if (this->debug) {
+    if (this->debug || Data::showHitboxes) {
         this->bb.render();
     }
 }
@@ -364,4 +375,16 @@ void Entity::hurt(Entity* e, int dmg) {
 
 void Entity::awardKillScore(Entity* e, int score) {
     
+}
+bool Entity::shouldRender(Vec3D vec) {
+    float dx = this->x - vec.x;
+    float dy = this->y - vec.y;
+    float dz = this->z - vec.z;
+    float dist = dx*dx + dy*dy + dz*dz;
+    return this->shouldRenderAtSqrDistance(dist);
+}
+
+bool Entity::shouldRenderAtSqrDistance(float dist) {
+    float maxDist = this->bb.getSize() * 64.0f;
+    return dist < maxDist*maxDist;
 }

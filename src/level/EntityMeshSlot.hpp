@@ -16,7 +16,7 @@ public:
     EntityMeshSlot& init(float x, float y, float z);
 
     void add(Entity* e);
-    void remove(Entity* e);
+    bool remove(Entity* e);
 
     static int getXSlot(EntityMeshSlot* slot);
     static int getYSlot(EntityMeshSlot* slot);

@@ -95,7 +95,7 @@ public:
     int getTile(int x, int y, int z);
     bool setTile(int x, int y, int z, int type);
     bool setTileNoUpdate(int x, int y, int z, int type);
-    std::vector<AABB> getCubes(const AABB& boundingBox);
+    void getCubes(const AABB& boundingBox, std::vector<AABB> *aabbs);
     bool containsAnyLiquid(const AABB& box);
     bool containsLiquid(const AABB& box, LiquidType liquidId);
     void addListener(LevelListener* listener);

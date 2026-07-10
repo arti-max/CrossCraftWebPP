@@ -20,7 +20,7 @@ void Level::initTransient() {
     this->calcLightDepths(0, 0, this->width, this->height);
     this->tickNextTickList.clear();
 
-
+    this->player = nullptr;
 
     if (this->xSpawn == 0 && this->ySpawn == 0 && this->zSpawn == 0) { 
         findSpawn(); 
@@ -133,9 +133,9 @@ void Level::findSpawn() {
     Random* rnd = new Random();
     int i = 0;
 
-    int x;
-    int y;
-    int z;
+    int x = 0;
+    int y = 0;
+    int z = 0;
     do {
         ++i;
         x = rnd->nextInt(this->width / 2) + this->width / 4;
@@ -148,7 +148,7 @@ void Level::findSpawn() {
             return;
         }
 
-    } while((float)y <= this->getGroundLevel());
+    } while((float)y <= this->getWaterLevel());
 
     this->xSpawn = x;
     this->ySpawn = y;
@@ -156,8 +156,8 @@ void Level::findSpawn() {
 }
 
 int Level::getHighestTile(int x, int z) {
-    int y;
-    for (y = this->depth; (this->getTile(x, y -1, z) == 0 || Tile::tiles[this->getTile(x, y-1, z)]->getLiquidType() != LiquidType::NOT_LIQUID) && y > 0; --y) {
+    int y = 0;
+    for (y = this->depth; (this->getTile(x, y - 1, z) == 0 || Tile::tiles[this->getTile(x, y - 1, z)]->getLiquidType() != LiquidType::NOT_LIQUID) && y > 0; --y) {
     }
     return y;
 }
@@ -179,6 +179,7 @@ void Level::setData(int w, int d, int h, const std::vector<uint8_t>& newBlocks) 
     
     if (this->emesh != nullptr) {
         delete this->emesh;
+        this->emesh = nullptr;
     }
     this->emesh = new EntityMesh(w, h, d);
 
@@ -189,6 +190,7 @@ void Level::setData(int w, int d, int h, const std::vector<uint8_t>& newBlocks) 
     this->tickNextTickList.clear();
     this->initMasks();
     this->findSpawn();
+    this->initTransient();
 }
 
 void Level::calcLightDepths(int x0, int z0, int x1, int z1) {
@@ -445,8 +447,7 @@ void Level::swap(int x1, int y1, int z1, int x2, int y2, int z2) {
     }
 }
 
-std::vector<AABB> Level::getCubes(const AABB& boundingBox) {
-    std::vector<AABB> boxes;
+void Level::getCubes(const AABB& boundingBox, std::vector<AABB> *aabbs) {
     
     int x0 = (int)(boundingBox.x0);
     int x1 = (int)(boundingBox.x1) + 1;
@@ -466,20 +467,18 @@ std::vector<AABB> Level::getCubes(const AABB& boundingBox) {
                     if (tile != nullptr) {
                         AABB* aabb = tile->getAABB(x, y, z);
                         if (aabb != nullptr) {
-                            boxes.push_back(*aabb);
+                            aabbs->push_back(*aabb);
                         }
                     }
                 } else if (x < 0 || y < 0 || z < 0 || x >= width || z >= height) {
                     AABB* aabb = Tile::unbreakable->getAABB(x, y, z);
                     if (aabb != nullptr) {
-                        boxes.push_back(*aabb);
+                        aabbs->push_back(*aabb);
                     }
                 }
             }
         }
     }
-    
-    return boxes;
 }
 
 bool Level::containsAnyLiquid(const AABB& box) {
@@ -843,8 +842,11 @@ void Level::explode(Entity* e, float x, float y, float z, float radius) {
                     if (dx*dx+dy*dy+dz*dz < radius*radius) {
                         int tileid = this->getTile(bx, by, bz);
                         if (tileid > 0) {
-                            Tile::tiles[tileid]->onDestroy(this, bx, by, bz);
-                            this->setTile(bx, by, bz, 0);
+                            Tile* tile = Tile::tiles[tileid];
+                            if (tile->getLiquidType() == LiquidType::NOT_LIQUID) {
+                                Tile::tiles[tileid]->onDestroy(this, bx, by, bz);
+                                this->setTile(bx, by, bz, 0);
+                            }
                         }
                     }
                 }

@@ -6,31 +6,26 @@
 void debugGLState(const char* label) {
     printf("===== GL STATE: %s =====\n", label);
     
-    // Проверяем включенные состояния
     printf("GL_TEXTURE_2D: %s\n", glIsEnabled(GL_TEXTURE_2D) ? "ON" : "OFF");
     printf("GL_LIGHTING: %s\n", glIsEnabled(GL_LIGHTING) ? "ON" : "OFF");
     printf("GL_COLOR_MATERIAL: %s\n", glIsEnabled(GL_COLOR_MATERIAL) ? "ON" : "OFF");
     printf("GL_BLEND: %s\n", glIsEnabled(GL_BLEND) ? "ON" : "OFF");
     printf("GL_ALPHA_TEST: %s\n", glIsEnabled(GL_ALPHA_TEST) ? "ON" : "OFF");
     
-    // Проверяем client states
     printf("GL_VERTEX_ARRAY: %s\n", glIsEnabled(GL_VERTEX_ARRAY) ? "ON" : "OFF");
     printf("GL_TEXTURE_COORD_ARRAY: %s\n", glIsEnabled(GL_TEXTURE_COORD_ARRAY) ? "ON" : "OFF");
     printf("GL_COLOR_ARRAY: %s\n", glIsEnabled(GL_COLOR_ARRAY) ? "ON" : "OFF");
     printf("GL_NORMAL_ARRAY: %s\n", glIsEnabled(GL_NORMAL_ARRAY) ? "ON" : "OFF");
     
-    // Проверяем текущую текстуру
     GLint currentTexture;
     glGetIntegerv(GL_TEXTURE_BINDING_2D, &currentTexture);
     printf("Current texture: %d\n", currentTexture);
     
-    // Проверяем текущий цвет
     GLfloat currentColor[4];
     glGetFloatv(GL_CURRENT_COLOR, currentColor);
     printf("Current color: (%.2f, %.2f, %.2f, %.2f)\n", 
            currentColor[0], currentColor[1], currentColor[2], currentColor[3]);
     
-    // Проверяем blend функцию
     GLint blendSrc, blendDst;
     glGetIntegerv(GL_BLEND_SRC, &blendSrc);
     glGetIntegerv(GL_BLEND_DST, &blendDst);
@@ -43,6 +38,7 @@ LevelRenderer::LevelRenderer(Level* level, Textures* textures)
     : level(level), textures(textures) {
     level->addListener(this);
     this->surroundLists = glGenLists(2);
+    this->skyLists = glGenLists(2);
     allChanged();
 }
 
@@ -450,22 +446,34 @@ void LevelRenderer::renderClouds(float partialTicks) {
 }
 
 void LevelRenderer::renderSky() {
-    glDisable(GL_TEXTURE_2D);
+    if (!this->skyCompiled) {
+        glNewList(this->skyLists, GL_COMPILE);
+        glDisable(GL_TEXTURE_2D);
 
-    glColor3f(0.5f, 0.8f, 1.0f);
+        Tessellator& t = Tessellator::getInstance();
 
-    float skyY = static_cast<float>(this->level->depth + 10);
-    
-    glBegin(GL_QUADS);
+        t.color(0.5f, 0.8f, 1.0f);
+        glColor3f(0.5f, 0.8f, 1.0f);
 
-    for (int x = -2048; x < this->level->width + 2048; x += 512) {
-        for (int z = -2048; z < this->level->height + 2048; z += 512) {
-            glVertex3f(static_cast<float>(x), skyY, static_cast<float>(z));
-            glVertex3f(static_cast<float>(x + 512), skyY, static_cast<float>(z));
-            glVertex3f(static_cast<float>(x + 512), skyY, static_cast<float>(z + 512));
-            glVertex3f(static_cast<float>(x), skyY, static_cast<float>(z + 512));
+        float skyY = static_cast<float>(this->level->depth + 10);
+        
+        // glBegin(GL_QUADS);
+        t.begin();
+
+        for (int x = -2048; x < this->level->width + 2048; x += 512) {
+            for (int z = -2048; z < this->level->height + 2048; z += 512) {
+                t.vertex(static_cast<float>(x), skyY, static_cast<float>(z));
+                t.vertex(static_cast<float>(x + 512), skyY, static_cast<float>(z));
+                t.vertex(static_cast<float>(x + 512), skyY, static_cast<float>(z + 512));
+                t.vertex(static_cast<float>(x), skyY, static_cast<float>(z + 512));
+            }
         }
+        
+        // glEnd();
+        t.end();
+        glEndList();
+        this->skyCompiled = true;
+    } else {
+        glCallList(this->skyLists);
     }
-    
-    glEnd();
 }

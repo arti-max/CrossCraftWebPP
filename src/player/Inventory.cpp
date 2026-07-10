@@ -113,3 +113,20 @@ void Inventory::tick() {
         }
     }
 }
+
+void Inventory::addArrow() {
+    this->arrows++;
+}
+
+bool Inventory::removeArrow() {
+    if (this->arrows > 0) {
+        --this->arrows;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+int Inventory::getArrowCount() {
+    return this->arrows;
+}

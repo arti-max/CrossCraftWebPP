@@ -70,7 +70,7 @@ void fetchErrorCallback(emscripten_fetch_t* fetch) {
 void LevelLoadScreen::loadLevelList() {
     statusMessage = "Getting level list..";
     
-    std::string url = "http://" + this->cc->serverHost + "/listmaps.jsp?user=" + cc->userData->username;
+    std::string url = "https://" + this->cc->serverHost + "/listmaps.jsp?user=" + cc->userData->username;
     std::cout << "Fetching: " << url << std::endl;
     
     emscripten_fetch_attr_t attr;

@@ -59,7 +59,11 @@ bool GameMode::useItem(Player* player, int type) {
 }
 
 void GameMode::preparePlayer(Player* player) {
-    // nothing
+    Level* level = this->cc->level;
+    if (level->player == player) {
+        level->removeEntity(player);
+        level->addEntity(player);
+    }
 }
 
 void GameMode::spawnMob() {
