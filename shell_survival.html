@@ -268,7 +268,7 @@
         <br>
         
         <h2>Thank you for testing survival mode.</h2>
-        <p>Hey, did you know that cats are much cuter than dogs?</p>
+        <p id="random-message"></p>
         <!-- TODO: random msgs-->
         <!-- Hey, did you know that yetis do exist?-->
         
@@ -307,6 +307,32 @@
     </div>
 
     <script type='text/javascript'>
+        // spalsh
+        const classicMessages = [
+            "Hey, did you know that cats are much cuter than dogs?",
+            "Hey, did you know that yetis do exist?",
+            "Don't look directly at the bugs!",
+            "Sssssssssssssssssssssss...",
+            "Now with more pigs!",
+            "100% pure!",
+            "Water proof!",
+            "Made by arti.",
+            "Huge tracts of land!",
+            "This is a very good game, yes?",
+            "Punching wood is perfectly normal.",
+            "Contains no artificial colors or flavors.",
+            "Any computer is a laptop if you're brave enough."
+        ];
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const messageElement = document.getElementById("random-message");
+            if (messageElement) {
+                const randomIndex = Math.floor(Math.random() * classicMessages.length);
+                messageElement.textContent = classicMessages[randomIndex];
+            }
+        });
+
+        // game logic
         function resizeGame() {
         const wrapper = document.getElementById('content');
         const windowWidth = window.innerWidth;

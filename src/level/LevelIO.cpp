@@ -648,7 +648,7 @@ bool LevelIO::saveOnline(Level* level, const std::string& serverUrl, const std::
     attr.requestData = reinterpret_cast<const char*>(ctx->body.data());
     attr.requestDataSize = ctx->body.size();
     
-    std::string url = "http://" + serverUrl + "/level/save.html";
+    std::string url = "https://" + serverUrl + "/level/save.html";
     std::cout << "Saving level to: " << url << " (size: " << ctx->body.size() << " bytes)" << std::endl;
     
     emscripten_fetch(&attr, url.c_str());

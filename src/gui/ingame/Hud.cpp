@@ -99,10 +99,10 @@ void Hud::render(Player* player, Level* level, float partialTicks) {
             }
         }
 
-        std::string arrows = format("arrows: %i", player->inventory->getArrowCount());
+        std::string arrows = format("Arrows: %i", player->inventory->getArrowCount());
         this->cc->font->drawShadow(arrows, this->width / 2 + 24, this->height - 32, 0xFFFFFFFF);
 
-        std::string score = format("score: &e%i", player->score);
+        std::string score = format("Score: &e%i", player->score);
         this->cc->font->drawShadow(score, this->width - this->cc->font->width(score)-8, 2, 0xFFFFFFFF);
     }
 

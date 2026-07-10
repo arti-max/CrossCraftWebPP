@@ -52,7 +52,7 @@
 
 class CrossCraft : public LevelLoaderListener {
 public:
-    const std::string VERSION_STRING = "0.15  SURVIVAL TEST";
+    const std::string VERSION_STRING = "0.15  SURVIVAL TEST 2";
     std::string fpsString = "";
 private:
     int lastFpsTime = 0;

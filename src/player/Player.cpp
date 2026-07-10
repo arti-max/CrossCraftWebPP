@@ -100,9 +100,12 @@ void Player::aiStep() {
 
 void Player::bindTexture(CrossCraft* cc) {
     if (this->newTextureId < 0) {
-        this->newTextureId = cc->textures->loadTexture("char", GL_NEAREST);
+        if (cc->userData != nullptr) {
+            this->newTextureId = cc->textures->loadTextureFromUrl("https://crosscraftweb.ddns.net/skins/" + cc->userData->username + ".png", GL_NEAREST);
+        } else {
+            this->newTextureId = cc->textures->loadTexture("char", GL_NEAREST);
+        }
     }
-
     glBindTexture(GL_TEXTURE_2D, this->newTextureId);
 }
 
