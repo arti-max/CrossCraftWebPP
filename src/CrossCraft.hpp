@@ -24,6 +24,7 @@
 #include "gui/ingame/Hud.hpp"
 #include "gui/ingame/BlockSelectScreen.hpp"
 #include "gui/ingame/DeathScreen.hpp"
+#include "gui/ingame/InventoryScreen.hpp"
 #include "User.hpp"
 #include "util/Logger.hpp"
 #include "level/LevelLoaderListener.hpp"
@@ -90,7 +91,6 @@ private:
     float lastSentX = 0, lastSentY = 0, lastSentZ = 0;
     float lastSentYaw = 0, lastSentPitch = 0;
 
-    Timer* timer = new Timer(20.0f);
     HitResult* hitResult;
     LevelGen* levelGen = new LevelGen(this);
     LevelIO* levelIO = new LevelIO(this);
@@ -141,6 +141,7 @@ public:
     int width, height;
     GLFWwindow* window;
 
+    Timer* timer = new Timer(20.0f);
     Level* level = nullptr;
     Screen* screen = nullptr;
     ParticleEngine* particleEngine = nullptr;

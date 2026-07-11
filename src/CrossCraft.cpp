@@ -513,11 +513,11 @@ void CrossCraft::tick() {
                 }
 
                 if (Keyboard::getEventKey() == this->settings->key_build->keyCode) {
-                    // this->player->releaseAllKeys();
-                    // this->setScreen(new BlockSelectScreen());
-                    // this->releaseMouse();
-                    // break;
-                    this->level->addEntity(new Sign(this, this->player->x, this->player->y, this->player->z, this->player->yRot));
+                    this->player->releaseAllKeys();
+                    this->setScreen((Screen*)(new InventoryScreen()));
+                    this->releaseMouse();
+                    break;
+                    // this->level->addEntity(new Sign(this, this->player->x, this->player->y, this->player->z, this->player->yRot));
                 }
 
                 if (Keyboard::getEventKey() == this->settings->key_save->keyCode) {
