@@ -27,4 +27,6 @@ private:
     ModelManager* models = new ModelManager();
 
     float timeOffs = 0;
+
+    std::vector<int> blocks;
 };

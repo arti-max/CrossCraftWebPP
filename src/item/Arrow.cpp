@@ -186,10 +186,11 @@ void Arrow::render(float partialTicks, Textures* textures) {
 
 void Arrow::playerTouch(Player* player) {
 
-    if (this->hasHit && owner->getEntityType() == player->getEntityType() && player->inventory->getArrowCount() < 99) {
+    if (this->hasHit && owner->getEntityType() == player->getEntityType() && player->inventory->getArrowCount() < 99 && this->type == 0) {
         TakeEntityAnim* takeAnim = new TakeEntityAnim(level, this, player);
         level->addEntity(takeAnim);
         player->inventory->addArrow();
+        this->removeExternally = true;
         this->remove();
     }
 }

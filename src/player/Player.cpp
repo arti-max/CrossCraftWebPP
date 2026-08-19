@@ -114,6 +114,8 @@ HumanModel* Player::getModel() {
 }
 
 void Player::die(Entity* e) {
+    this->dead = true;
+    this->removeExternally = true;
     this->setSize(0.2f, 0.2f);
     this->setPos(this->x, this->y, this->z);
     this->yd = 0.1f;

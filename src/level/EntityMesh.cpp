@@ -20,6 +20,17 @@ EntityMesh::EntityMesh(int w, int h, int d) {
     this->tmp.resize(this->width * this->height * this->depth);
 }
 
+EntityMesh::~EntityMesh() {
+    for (Entity* e : this->all) {
+        if (!e->removeExternally)
+            delete e;
+    }
+    this->clear();
+    
+    // delete slotStart;
+    // delete slotEnd;
+}
+
 void EntityMesh::clear() {
     this->grid.clear();
     this->all.clear();
@@ -37,13 +48,14 @@ void EntityMesh::addEntity(Entity* e) {
         slot.ySlot >= 0 && slot.ySlot < this->depth &&
         slot.zSlot >= 0 && slot.zSlot < this->height) {
         slot.add(e);
+        // Logger::logf(PREFIX_DEBUG, "New Entity spawned at %.1f,%.1f,%.1f!", e->x, e->y, e->z);
     } else {
         Logger::logf(PREFIX_WARNING, "Entity at %.1f,%.1f,%.1f outside mesh grid\n", e->x, e->y, e->z);
     }
     e->xo = e->x;
     e->yo = e->y;
     e->zo = e->z;
-    e->emesh = this;
+    e->emesh = this; 
 }
 
 void EntityMesh::removeEntity(Entity* e) {
@@ -85,11 +97,11 @@ std::vector<Entity*> EntityMesh::getEntities(Entity* ignore, const AABB& box) {
 void EntityMesh::render(Vec3D vec, Frustum& frustum, Textures* textures, float partialTicks) {
     for (int x = 0; x < this->width; ++x) {
         float minX = (float)((x << 4) - 2);
-        float maxX = (float)((x + 1 << 4) + 2);
+        float maxX = (float)(((x + 1) << 4) + 2);
 
         for (int y = 0; y < this->depth; ++y) {
             float minY = (float)((y << 4) - 2);
-            float maxY = (float)((y + 1 << 4) + 2);
+            float maxY = (float)(((y + 1) << 4) + 2);
 
             for (int z = 0; z < this->height; ++z) {
                 std::vector<Entity*> entityRow = this->grid[(y * this->height + z) * this->width + x];
@@ -103,7 +115,7 @@ void EntityMesh::render(Vec3D vec, Frustum& frustum, Textures* textures, float p
                     if (isVisible) {
                         for (int i = 0; i < entityRow.size(); ++i) {
                             Entity* e = entityRow[i];
-                            if ((isFullyVisible || frustum.isVisible(e->bb)) && e) {
+                            if ((isFullyVisible || frustum.isVisible(e->bb)) && e && !e->removed) {
                                 if (e->shouldRender(vec)) {
                                     e->render(partialTicks, textures);
                                 }
@@ -111,6 +123,45 @@ void EntityMesh::render(Vec3D vec, Frustum& frustum, Textures* textures, float p
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+void EntityMesh::tickAll() {
+    for (int i = 0; i < this->all.size(); ++i) {
+        if (this->all[i]) {
+            Entity* e = this->all[i]; 
+            e->tick();
+
+            if (e->removed) {
+                this->slotStart->init(e->xo, e->yo, e->zo).remove(e);
+                utils::remove_at(this->all, i);
+                i--;
+
+                if (!e->removeExternally) {
+                    delete e;
+                }
+            } else {
+                int oldX = (int)(e->xo / 16.0f);
+                int oldY = (int)(e->yo / 16.0f);
+                int oldZ = (int)(e->zo / 16.0f);
+                int X = (int)(e->x / 16.0f);
+                int Y = (int)(e->y / 16.0f);
+                int Z = (int)(e->z / 16.0f);
+                if (oldX != X || oldY != Y || oldZ != Z) {
+                    EntityMeshSlot& s1 = this->slotStart->init(e->xo, e->yo, e->zo);
+                    EntityMeshSlot& s2 = this->slotEnd->init(e->x, e->y, e->z);
+                    if (s1 != s2) {
+                        s1.remove(e);
+                        s2.add(e);
+                        e->xo = e->x;
+                        e->yo = e->y;
+                        e->zo = e->z;
+                    }
+
+                }
+
             }
         }
     }

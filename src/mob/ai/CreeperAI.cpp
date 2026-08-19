@@ -24,9 +24,9 @@ void CreeperAI::beforeRemove() {
     this->level->explode(this->mob, this->mob->x, this->mob->y, this->mob->z, explosionRadius);
 
     for (int i = 0; i < 500; ++i) {
-        float offsetX = (float)this->random->nextGaussian() * explosionRadius / 4.0f;
-        float offsetY = (float)this->random->nextGaussian() * explosionRadius / 4.0f;
-        float offsetZ = (float)this->random->nextGaussian() * explosionRadius / 4.0f;
+        float offsetX = (float)this->random.nextGaussian() * explosionRadius / 4.0f;
+        float offsetY = (float)this->random.nextGaussian() * explosionRadius / 4.0f;
+        float offsetZ = (float)this->random.nextGaussian() * explosionRadius / 4.0f;
 
         float distance = (float) std::sqrt((float)(offsetX*offsetX+offsetY*offsetY+offsetZ*offsetZ));
 

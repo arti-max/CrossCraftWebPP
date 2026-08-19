@@ -47,7 +47,6 @@ void LevelGen::generateLevel(Level* level, const char* username, int w, int h, i
 
 
     level->setData(width, depth, height, blocks);
-    level->initTransient();
     level->creationTime = time(nullptr);
     level->creator = username;
     level->name = "A Nice World";

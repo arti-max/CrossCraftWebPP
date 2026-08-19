@@ -11,6 +11,9 @@ public:
         this->modelName = "zombie";
         this->textureName = "/mob/zombie.png";
         this->heightOffset = 1.62f;
+        if (this->ai != nullptr) {
+            delete this->ai; 
+        }
         BasicAttackAI* attackAi = new BasicAttackAI();
         attackAi->defaultLookAngle = 30;
         attackAi->runSpeed = 1.0f;

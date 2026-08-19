@@ -10,7 +10,7 @@ SkeletonAI::SkeletonAI(Skeleton* skeleton) {
 void SkeletonAI::tick(Level* level, Mob* mob) {
     BasicAttackAI::tick(level, mob);
 
-    if (mob->health > 0 && this->random->nextInt(30) == 0 && this->attackTarget != nullptr) {
+    if (mob->health > 0 && this->random.nextInt(30) == 0 && this->attackTarget != nullptr) {
         this->parent->shootArrow();
     }
 }

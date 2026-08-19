@@ -17,6 +17,12 @@ Mob::Mob(Level* level) : Entity(level) {
     this->ai = new BasicAI();
 }
 
+Mob::~Mob() {
+    if (this->ai != nullptr) {
+        delete this->ai;
+    }
+}
+
 bool Mob::isPushable() {
     return !this->removed;
 }

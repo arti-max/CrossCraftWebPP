@@ -49,6 +49,7 @@ public:
     AI* ai;
 
     Mob(Level* level);
+    virtual ~Mob();
 
 
     bool isPickable() override;

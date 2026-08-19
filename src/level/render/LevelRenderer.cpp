@@ -359,32 +359,48 @@ void LevelRenderer::renderHitOutline(HitResult* h, Player* player, int mode, int
         if (h->f == 3) z++;
         if (h->f == 4) x--;
         if (h->f == 5) x++;
+    }   
+
+    int tileId = this->level->getTile(x, y, z);
+
+    if (h->type == 0 && tileId > 0) {
+        Tile* tile = Tile::tiles[tileId];
+        if (tile == nullptr) return;
+
+        x += tile->minX;
+        y += tile->minY;
+        z += tile->minZ;
+
+        float maxX = tile->maxX;
+        float maxY = tile->maxY;
+        float maxZ = tile->maxZ;
+
+        glBegin(GL_LINE_STRIP);
+        glVertex3f(x, y, z);
+        glVertex3f(x + maxX, y, z);
+        glVertex3f(x + maxX, y, z + maxZ);
+        glVertex3f(x, y, z + maxZ);
+        glVertex3f(x, y, z);
+        glEnd();
+        glBegin(3);
+        glVertex3f(x, y + maxY, z);
+        glVertex3f(x + maxX, y + maxY, z);
+        glVertex3f(x + maxX, y + maxY, z + maxZ);
+        glVertex3f(x, y + maxY, z + maxZ);
+        glVertex3f(x, y + maxY, z);
+        glEnd();
+        glBegin(1);
+        glVertex3f(x, y, z);
+        glVertex3f(x, y + maxY, z);
+        glVertex3f(x + maxX, y, z);
+        glVertex3f(x + maxX, y + maxY, z);
+        glVertex3f(x + maxX, y, z + maxZ);
+        glVertex3f(x + maxX, y + maxY, z + maxZ);
+        glVertex3f(x, y, z + maxZ);
+        glVertex3f(x, y + maxY, z + maxZ);
+        glEnd();
+        glDisable(GL_BLEND);
     }
-    glBegin(GL_LINE_STRIP);
-    glVertex3f(x, y, z);
-    glVertex3f(x + 1.0F, y, z);
-    glVertex3f(x + 1.0F, y, z + 1.0F);
-    glVertex3f(x, y, z + 1.0F);
-    glVertex3f(x, y, z);
-    glEnd();
-    glBegin(3);
-    glVertex3f(x, y + 1.0F, z);
-    glVertex3f(x + 1.0F, y + 1.0F, z);
-    glVertex3f(x + 1.0F, y + 1.0F, z + 1.0F);
-    glVertex3f(x, y + 1.0F, z + 1.0F);
-    glVertex3f(x, y + 1.0F, z);
-    glEnd();
-    glBegin(1);
-    glVertex3f(x, y, z);
-    glVertex3f(x, y + 1.0F, z);
-    glVertex3f(x + 1.0F, y, z);
-    glVertex3f(x + 1.0F, y + 1.0F, z);
-    glVertex3f(x + 1.0F, y, z + 1.0F);
-    glVertex3f(x + 1.0F, y + 1.0F, z + 1.0F);
-    glVertex3f(x, y, z + 1.0F);
-    glVertex3f(x, y + 1.0F, z + 1.0F);
-    glEnd();
-    glDisable(GL_BLEND);
 }
 
 void LevelRenderer::tileChanged(int x, int y, int z) {

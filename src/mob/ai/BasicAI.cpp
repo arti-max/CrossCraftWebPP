@@ -6,7 +6,7 @@
 void BasicAI::tick(Level* level, Mob* mob) {
     ++this->noActionTime;
     Entity* player = level->getPlayer();
-    if (this->noActionTime > 600 && this->random->nextInt(800) == 0 && (player != nullptr)) {
+    if (this->noActionTime > 600 && this->random.nextInt(800) == 0 && (player != nullptr)) {
         float dx = player->x - mob->x;
         float dy = player->y - mob->y;
         float dz = player->z - mob->z;
@@ -66,27 +66,27 @@ void BasicAI::jumpFromGround() {
 }
 
 void BasicAI::update() {
-    if (this->random->nextFloat() < 0.07f) {
-        this->xxa = (this->random->nextFloat() - 0.5f) * this->runSpeed;
-        this->yya = this->random->nextFloat() * this->runSpeed;
+    if (this->random.nextFloat() < 0.07f) {
+        this->xxa = (this->random.nextFloat() - 0.5f) * this->runSpeed;
+        this->yya = this->random.nextFloat() * this->runSpeed;
     }
 
-    this->jumping = this->random->nextFloat() < 0.01f;
-    if (this->random->nextFloat() < 0.04f) {
-        this->yRotA = (this->random->nextFloat() - 0.5f) * 60.0f;
+    this->jumping = this->random.nextFloat() < 0.01f;
+    if (this->random.nextFloat() < 0.04f) {
+        this->yRotA = (this->random.nextFloat() - 0.5f) * 60.0f;
     }
 
     this->mob->yRot += this->yRotA;
     this->mob->xRot = (float)this->defaultLookAngle;
     if (this->attackTarget != nullptr) {
         this->yya = this->runSpeed;
-        this->jumping = this->random->nextFloat() < 0.04f;
+        this->jumping = this->random.nextFloat() < 0.04f;
     }
 
     bool inWater = this->mob->isInWater();
     bool inLava = this->mob->isInLava();
     if (inWater || inLava) {
-        this->jumping = this->random->nextFloat() < 0.8f;
+        this->jumping = this->random.nextFloat() < 0.8f;
     }
 
 }

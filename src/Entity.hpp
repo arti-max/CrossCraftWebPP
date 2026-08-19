@@ -58,6 +58,7 @@ public:
     bool hovered = false;
     bool collision = false;
     bool removed = false;
+    bool removeExternally = false;
     bool makeStepSound = true;
     bool debug = false;
 

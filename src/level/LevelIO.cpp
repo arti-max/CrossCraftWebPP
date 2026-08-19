@@ -191,69 +191,74 @@ std::vector<uint8_t> LevelIO::decompressGzip(const uint8_t* data, size_t length)
     return decompressed;
 }
 
-struct LoadContext {
-    LevelIO* levelIO;
-    Level* level;
+struct SyncFetchState {
+    bool done = false;
+    bool success = false;
+    std::vector<uint8_t> data;
+    int status = 0;
 };
 
-static void loadSuccessCallback(emscripten_fetch_t* fetch) {
-    LoadContext* ctx = static_cast<LoadContext*>(fetch->userData);
-    
-    ctx->levelIO->cc->levelLoadUpdate("Loading...");
-    
-    if (fetch->numBytes < 2 || fetch->data[0] != 0x1f || (uint8_t)fetch->data[1] != 0x8b) {
-        std::string errorMessage(fetch->data, fetch->numBytes);
-        ctx->levelIO->cc->levelLoadUpdate(("Failed: " + errorMessage).c_str());
-        emscripten_sleep(1000);
-        emscripten_fetch_close(fetch);
-        delete ctx;
-        return;
-    }
-    
-    bool result = ctx->levelIO->load(ctx->level, reinterpret_cast<const uint8_t*>(fetch->data), fetch->numBytes);
-    
-    if (!result) {
-        ctx->levelIO->cc->levelLoadUpdate("Failed to parse level data");
-        emscripten_sleep(1000);
-    } else {
-        ctx->levelIO->cc->player->resetPos();
-    }
-    
+
+static void onSyncSuccess(emscripten_fetch_t* fetch) {
+    SyncFetchState* state = static_cast<SyncFetchState*>(fetch->userData);
+    state->status = fetch->status;
+    state->data.assign(fetch->data, fetch->data + fetch->numBytes);
+    state->success = true;
+    state->done = true;
     emscripten_fetch_close(fetch);
-    delete ctx;
 }
 
-static void loadErrorCallback(emscripten_fetch_t* fetch) {
-    LoadContext* ctx = static_cast<LoadContext*>(fetch->userData);
-    
-    std::cerr << "HTTP error! Status: " << fetch->status << std::endl;
-    ctx->levelIO->cc->levelLoadUpdate("Failed!");
-    emscripten_sleep(1000);
-    
+static void onSyncError(emscripten_fetch_t* fetch) {
+    SyncFetchState* state = static_cast<SyncFetchState*>(fetch->userData);
+    state->status = fetch->status;
+    state->success = false;
+    state->done = true;
     emscripten_fetch_close(fetch);
-    delete ctx;
 }
 
 bool LevelIO::loadOnline(Level* level, const std::string& serverUrl, const std::string& user, int levelId) {
     cc->beginLevelLoading("Loading level");
     cc->levelLoadUpdate("Connecting...");
-    
+    cc->levelLoadProgress(0);
+
     std::string url = "https://" + serverUrl + "/level/load.html?id=" + std::to_string(levelId) + "&user=" + user;
-    std::cout << "Loading level from: " << url << std::endl;
-    
-    LoadContext* ctx = new LoadContext{this, level};
-    
+
+    SyncFetchState state;
+
     emscripten_fetch_attr_t attr;
     emscripten_fetch_attr_init(&attr);
     strcpy(attr.requestMethod, "GET");
     attr.attributes = EMSCRIPTEN_FETCH_LOAD_TO_MEMORY;
-    attr.onsuccess = loadSuccessCallback;
-    attr.onerror = loadErrorCallback;
-    attr.userData = ctx;
-    
+    attr.onsuccess = onSyncSuccess;
+    attr.onerror = onSyncError;
+    attr.userData = &state;
+
     emscripten_fetch(&attr, url.c_str());
-    
-    return true;
+
+    while (!state.done) {
+        emscripten_sleep(10);
+    }
+
+    if (!state.success || state.data.size() < 2 || state.data[0] != 0x1f || (uint8_t)state.data[1] != 0x8b) {
+        std::string status = "HTTP error! Status: " + std::to_string(state.status);
+        cc->progressbar->updateProgressStatus(status);
+        cc->levelLoadProgress(-1);
+        emscripten_sleep(1000);
+        return false;
+    }
+
+    bool result = this->load(level, state.data.data(), state.data.size());
+    if (!result) {
+        cc->levelLoadUpdate("Failed to parse level data");
+        cc->levelLoadProgress(-1);
+        emscripten_sleep(1000);
+    } else {
+        cc->levelLoadUpdate("Successfully loaded!");
+        cc->levelLoadProgress(100);
+        emscripten_sleep(1000);
+    }
+
+    return result;
 }
 
 bool LevelIO::load(Level* level, const uint8_t* data, size_t length) {
@@ -283,10 +288,14 @@ bool LevelIO::load(Level* level, const uint8_t* data, size_t length) {
             std::cerr << "Unsupported format version: " << (int)version << std::endl;
             return false;
         }
+
+        Logger::logf(PREFIX_DEBUG, "Before name!\n");
         
         std::string name = readUTF(decompressed.data(), offset);
         std::string creator = readUTF(decompressed.data(), offset);
         int64_t creationTime = readInt64(decompressed.data(), offset);
+
+        Logger::logf(PREFIX_DEBUG, "Before level size!\n");
         
         int16_t width = readInt16(decompressed.data(), offset);
         int16_t height = readInt16(decompressed.data(), offset);
@@ -295,19 +304,40 @@ bool LevelIO::load(Level* level, const uint8_t* data, size_t length) {
         size_t blocksLength = width * height * depth;
         std::vector<uint8_t> blocks(decompressed.begin() + offset, decompressed.begin() + offset + blocksLength);
         offset += blocksLength;
+
+        Logger::logf(PREFIX_DEBUG, "Before Player ptr update!\n");
         
         Player* player = (Player*)level->player;
+        bool newCreated = false;
         if (player == nullptr) {
             std::cerr << "LEVELIO: PLAYEr IS EMPTY!!!!" << std::endl;
             return false;
         }
+        if (player->dead == true){
+            player = new Player(CrossCraft::instance->level, CrossCraft::instance->settings);
+            newCreated = true;
+            Logger::logf(PREFIX_DEBUG, "Player is dead, create new player object...\n");
+        }
+
+        Logger::logf(PREFIX_DEBUG, "Before update level data!\n");
+
+        player->removeExternally = true;
         
         level->setData(width, depth, height, blocks);
         level->name = name;
         level->creator = creator;
         level->creationTime = creationTime;
 
+        Logger::logf(PREFIX_DEBUG, "Before add player to Level!\n");
+        Logger::logf(PREFIX_DEBUG, "Entity Data: %i, health: %i, dead: %i\n", player->removeExternally, player->health, player->dead);
+        
         level->addEntity(player);
+        Logger::logf(PREFIX_DEBUG, "Before add player to ptr in level object!\n");
+        level->player = player;
+
+        // player->removeExternally = false;
+
+        Logger::logf(PREFIX_DEBUG, "Before load entities\n");
 
         if (version == 2) {
             level->xSpawn = readInt16(decompressed.data(), offset);
@@ -345,16 +375,23 @@ bool LevelIO::load(Level* level, const uint8_t* data, size_t length) {
 
         if (version >= 3) {
             SPAWNED_MOBS = 0;
+
+            Logger::logf(PREFIX_DEBUG, "Before load spawn data!\n");
+            
             // read player position
             level->xSpawn = readInt16(decompressed.data(), offset);
             level->ySpawn = readInt16(decompressed.data(), offset);
             level->zSpawn = readInt16(decompressed.data(), offset);
             level->rotSpawn = readInt16(decompressed.data(), offset);
 
+            Logger::logf(PREFIX_DEBUG, "Before load player states!\n");
+
             // read player stats
             player->health = readInt16(decompressed.data(), offset);
             player->airSupply = readInt16(decompressed.data(), offset);
             player->score = readInt16(decompressed.data(), offset);
+
+            Logger::logf(PREFIX_DEBUG, "Before load player inventory!\n");
 
             // read inventory data
             player->inventory->arrows = readInt16(decompressed.data(), offset);
@@ -362,6 +399,8 @@ bool LevelIO::load(Level* level, const uint8_t* data, size_t length) {
                 player->inventory->slots[i] = readInt16(decompressed.data(), offset);
                 player->inventory->count[i] = readInt16(decompressed.data(), offset);
             }
+
+            Logger::logf(PREFIX_DEBUG, "Before load entity data in v3!\n");
 
             // read entity data
             int32_t entityCount = readInt32(decompressed.data(), offset);
@@ -422,7 +461,9 @@ bool LevelIO::load(Level* level, const uint8_t* data, size_t length) {
                     }
                 }
             }
-        }
+        } 
+
+        Logger::logf(PREFIX_DEBUG, "Before load end!\n");
 
         cc->levelLoadUpdate("Finalizing.."); 
         cc->levelLoadProgress(90);
@@ -567,15 +608,16 @@ static void saveSuccessCallback(emscripten_fetch_t* fetch) {
     std::string response(fetch->data, fetch->numBytes);
     std::cout << "Server response: '" << response << "'" << std::endl;
     
-    // Trim пробелов
     response.erase(0, response.find_first_not_of(" \n\r\t"));
     response.erase(response.find_last_not_of(" \n\r\t") + 1);
     
     if (response != "ok" && response != "OK") {
         ctx->levelIO->cc->levelLoadUpdate(("Failed: " + response).c_str());
+        ctx->levelIO->cc->levelLoadProgress(-1);
         emscripten_sleep(1000);
     } else {
         ctx->levelIO->cc->levelLoadUpdate("Level successfully saved!");
+        ctx->levelIO->cc->levelLoadProgress(100);
         emscripten_sleep(1000);
     }
     

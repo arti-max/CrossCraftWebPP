@@ -153,6 +153,8 @@ void Level::findSpawn() {
     this->xSpawn = x;
     this->ySpawn = y;
     this->zSpawn = z;
+
+    delete rnd;
 }
 
 int Level::getHighestTile(int x, int z) {
@@ -178,6 +180,7 @@ void Level::setData(int w, int d, int h, const std::vector<uint8_t>& newBlocks) 
     calcLightDepths(0, 0, w, h);
     
     if (this->emesh != nullptr) {
+        pendingAdd.clear();
         delete this->emesh;
         this->emesh = nullptr;
     }
@@ -219,60 +222,13 @@ void Level::calcLightDepths(int x0, int z0, int x1, int z1) {
 }
 
 void Level::tickEntities() {
-    for (int i = 0; i < this->emesh->all.size(); ++i) {
-        if (this->emesh->all[i]) {
-            Entity* e = this->emesh->all[i];
-            e->tick();
-
-            if (e->removed) {
-                utils::remove_at(this->emesh->all, i);
-                i--;
-                this->emesh->slotStart->init(e->xo, e->yo, e->zo).remove(e);
-            } else {
-                int oldX = (int)(e->xo / 16.0f);
-                int oldY = (int)(e->yo / 16.0f);
-                int oldZ = (int)(e->zo / 16.0f);
-                int X = (int)(e->x / 16.0f);
-                int Y = (int)(e->y / 16.0f);
-                int Z = (int)(e->z / 16.0f);
-                if (oldX != X || oldY != Y || oldZ != Z) {
-                    EntityMeshSlot& s1 = this->emesh->slotStart->init(e->xo, e->yo, e->zo);
-                    EntityMeshSlot& s2 = this->emesh->slotEnd->init(e->x, e->y, e->z);
-                    if (s1 != s2) {
-                        s1.remove(e);
-                        s2.add(e);
-                        e->xo = e->x;
-                        e->yo = e->y;
-                        e->zo = e->z;
-                    }
-
-                }
-
-            }
-        }
-    }
+    
 }
 
 void Level::tick() {
     tickCount++;
 
-    // for (int i = 0; i < entities.size(); ++i) {
-    //     entities[i]->tick();
-    //     if (entities[i]->removed) {
-    //         delete entities[i];
-    //         entities.erase(entities.begin() + i);
-    //         i--;
-    //     }
-    // }
-
-    // const int widthBits  = std::log2(width);
-    // const int heightBits = std::log2(height);
-
-    // const int widthMask  = width  - 1;
-    // const int heightMask = height - 1;
-    // const int depthMask  = depth  - 1;
-
-    this->tickEntities();
+    this->emesh->tickAll();
     for (Entity* e : pendingAdd) {
         this->emesh->addEntity(e);
     }
@@ -843,7 +799,8 @@ void Level::explode(Entity* e, float x, float y, float z, float radius) {
                         int tileid = this->getTile(bx, by, bz);
                         if (tileid > 0) {
                             Tile* tile = Tile::tiles[tileid];
-                            if (tile->getLiquidType() == LiquidType::NOT_LIQUID) {
+                            // *20.0f - т.к. в Tile.cpp hardness умножается на 20, чтобы нормально блоки ломались
+                            if (tile->getLiquidType() == LiquidType::NOT_LIQUID && tile->hardness < (1.0f*20.0f)) { 
                                 Tile::tiles[tileid]->onDestroy(this, bx, by, bz);
                                 this->setTile(bx, by, bz, 0);
                             }

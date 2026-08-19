@@ -2,12 +2,14 @@
 #include "CrossCraft.hpp"
 #include "gui/pause/settings/SettingsScreen.hpp"
 #include "gui/pause/LevelGenerateScreen.hpp"
+#include "gui/pause/LevelLoadScreen.hpp"
 #include "gui/Button.hpp"
 #include <string>
 
 void DeathScreen::init() {
     this->buttons.clear();
     this->buttons.push_back(new Button(1, this->width / 2 - 100, this->height / 4 + 72, "Generate new level..."));   
+    this->buttons.push_back(new Button(2, this->width / 2 - 100, this->height / 4 + 96, "Load level"));   
     this->cc->releaseMouse();
 }
 
@@ -18,6 +20,10 @@ void DeathScreen::buttonClicked(Button* btn) {
 
     if (btn->id == 1) {
         this->cc->setScreen(new LevelGenerateScreen(this));
+    }
+
+    if (btn->id == 2) {
+        this->cc->setScreen(new LevelLoadScreen(this));
     }
 }
 

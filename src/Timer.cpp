@@ -31,6 +31,10 @@ void Timer::advanceTime() {
     passedTime += static_cast<float>(passedNs) * timeScale * ticksPerSecond / 1.0e9f;
     
     ticks = static_cast<int>(passedTime);
+
+    if (ticks > 5) { 
+        ticks = 5; 
+    }
     
     if (ticks > MAX_TICKS_PER_UPDATE) {
         ticks = MAX_TICKS_PER_UPDATE;

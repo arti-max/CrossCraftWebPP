@@ -4,6 +4,7 @@
 #include "model/HumanModel.hpp"
 #include "CrossCraft.hpp"
 #include "util/Random.hpp"
+#include "level/tile/Tile.hpp"
 
 InventoryScreen::InventoryScreen() {
 
@@ -13,6 +14,10 @@ void InventoryScreen::init() {
     this->grabMouse = true;
 
     this->timeOffs = Random::random() * 1239813.0f;
+
+    this->blocks = {
+        Tile::dirt->id,
+    };
 }
 
 void InventoryScreen::mouseClicked(int x, int y, int button) {
@@ -38,27 +43,75 @@ void InventoryScreen::render(int xMouse, int yMouse) {
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, this->cc->textures->loadTexture("/gui/inventory.png", GL_NEAREST));
 
+    // render inventory screen
     glPushMatrix();
     
     t.begin();
-    t.vertexUV(this->width/2-140, 30, 0.0f, uv.u0, uv.v0);
+    t.vertexUV(this->width/2-140, 18, 0.0f, uv.u0, uv.v0);
     t.vertexUV(this->width/2-140, 184, 0.0f, uv.u0, uv.v1);
     t.vertexUV(this->width/2+140, 184, 0.0f, uv.u1, uv.v1);
-    t.vertexUV(this->width/2+140, 30, 0.0f, uv.u1, uv.v0);
+    t.vertexUV(this->width/2+140, 18, 0.0f, uv.u1, uv.v0);
     t.end();
 
     glPopMatrix();
+
+    // render blocks
+    int startX = this->width/2-30;
+    int startY = this->height/2-1;
+
+    int index = -1;
+    int relativeX = xMouse - startX;
+    int relativeY = yMouse - startY;
+    int col = relativeX / 24;
+    int row = relativeY / 24;
+    index = row * 8 + col;
+    if (relativeX < 0 || relativeY < 0) index=-1;
+    if (col >= 8) index=-1;
+    if (index >= this->blocks.size()) index=-1;
+
+    if (index >= 0) {
+        int tileX = startX + (index % 8) * 24;
+        int tileY = startY + (index / 8) * 24;
+        this->fillGradient(tileX, tileY, tileX+24, tileY+24, -1862270977, -1056964609);
+    }
+
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_FRONT);
     glClear(GL_DEPTH_BUFFER_BIT);
 
     glEnable(GL_RESCALE_NORMAL);
     glEnable(GL_COLOR_MATERIAL);
 
-    glPushMatrix();
+    glBindTexture(GL_TEXTURE_2D, this->cc->textures->loadTexture("terrain", GL_NEAREST));
+    
+    for (int i=0; i<this->blocks.size(); i++) {
+        int tileX = startX + (i % 8) * 24;
+        int tileY = startY + (i / 8) * 24;
+        glPushMatrix();
+        glTranslatef(tileX+12.0f, tileY+12.0f, -50.0f);
+        if (i == index) {
+            glScalef(12.0f, 12.0f, 12.0f);
+        } else {
+            glScalef(10.0f, 10.0f, 10.0f);
+        }
+        glRotatef(-30.0f, 1.0f, 0.0f, 0.0f);
+        glRotatef(45.0, 0.0f, 1.0f, 0.0f);
+        glTranslatef(-1.5f, 0.5f, 0.5f);
+        glScalef(-1.0f, -1.0f, -1.0f);
+        
+        t.begin();
+        Tile::tiles[this->blocks[i]]->render(t, this->cc->level, 0, -2, 0, 0);
+        t.end();
+        
+        glPopMatrix();
+    }
 
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_FRONT);
+
+    // render player model
+    glPushMatrix();
+    
     this->renderPlayerModel(this->cc->timer->partialTicks);
 
     glPopMatrix();

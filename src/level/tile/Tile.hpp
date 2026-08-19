@@ -64,10 +64,12 @@ public:
     static const Tile* redMushroom;
     static const Tile* brownMushroom;
     static const Tile* goldBlock;
+    static const Tile* ironBlock;
 
     int textureId = 0;
     int id = 0;
     int dropid = -1;
+    int dropcnt = 1;
     int hardness = 0;
     float particleGravity = 0.0f;
     float minX = 0.0f, minY = 0.0f, minZ = 0.0f, maxX = 0.0f, maxY = 0.0f, maxZ = 0.0f;

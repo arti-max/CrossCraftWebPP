@@ -11,7 +11,7 @@ class Mob;
 
 class BasicAI : public AI {
 public:
-    Random* random = new Random();
+    Random random;
     float xxa = 0.0f; // Ax
     float yya = 0.0f; // Ay
     float yRotA = 0.0f;

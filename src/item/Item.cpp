@@ -94,6 +94,7 @@ void Item::render(float partialTicks, Textures* textures) {
 
 void Item::playerTouch(Player* player) {
     if (player->inventory->addItem(this->resourceId)) {
+        this->removeExternally = true;
         this->level->addEntity(new TakeEntityAnim(this->level, this, player));
         this->remove();
     }

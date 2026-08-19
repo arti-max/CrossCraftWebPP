@@ -21,6 +21,7 @@ public:
     EntityMeshSlot* slotEnd = new EntityMeshSlot(this);
 
     EntityMesh(int w, int h, int d);
+    ~EntityMesh();
 
     std::vector<Entity*> getEntities(Entity* ignore, float x0, float y0, float z0, float x1, float y1, float z1, std::vector<Entity*>& result);
     std::vector<Entity*> getEntities(Entity* ignore, const AABB& box);

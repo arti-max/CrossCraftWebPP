@@ -11,6 +11,9 @@ public:
     Skeleton(Level* level, float x, float y, float z) : Zombie(level, x, y, z) {
         this->modelName = "skeleton";
         this->textureName = "/mob/skeleton.png";
+        if (this->ai != nullptr) {
+            delete this->ai; 
+        }
         SkeletonAI* ai = new SkeletonAI(this);
         ai->runSpeed = 0.3f;
         this->ai = ai;

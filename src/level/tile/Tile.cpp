@@ -10,6 +10,7 @@
 #include "item/Item.hpp"
 #include "level/tile/Tile.hpp"
 #include "level/liquid/LiquidType.hpp"
+#include "level/tile/SlabTile.hpp"
 
 #include "particle/TileParticle.hpp"
 
@@ -18,7 +19,7 @@ const Tile* Tile::empty = nullptr;
 
 static Tile rockTile(1, 1);
 static GrassTile grassTile(2);
-static Tile dirtTile(3, 2);
+static SlabTile dirtTile(3, 2);
 static Tile cobbleTile(4, 16);
 static Tile woodTile(5, 4);
 static Bush bushTile(6, 15);
@@ -57,6 +58,7 @@ static Bush yellowFlowerTile(38, 13);
 static Bush redMushroomTile(39, 28);
 static Bush brownMushroomTile(40, 29);
 static Tile goldBlockTile(41, 40);
+static Tile ironBlockTile(42, 39);
 
 
 const Tile* Tile::rock = (rockTile.setData(SoundType::stone, 1.0f, 1.0f)->setDrop(cobbleTile.id));
@@ -74,8 +76,8 @@ const Tile* Tile::gravel = gravelTile.setData(SoundType::gravel, 1.0f, 0.6f);
 const Tile* Tile::sand = sandTile.setData(SoundType::gravel, 1.0f, 0.5f);
 const Tile* Tile::log = logTile.setData(SoundType::wood, 1.0f, 2.5f);
 const Tile* Tile::leaves = leavesTile.setData(SoundType::leaves, 0.4f, 0.2f);
-const Tile* Tile::goldOre = goldOreTile.setData(SoundType::stone, 1.0f, 3.0f);
-const Tile* Tile::ironOre = ironOreTile.setData(SoundType::stone, 1.0f, 3.0f);
+const Tile* Tile::goldOre = (goldOreTile.setData(SoundType::stone, 1.0f, 3.0f)->setDrop(goldBlockTile.id));
+const Tile* Tile::ironOre = (ironOreTile.setData(SoundType::stone, 1.0f, 3.0f)->setDrop(ironBlockTile.id));
 const Tile* Tile::coalOre = coalOreTile.setData(SoundType::stone, 1.0f, 3.0f);
 const Tile* Tile::sponge = spongeTile.setData(SoundType::cloth, 0.9f, 0.6f);
 const Tile* Tile::glass = glassTile.setData(SoundType::metal, 1.0f, 0.3f);
@@ -100,6 +102,7 @@ const Tile* Tile::yellowFlower = yellowFlowerTile.setData(SoundType::none, 1.0f,
 const Tile* Tile::redMushroom = redMushroomTile.setData(SoundType::none, 1.0f, 0.0f);
 const Tile* Tile::brownMushroom = brownMushroomTile.setData(SoundType::none, 1.0f, 0.0f);
 const Tile* Tile::goldBlock = goldBlockTile.setData(SoundType::metal, 1.0f, 5.0f);
+const Tile* Tile::ironBlock = ironBlockTile.setData(SoundType::metal, 1.0f, 5.0f);
 
 Tile::Tile(int id) {
     tiles[id] = this;
@@ -212,10 +215,24 @@ void Tile::renderFace(Tessellator& t, int x, int y, int z, int face, int texture
     const float col = static_cast<float>(tex % static_cast<int>(atlasSize));
     const float row = static_cast<float>(tex / static_cast<int>(atlasSize));
 
-    const float u0 = (col * tilePixels) / atlasPixels + epsilon;
-    const float u1 = u0 + (tilePixels / atlasPixels) - (epsilon * 2.0f);
-    const float v0 = (row * tilePixels) / atlasPixels + epsilon;
-    const float v1 = v0 + (tilePixels / atlasPixels) - (epsilon * 2.0f);
+    int pxcx = tex % 16 << 4;
+    int pxcy = tex / 16 << 4;
+
+    float u0 = (col * tilePixels) / atlasPixels + epsilon;
+    float u1 = u0 + (tilePixels / atlasPixels) - (epsilon * 2.0f);
+    float v0 = (row * tilePixels) / atlasPixels + epsilon;
+    float v1 = v0 + (tilePixels / atlasPixels) - (epsilon * 2.0f);
+
+    if (face >= 2) {
+        if (this->minY >= 0.0f && this->maxY <= 1.0f) {
+            float tileH = (tilePixels / atlasPixels) - (epsilon * 2.0f);
+            v0 = ((row * tilePixels) / atlasPixels + epsilon) + this->minY * tileH;
+            v1 = ((row * tilePixels) / atlasPixels + epsilon) + this->maxY * tileH;
+        } else {
+            v0 = (pxcy / atlasPixels);
+            v1 = (pxcy + epsilon) / atlasPixels;
+        }
+    }
 
     float x0 = (float)x + this->minX;
     float x1 = (float)x + this->maxX;
@@ -509,7 +526,7 @@ int Tile::getDrop() {
 }
 
 int Tile::getDropCount() {
-    return 1;
+    return this->dropcnt;
 }
 
 int Tile::getHardness() {

@@ -23,4 +23,8 @@ public:
         this->xxa = this->player->input_xxa;
         this->yya = this->player->input_yya;
     }
+
+    void beforeRemove() override {
+        this->player->removeExternally = true;
+    }
 };

@@ -8,6 +8,9 @@ public:
         this->heightOffset = 1.62f;
         this->modelName = "creeper";
         this->textureName = "/mob/creeper.png";
+        if (this->ai != nullptr) {
+            delete this->ai; 
+        }
         this->ai = new CreeperAI(this);
         this->ai->defaultLookAngle = 45;
         this->setPos(x, y, z);

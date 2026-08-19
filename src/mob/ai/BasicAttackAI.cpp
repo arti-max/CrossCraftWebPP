@@ -36,7 +36,7 @@ void BasicAttackAI::doAttack() {
         dy = this->attackTarget->y - this->mob->y;
         dz = this->attackTarget->z - this->mob->z;
         float distanceSqr = dx*dx + dy*dy + dz*dz;
-        if (distanceSqr > searchRange*searchRange*2.0f*2.0f && this->random->nextInt(100) == 0) {
+        if (distanceSqr > searchRange*searchRange*2.0f*2.0f && this->random.nextInt(100) == 0) {
             this->attackTarget = nullptr;
         }
 
@@ -59,9 +59,9 @@ bool BasicAttackAI::attack(Entity* target) {
         return false;
     } else {
         this->mob->attackTime = 5;
-        this->attackDelay = this->random->nextInt(20) + 10;
+        this->attackDelay = this->random.nextInt(20) + 10;
         // int dmg = (this->random->nextFloat() + this->random->nextFloat()) / 2.0f * (float)this->damage + 1.0f;
-        int dmg = this->random->nextInt(4) + this->random->nextInt(4) + 1;
+        int dmg = this->random.nextInt(4) + this->random.nextInt(4) + 1;
         target->hurt(this->mob, dmg);
         this->noActionTime = 0;
         return true;

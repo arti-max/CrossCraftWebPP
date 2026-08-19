@@ -504,20 +504,16 @@ void CrossCraft::tick() {
                     break;
                 }
 
-                // if (Keyboard::getEventKey() == GLFW_KEY_C) {
-                //     this->isDrop == true ? this->isDrop = false : this->isDrop = true;
-                // }
-
                 if (Keyboard::getEventKey() == GLFW_KEY_TAB && (this->player->inventory->removeArrow())) {
                     this->level->addEntity(new Arrow(this->level, this->player, this->player->x, this->player->y, this->player->z, this->player->yRot, this->player->xRot, 1.2f));
                 }
 
                 if (Keyboard::getEventKey() == this->settings->key_build->keyCode) {
-                    this->player->releaseAllKeys();
-                    this->setScreen((Screen*)(new InventoryScreen()));
-                    this->releaseMouse();
-                    break;
-                    // this->level->addEntity(new Sign(this, this->player->x, this->player->y, this->player->z, this->player->yRot));
+                    // this->player->releaseAllKeys();
+                    // this->setScreen((Screen*)(new InventoryScreen()));
+                    // this->releaseMouse();
+                    // break;
+                    this->level->addEntity(new Sign(this, this->player->x, this->player->y, this->player->z, this->player->yRot));
                 }
 
                 if (Keyboard::getEventKey() == this->settings->key_save->keyCode) {
@@ -557,14 +553,16 @@ void CrossCraft::tick() {
             if (dWheel > threshold) scrollDirection = 1;
             else if (dWheel < -threshold) scrollDirection = -1;
 
-            if (scrollDirection != 0) {
+            if (scrollDirection != 0 && this->player != nullptr) {
                 int steps = static_cast<int>(dWheel / 100.0);
                 if (steps == 0) steps = scrollDirection;
 
-                this->player->inventory->selectedSlot += steps;
-                int numSlots = this->player->inventory->slots.size();
-                this->player->inventory->selectedSlot = (this->player->inventory->selectedSlot % numSlots + numSlots) % numSlots;
-                // this->selectedTile = this->hotbarSlots[this->hotbarIndex];
+                if (this->player->inventory != nullptr) {
+                    this->player->inventory->selectedSlot += steps;
+                    int numSlots = this->player->inventory->slots.size();
+                    this->player->inventory->selectedSlot = (this->player->inventory->selectedSlot % numSlots + numSlots) % numSlots;
+                    // this->selectedTile = this->hotbarSlots[this->hotbarIndex];
+                }
             }
         }
         while (Mouse::next()) {
@@ -601,7 +599,7 @@ void CrossCraft::tick() {
 
                             if (this->player->inventory->inInventory(pickedID) != -1) {
                                 this->player->inventory->pickTile(pickedID);
-                            }
+                            } 
 
                             // if (pickedID > 0 && Tile::tiles[pickedID] != nullptr && Tile::tiles[pickedID]->mayPick()) {
                             //     for (int i = 0; i < this->player->inventory->slots.size(); ++i) {
@@ -706,24 +704,28 @@ update_world:
             }
         }
 
-        int selected = this->player->inventory->getCurrentBlock();
-        Tile* tile = nullptr;
-        if (selected > 0) {
-            tile = Tile::tiles[selected];
-        }
+        if (this->player != nullptr) {
+            if (this->player->inventory != nullptr) {
+                int selected = this->player->inventory->getCurrentBlock();
+                Tile* tile = nullptr;
+                if (selected > 0) {
+                    tile = Tile::tiles[selected];
+                }
 
-        float maxStep = 0.4f;
-        float step = 0.0f;
-        if (tile != nullptr) {
-            step = (tile->id == this->heldBlock->tile->id ? 1.0f : 0.0f) - this->heldBlock->pos;
-        } else {
-            step = (this->heldBlock->tile == nullptr ? 1.0f : 0.0f) - this->heldBlock->pos;
-        }
-        if (step < -maxStep) step = -maxStep;
-        if (step > maxStep) step = maxStep;
-        this->heldBlock->pos += step;
-        if (this->heldBlock->pos < 0.1f) {
-            this->heldBlock->tile = tile;
+                float maxStep = 0.4f;
+                float step = 0.0f;
+                if (tile != nullptr) {
+                    step = (tile->id == this->heldBlock->tile->id ? 1.0f : 0.0f) - this->heldBlock->pos;
+                } else {
+                    step = (this->heldBlock->tile == nullptr ? 1.0f : 0.0f) - this->heldBlock->pos;
+                }
+                if (step < -maxStep) step = -maxStep;
+                if (step > maxStep) step = maxStep;
+                this->heldBlock->pos += step;
+                if (this->heldBlock->pos < 0.1f) {
+                    this->heldBlock->tile = tile;
+                }
+            }
         }
     }
 
@@ -849,7 +851,6 @@ void CrossCraft::render(float partialTicks) {
         }
         glDisable(GL_BLEND);
         glDisable(GL_ALPHA_TEST);
-        // this->levelRenderer->renderHit(this->hitResult, this->player, this->editMode, this->player->inventory->getCurrentBlock());
         this->levelRenderer->renderHitOutline(this->hitResult, this->player, this->editMode, this->player->inventory->getCurrentBlock());
         glEnable(GL_ALPHA_TEST);
         glEnable(GL_LIGHTING);
@@ -918,19 +919,6 @@ void CrossCraft::drawGui(float partialTicks) {
     Tessellator& t = Tessellator::getInstance();
     this->checkGlError("GUI: Init");
     glPushMatrix();
-    // glTranslatef(screenWidth - 16, 16.0f, -50.0f);
-    // glScalef(16.0f, 16.0f, 16.0f);
-    // glRotatef(-30.0f, 1.0f, 0.0f, 0.0f);
-    // glRotatef(45.0, 0.0f, 1.0f, 0.0f);
-    // glTranslatef(-1.5f, 0.5f, 0.5f);
-    // glScalef(-1.0f, -1.0f, -1.0f);
-    // GLuint id = this->textures->loadTexture("terrain", GL_NEAREST);
-    // glBindTexture(GL_TEXTURE_2D, id);
-    // glEnable(GL_TEXTURE_2D);
-    // t.begin();
-    // Tile::tiles[this->player->inventory->getCurrentBlock()]->render(t, this->level, 0, -2, 0, 0);
-    // t.end();
-    // glDisable(GL_TEXTURE_2D);
     if (this->hud != nullptr) {
         this->hud->render(this->player, this->level, partialTicks);
     }
@@ -938,29 +926,30 @@ void CrossCraft::drawGui(float partialTicks) {
     this->checkGlError("GUI: Draw selected");
     this->font->drawShadow(VERSION_STRING, 2, 2, 0xFFFFFF);
     if (this->settings->showFPS) {
-        size_t maxMemory = emscripten_get_heap_max();
-        size_t totalMemory = emscripten_get_heap_size();
+        // Оно роняет фпс сильно
+        // size_t maxMemory = emscripten_get_heap_max();
+        // size_t totalMemory = emscripten_get_heap_size();
 
-        struct mallinfo info = mallinfo();
-        size_t usedMemory = info.uordblks;
-        size_t freeMemory = totalMemory - usedMemory;
+        // struct mallinfo info = mallinfo(); 
+        // size_t usedMemory = info.uordblks;
+        // size_t freeMemory = totalMemory - usedMemory;
 
-        size_t showFM = maxMemory - freeMemory;
+        // size_t showFM = maxMemory - freeMemory;
 
-        size_t maxMB = maxMemory / (1024 * 1024);
-        size_t totalMB = totalMemory / (1024 * 1024);
+        // size_t maxMB = maxMemory / (1024 * 1024);
+        // size_t totalMB = totalMemory / (1024 * 1024);
 
-        if (maxMemory == 0) maxMemory = 1;
+        // if (maxMemory == 0) maxMemory = 1;
 
-        size_t freePercent = ((uint64_t)(showFM) * 100) / maxMemory;
-        std::string strFree = "Free memory: " + std::to_string(freePercent) + "% of " + std::to_string(maxMB) + "MB";
+        // size_t freePercent = ((uint64_t)(showFM) * 100) / maxMemory;
+        // std::string strFree = "Free memory: " + std::to_string(freePercent) + "% of " + std::to_string(maxMB) + "MB";
 
-        size_t allocPercent = ((uint64_t)(totalMemory) * 100) / maxMemory;
-        std::string strAlloc = "Allocated memory: " + std::to_string(allocPercent) + "% (" + std::to_string(totalMB) + "MB)";
+        // size_t allocPercent = ((uint64_t)(totalMemory) * 100) / maxMemory;
+        // std::string strAlloc = "Allocated memory: " + std::to_string(allocPercent) + "% (" + std::to_string(totalMB) + "MB)";
 
         this->font->drawShadow(this->fpsString, 2, 12, 0xFFFFFF);
-        this->font->drawShadow(strFree.c_str(), 2, 22, 0xFFFFFF);
-        this->font->drawShadow(strAlloc.c_str(), 2, 32, 0xFFFFFF);
+        // this->font->drawShadow(strFree.c_str(), 2, 22, 0xFFFFFF);
+        // this->font->drawShadow(strAlloc.c_str(), 2, 32, 0xFFFFFF);
     }
     this->checkGlError("GUI: Draw text");
     int wc = screenWidth / 2;
@@ -1223,10 +1212,12 @@ bool CrossCraft::loadLevel(const char username[], int levelid) {
         this->level->player = this->player;
         return false;
     } else {
+        // delete this->player;
         this->player = (Player*)this->level->player;
         this->player->resetPos();
         this->gamemode->prepareLevel(this->level);
         this->gamemode->apply(this->level);
+        // this->level->addEntity(this->player);
 
         return true;
     }
