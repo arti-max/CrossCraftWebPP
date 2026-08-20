@@ -75,6 +75,10 @@ float SurvivalGameMode::getReachDistance() {
 }
 
 void SurvivalGameMode::preparePlayer(Player* player) {
+    player->inventory->slots[0] = Tile::slab->id;
+    player->inventory->count[0] = 999;
+    player->inventory->slots[1] = Tile::tnt->id;
+    player->inventory->count[1] = 999;
     // player->inventory->slots[0] = Tile::brownMushroom->id;
     // player->inventory->count[0] = 10;
     // player->inventory->slots[1] = Tile::redMushroom->id;

@@ -132,6 +132,7 @@ void Entity::move(float xa, float ya, float za) {
     float xaOrg = xa;
     float yaOrg = ya;
     float zaOrg = za;
+    AABB bbOrg = this->bb;
     
     aabbs.clear();
     level->getCubes(bb.expand(xa, ya, za), &aabbs);
@@ -173,6 +174,53 @@ void Entity::move(float xa, float ya, float za) {
         xa = 0.0f;
     }
 
+    // логика авто-шага на полублочную поверхность
+    // Просто проходимся ещё раз таким-же алгоритмом, но с ya = шаг энтити.
+    // TODO: пофиксить забирание на полный блок, хд
+    if (this->footSize > 0.0f && (this->onGround && (xaOrg != xa || zaOrg != za))) {
+        float oldXA = xa;
+        float oldYA = ya;
+        float oldZA = za;
+        AABB oldbb = this->bb;
+
+        this->bb = bbOrg;
+        xa = xaOrg;
+        ya = this->footSize; 
+        za = zaOrg;
+
+        aabbs.clear();
+        level->getCubes(bb.expand(xa, ya, za), &aabbs);
+
+        for (size_t i = 0; i < aabbs.size(); ++i) {
+            ya = aabbs[i].clipYCollide(bb, ya);
+        }
+        bb.move(0.0f, ya, 0.0f);
+
+        for (size_t i = 0; i < aabbs.size(); ++i) {
+            xa = aabbs[i].clipXCollide(bb, xa);
+        }
+        this->bb.move(xa, 0.0f, 0.0f);
+
+        for (size_t i = 0; i < aabbs.size(); ++i) {
+            za = aabbs[i].clipZCollide(bb, za);
+        }
+        bb.move(0.0f, 0.0f, za);
+
+        ya = -this->footSize;
+        for (size_t i = 0; i < aabbs.size(); ++i) {
+            ya = aabbs[i].clipYCollide(bb, ya);
+        }
+        bb.move(0.0f, ya, 0.0f);
+
+        // Если оригинальнаый шаг (длина всех oldZA + oldXA) равен или больше, чем просимулированный на footSize, то откатываем назад 
+        if (oldXA * oldXA + oldZA * oldZA >= xa * xa + za * za) {
+            this->bb = oldbb;
+            xa = oldXA;
+            ya = oldYA;
+            za = oldZA; 
+        }
+    }
+
     this->horizontalCollision = xaOrg != xa || zaOrg != za;
     this->onGround = (yaOrg != ya && yaOrg < 0.0f);
     this->collision = this->horizontalCollision || yaOrg != ya;
@@ -194,6 +242,7 @@ void Entity::move(float xa, float ya, float za) {
     if (zaOrg != za) {
         this->zd = 0.0f;
     }
+
 
     this->x = (this->bb.x0 + this->bb.x1) / 2.0f;
     this->y = this->bb.y0 + this->heightOffset;

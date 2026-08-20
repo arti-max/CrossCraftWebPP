@@ -22,6 +22,7 @@ Player::Player(Level* level, Settings* settings) : Mob(level) {
     this->health = 20;
     this->modelName = "human";
     this->rotOffs = 180.0f;
+    this->footSize = 0.5f;
     this->ai = new PlayerAI(this);
 }
 

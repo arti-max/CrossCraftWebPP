@@ -4,7 +4,7 @@
 #include "util/Logger.hpp"
 #include "player/Player.hpp"
 #include "item/TakeEntityAnim.hpp"
-
+#include "CrossCraft.hpp"
 
 std::vector<ItemModel*> Item::models;
 
@@ -58,8 +58,6 @@ void Item::render(float partialTicks, Textures* textures) {
     float interpZ = this->zo + (this->z - this->zo) * partialTicks;
     glTranslatef(interpX, interpY+levitation, interpZ);
     glRotatef(rotation, 0.0f, 1.0f, 0.0f);
-    // glScalef(0.25f, 0.25f, 0.25f);
-    // glTranslatef(-0.5f, -0.5f, -0.5f);
     models[this->resourceId]->generateList();
     glDisable(GL_TEXTURE_2D);
     float glow;
@@ -74,7 +72,6 @@ void Item::render(float partialTicks, Textures* textures) {
         
         glDepthMask(GL_FALSE); 
         
-        // glColor4f(1.0f, 0.0f, 0.0f, glow * 0.4f); 
         glColor4f(1.0f, 1.0f, 1.0f, glow * 0.4f); 
         glPushMatrix();
         
@@ -93,7 +90,7 @@ void Item::render(float partialTicks, Textures* textures) {
 }
 
 void Item::playerTouch(Player* player) {
-    if (player->inventory->addItem(this->resourceId)) {
+    if (player->inventory->addItem(this->resourceId) && !CrossCraft::instance->mpMode) {
         this->removeExternally = true;
         this->level->addEntity(new TakeEntityAnim(this->level, this, player));
         this->remove();
@@ -115,73 +112,4 @@ void Item::initModels() {
             Item::models[t] = new ItemModel(tile->textureId);
         }
     }
-
-    // Tessellator& t = Tessellator::getInstance();
-    // for (int i = 0; i < 256; i++) {
-    //     Tile* tile = Tile::tiles[i];
-    //     if (tile != nullptr) {
-    //         int listId = glGenLists(1);
-    //         glNewList(listId, GL_COMPILE);
-    //         t.begin();
-    //         int tex = tile->getTexture(0);
-
-    //         const float atlasSize = 16.0f;
-    //         const float tilePixels = 16.0f;
-    //         const float atlasPixels = 256.0f;
-
-    //         float tileUVSize = tilePixels / atlasPixels;
-    //         float size = tileUVSize * 0.3f;
-    //         float offset = tileUVSize * 0.25f;
-
-    //         float epsilon = 0.0f; 
-
-    //         float col = (float)(tex % (int)(atlasSize));
-    //         float row = (float)(tex / (int)(atlasSize));
-
-    //         float u0 = (col * tilePixels) / atlasPixels + epsilon;
-    //         float u1 = u0 + (tilePixels / atlasPixels) - (epsilon * 2.0f);
-    //         float v0 = (row * tilePixels) / atlasPixels + epsilon;
-    //         float v1 = v0 + (tilePixels / atlasPixels) - (epsilon * 2.0f);
-            
-    //         u0 = u0 + offset; 
-    //         u1 = u0 + offset + size;
-    //         v0 = v0 + offset;
-    //         v1 = v0 + offset + size;
-
-    //         float x0 = (float)0 + 0;
-    //         float x1 = (float)0 + 1;
-    //         float y0 = (float)0 + 0;
-    //         float y1 = (float)0 + 1;
-    //         float z0 = (float)0 + 0;
-    //         float z1 = (float)0 + 1;
-    //         t.vertexUV(x0, y0, z1, u0, v1);
-    //         t.vertexUV(x0, y0, z0, u0, v0);
-    //         t.vertexUV(x1, y0, z0, u1, v0);
-    //         t.vertexUV(x1, y0, z1, u1, v1);
-    //         t.vertexUV(x1, y1, z1, u1, v1);
-    //         t.vertexUV(x1, y1, z0, u1, v0);
-    //         t.vertexUV(x0, y1, z0, u0, v0);
-    //         t.vertexUV(x0, y1, z1, u0, v1);
-    //         t.vertexUV(x0, y1, z0, u1, v0);
-    //         t.vertexUV(x1, y1, z0, u0, v0);
-    //         t.vertexUV(x1, y0, z0, u0, v1);
-    //         t.vertexUV(x0, y0, z0, u1, v1);
-    //         t.vertexUV(x0, y1, z1, u0, v0);
-    //         t.vertexUV(x0, y0, z1, u0, v1);
-    //         t.vertexUV(x1, y0, z1, u1, v1);
-    //         t.vertexUV(x1, y1, z1, u1, v0);
-    //         t.vertexUV(x0, y1, z1, u1, v0);
-    //         t.vertexUV(x0, y1, z0, u0, v0);
-    //         t.vertexUV(x0, y0, z0, u0, v1);
-    //         t.vertexUV(x0, y0, z1, u1, v1);
-    //         t.vertexUV(x1, y0, z1, u0, v1);
-    //         t.vertexUV(x1, y0, z0, u1, v1);
-    //         t.vertexUV(x1, y1, z0, u1, v0);
-    //         t.vertexUV(x1, y1, z1, u0, v0);
-    //         t.end();
-    //         glEndList();
-
-    //         models[i] = listId;
-    //     }
-    // }
 }

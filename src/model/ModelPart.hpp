@@ -11,7 +11,6 @@ private:
     int textureOffsetY = 0;
     
 public:
-    std::vector<NewVertex> vertices;
     std::vector<Quad> quads;
     
     float x = 0.0f;
@@ -35,7 +34,6 @@ public:
     }
 
     void addBox(float x, float y, float z, int w, int h, int d, float expand = 0.0f) {
-        this->vertices.clear();
         this->quads.clear();
 
         float x1 = x + (float)w;
@@ -64,9 +62,6 @@ public:
         NewVertex v6(x1, y1, z1, 8.0f, 8.0f);
         NewVertex v7(x, y1, z1, 8.0f, 0.0f);
 
-        vertices = {v0, v1, v2, v3, v4, v5, v6, v7};
-
-        
         // Right
         quads.push_back(Quad({v5, v1, v2, v6}, 
             textureOffsetX + d + w, textureOffsetY + d, 

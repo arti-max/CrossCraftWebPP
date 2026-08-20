@@ -65,6 +65,9 @@ public:
     static const Tile* brownMushroom;
     static const Tile* goldBlock;
     static const Tile* ironBlock;
+    static const Tile* slab;
+    static const Tile* doubleSlab;
+    static const Tile* tnt;
 
     int textureId = 0;
     int id = 0;

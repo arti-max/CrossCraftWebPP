@@ -10,9 +10,6 @@ public:
         float x = -2.0f;
         float y = -2.0f;
         float z = -2.0f;
-        this->model->vertices.clear();
-        this->model->vertices.resize(8);
-        this->model->vertices.reserve(8);
         this->model->quads.clear();
         NewVertex v1(x, y, z, 0.0f, 0.0f);
         NewVertex v2(2.0f, y, z, 0.0f, 8.0f);
@@ -22,14 +19,6 @@ public:
         NewVertex v6(2.0f, y, 2.0f, 0.0f, 8.0f);
         NewVertex v7(2.0f, 2.0f, 2.0f, 8.0f, 8.0f);
         NewVertex v8(x, 2.0f, 2.0f, 8.0f, 0.0f);
-        this->model->vertices[0] = v1;
-        this->model->vertices[1] = v2;
-        this->model->vertices[2] = v3;
-        this->model->vertices[3] = v4;
-        this->model->vertices[4] = v5;
-        this->model->vertices[5] = v6;
-        this->model->vertices[6] = v7;
-        this->model->vertices[7] = v8;
         float uuo = 0.25f;
         float vvo = 0.25f;
         float u1 = ((float)(textureId % 16) + (1.0f - uuo)) / 16.0f;

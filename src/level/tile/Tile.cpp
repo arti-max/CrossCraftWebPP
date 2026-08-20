@@ -11,6 +11,7 @@
 #include "level/tile/Tile.hpp"
 #include "level/liquid/LiquidType.hpp"
 #include "level/tile/SlabTile.hpp"
+#include "level/tile/TNTTile.hpp"
 
 #include "particle/TileParticle.hpp"
 
@@ -19,7 +20,7 @@ const Tile* Tile::empty = nullptr;
 
 static Tile rockTile(1, 1);
 static GrassTile grassTile(2);
-static SlabTile dirtTile(3, 2);
+static Tile dirtTile(3, 2);
 static Tile cobbleTile(4, 16);
 static Tile woodTile(5, 4);
 static Bush bushTile(6, 15);
@@ -57,8 +58,11 @@ static Bush redFlowerTile(37, 12);
 static Bush yellowFlowerTile(38, 13);
 static Bush redMushroomTile(39, 28);
 static Bush brownMushroomTile(40, 29);
-static Tile goldBlockTile(41, 40);
-static Tile ironBlockTile(42, 39);
+static Tile goldBlockTile(41, 24);
+static Tile ironBlockTile(42, 23);
+static SlabTile slabTile(43, false);
+static SlabTile doubleSlabTile(44, true);
+static TNTTile tntTile(45);
 
 
 const Tile* Tile::rock = (rockTile.setData(SoundType::stone, 1.0f, 1.0f)->setDrop(cobbleTile.id));
@@ -103,6 +107,9 @@ const Tile* Tile::redMushroom = redMushroomTile.setData(SoundType::none, 1.0f, 0
 const Tile* Tile::brownMushroom = brownMushroomTile.setData(SoundType::none, 1.0f, 0.0f);
 const Tile* Tile::goldBlock = goldBlockTile.setData(SoundType::metal, 1.0f, 5.0f);
 const Tile* Tile::ironBlock = ironBlockTile.setData(SoundType::metal, 1.0f, 5.0f);
+const Tile* Tile::slab = slabTile.setData(SoundType::stone, 1.0f, 1.1f);
+const Tile* Tile::doubleSlab = doubleSlabTile.setData(SoundType::stone, 1.0f, 1.4f);
+const Tile* Tile::tnt = tntTile.setData(SoundType::grass, 1.0f, 0.0f);
 
 Tile::Tile(int id) {
     tiles[id] = this;
@@ -487,11 +494,11 @@ void Tile::tick(Level* level, int x, int y, int z, Random* random) {
 }
 
 AABB* Tile::getTileAABB(int x, int y, int z) const {
-    return new AABB(x, y, z, x+1, y+1, z+1);
+    return new AABB(x, y, z, x+this->maxX, y+this->maxY, z+this->maxZ);
 }
 
 AABB* Tile::getAABB(int x, int y, int z) const {
-    return new AABB(x, y, z, x+1, y+1, z+1);
+    return new AABB(x, y, z, x+this->maxX, y+this->maxY, z+this->maxZ);
 }
 
 bool Tile::mayPick() {
