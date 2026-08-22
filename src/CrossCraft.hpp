@@ -50,6 +50,7 @@
 #include "item/Sign.hpp"
 #include "item/Arrow.hpp"
 #include "Progressbar.hpp"
+#include "particle/RainParticle.hpp"
 
 class CrossCraft : public LevelLoaderListener {
 public:
@@ -118,6 +119,7 @@ private:
     void renderHeldBlock(float partialTicks);
     void setLighting(bool enable);
     void hurtEffect(float partialTicks);
+    void renderRain(float partialTicks);
 
     int getSelectedTile();
 

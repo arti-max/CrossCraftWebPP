@@ -18,4 +18,5 @@ public:
     void tick() override;
     void render(float partialTicks, Textures* textures) override;
     void hurt(Entity* e, int dmg) override;
+    bool isPickable() override;
 };

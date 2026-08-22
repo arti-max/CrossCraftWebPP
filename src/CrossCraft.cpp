@@ -524,6 +524,11 @@ void CrossCraft::tick() {
                 if (Keyboard::getEventKey() == this->settings->key_load->keyCode) {
                     // this->player->resetPos();
                 }
+
+                if (Keyboard::getEventKey() == GLFW_KEY_F5) {
+                    this->raining = !this->raining;
+                }
+
                 if (Keyboard::getEventKey() >= GLFW_KEY_1 && Keyboard::getEventKey() <= GLFW_KEY_9) {
                     int keyIndex = Keyboard::getEventKey() - GLFW_KEY_1;
                     if (keyIndex < this->player->inventory->slots.size()) {
@@ -694,6 +699,23 @@ update_world:
     this->level->tick();
     this->particleEngine->tick();
 
+    if (this->raining) {
+        int x = (int)this->player->x;
+        int y = (int)this->player->y;
+        int z = (int)this->player->z;
+
+        for (int i = 0; i < 50; ++i) {
+            int px = x + this->level->random->nextInt(9) - 4;
+            int pz = z + this->level->random->nextInt(9) - 4;
+            int py = this->level->getHighestTile(px, pz);
+            if (py <= y + 4 && py >= y - 4) {
+                float mx = this->level->random->nextFloat();
+                float mz = this->level->random->nextFloat();
+                this->particleEngine->add(new RainPatricle(this->level, px + mx, py + 0.1f, pz + mz));
+            }
+        }
+    }
+
     if (this->level != nullptr) {
         this->heldBlock->lastPos = this->heldBlock->pos;
         if (this->heldBlock->moving) {
@@ -856,6 +878,9 @@ void CrossCraft::render(float partialTicks) {
         glEnable(GL_LIGHTING);
     }
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    if (this->raining) {
+        this->renderRain(partialTicks);
+    }
     this->setupFog(0);
     this->levelRenderer->renderSurroundingWater();
     this->checkGlError("Render surrounding Water");
@@ -974,6 +999,69 @@ void CrossCraft::drawGui(float partialTicks) {
     if (this->screen != nullptr) {
         this->screen->render(xMouse, yMouse);
     }
+}
+
+void CrossCraft::renderRain(float partialTicks) {
+    glBindTexture(GL_TEXTURE_2D, this->textures->loadTexture("/rain.png", GL_NEAREST));
+    glEnable(GL_TEXTURE_2D);
+    glDisable(GL_CULL_FACE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glNormal3f(0.0f, 1.0f, 0.0f);
+    int x = (int)this->player->x;
+    int y = (int)this->player->y;
+    int z = (int)this->player->z;
+    Tessellator& t = Tessellator::getInstance();
+    for (int px = x - 5; px <= x + 5; ++px) {
+        for (int pz = z - 5; pz <= z + 5; ++pz) {
+            int py = this->level->getHighestTile(px, pz);
+            int miny = y - 5;
+            int maxy = y + 5;
+            if (miny < py) {
+                miny = py;
+            }
+            if (maxy < py) {
+                maxy = py;
+            }
+
+            if (miny != maxy) {
+                float animOffset = ((float)((this->ticks + px * 3121 + pz * 418711) % 32) + partialTicks) / 32.0f;
+
+                float dx = (float)px + 0.5f - x;
+                float dz = (float)pz + 0.5f - z;
+                float dist = std::sqrt(dx*dx + dz*dz) / 5.0f;
+                float alpha = (1.0f - dist*dist) * 0.7f;
+
+                glColor4f(1.0f, 1.0f, 1.0f, alpha);
+
+                float v0 = (float)miny * 2.0f / 8.0f + animOffset * 2.0f;
+                float v1 = (float)maxy * 2.0f / 8.0f + animOffset * 2.0f;
+
+                float x0 = (float)px;
+                float x1 = (float)(px+1);
+                float y0 = (float)miny;
+                float y1 = (float)maxy;
+                float z0 = (float)pz;
+                float z1 = (float)(pz+1);
+
+                t.begin();
+                t.vertexUV(x0, y0, z0, 0.0f, v0);
+                t.vertexUV(x1, y0, z1, 2.0f, v0);
+                t.vertexUV(x1, y1, z1, 2.0f, v1);
+                t.vertexUV(x0, y1, z0, 0.0f, v1);
+
+                t.vertexUV(x0, y0, z1, 0.0f, v0);
+                t.vertexUV(x1, y0, z0, 2.0f, v0);
+                t.vertexUV(x1, y1, z0, 2.0f, v1);
+                t.vertexUV(x0, y1, z1, 0.0f, v1);
+                t.end();
+            }
+        }
+    }
+
+    glEnable(GL_CULL_FACE);
+    glDisable(GL_BLEND);
+    glDisable(GL_TEXTURE_2D);
 }
 
 void CrossCraft::fill(int x0, int y0, int x1, int y1, int col) {

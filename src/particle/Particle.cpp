@@ -72,9 +72,9 @@ Particle* Particle::setScale(float scale) {
 
 void Particle::render(Tessellator& t, float partialTicks, float cameraX, float cameraY, float cameraZ, float cameraXWithY, float cameraZWithY) {
     float minU = (this->textureId % 16) / 16.0F;
-    float maxU = minU + 999.0F / 64000.0F;
+    float maxU = minU + 0.0624375f;
     float minV = ((float) (this->textureId / 16)) / 16.0F;
-    float maxV = minV + 999.0F / 64000.0F;
+    float maxV = minV + 0.0624375f;
 
     float x = this->xo + (this->x - this->xo) * partialTicks;
     float y = this->yo + (this->y - this->yo) * partialTicks;
@@ -83,7 +83,7 @@ void Particle::render(Tessellator& t, float partialTicks, float cameraX, float c
     float brightness = this->getBrightness(partialTicks);
 
     float size = this->size * 0.1f;
-    t.color(brightness, brightness, brightness);
+    t.color(this->rCol * brightness, this->gCol * brightness, this->bCol * brightness);
     t.vertexUV(x - cameraX * size - cameraXWithY * size, y - cameraY * size, z - cameraZ * size - cameraZWithY * size, minU, maxV);
     t.vertexUV(x - cameraX * size + cameraXWithY * size, y + cameraY * size, z - cameraZ * size + cameraZWithY * size, minU, minV);
     t.vertexUV(x + cameraX * size + cameraXWithY * size, y + cameraY * size, z + cameraZ * size + cameraZWithY * size, maxU, minV);

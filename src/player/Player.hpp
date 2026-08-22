@@ -46,7 +46,7 @@ public:
     void releaseAllKeys();
     void resetPos() override;
     void bindTexture(CrossCraft* cc);
-    void render(float partialTicks, Textures* textures);
+    void render(float partialTicks, Textures* textures) override;
     HumanModel* getModel();
     void awardKillScore(Entity* e, int score) override;
     int getScore();

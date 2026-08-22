@@ -10,7 +10,7 @@
 class ParticleEngine {
 private:
     Level* level;
-    std::vector<Particle*> particles;
+    std::vector<std::vector<Particle*>> particles;
 
 public:
     ParticleEngine(Level* level);

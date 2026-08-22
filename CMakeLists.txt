@@ -115,6 +115,8 @@ if(EMSCRIPTEN)
         mob/zombie.png
         mob/skeleton.png
         mob/pig.png
+        rain.png
+        particles.png
     )
     
     add_custom_command(TARGET CrossCraftWebPP POST_BUILD

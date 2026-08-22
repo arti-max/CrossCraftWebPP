@@ -25,3 +25,12 @@ end
 function onBreak(x, y, z)
 
 end
+
+function onInteract(tileId) -- Вызывается при нажатии пкм, передаёт айди выбранного блока в инвентаре
+
+end
+
+-- вызывается при получении урона мобом. entityId - кто получил, attackerId - кто нанёс урон, damager - кол-во снесённого хп
+function onEntityHurt(entityId, attackerId, damage)
+
+end
