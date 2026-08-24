@@ -1,10 +1,12 @@
 #include "level/MobSpawner.hpp"
 
+#include "Logger.hpp"
 #include "level/Level.hpp"
 #include "Entity.hpp"
 #include "level/LevelLoaderListener.hpp"
 #include "level/tile/Tile.hpp"
 // mobs:
+#include "mob/Spider.hpp"
 #include "mob/Zombie.hpp"
 #include "mob/Skeleton.hpp"
 #include "mob/Creeper.hpp"
@@ -15,15 +17,25 @@ MobSpawner::MobSpawner(Level* level) : level(level) {}
 
 void MobSpawner::spawn(int area, Entity* player, LevelLoaderListener* listener) {
     int spawned = 0;
+    Logger::logf(PREFIX_DEBUG, "Before area cycle!\n");
     for (int i = 0; i < area; i++) {
-        if (area > 1 && listener != nullptr)
+        if (area > 1 && listener != nullptr) {
+            Logger::logf(PREFIX_DEBUG, "Before load progress!\n");
             listener->levelLoadProgress(i * 100 / (area - 1));
-
-        int type = this->level->random->nextInt(4);
+            Logger::logf(PREFIX_DEBUG, "After load progress!\n");
+        }
+        
+        if (this->level->random != nullptr) {
+            Logger::logf(PREFIX_DEBUG, "random is nullptr...!\n");
+        }
+        int type = this->level->random->nextInt(5);
+        Logger::logf(PREFIX_DEBUG, "After type randomed!\n");
         int spawnX = this->level->random->nextInt(this->level->width);
         int spawnY = std::min(this->level->random->nextFloat(), this->level->random->nextFloat()) * this->level->depth;
+        Logger::logf(PREFIX_DEBUG, "After y coord!\n");
         int spawnZ = this->level->random->nextInt(this->level->height);
         
+        Logger::logf(PREFIX_DEBUG, "Before borders check!\n");
         if (spawnX < 0 || spawnY < 0 ||spawnZ < 0 || spawnX >= this->level->width || spawnY >= this->level->depth || spawnZ >= this->level->height) {
             continue;
         }
@@ -38,6 +50,7 @@ void MobSpawner::spawn(int area, Entity* player, LevelLoaderListener* listener) 
             continue;
         }
 
+        Logger::logf(PREFIX_DEBUG, "Before check lit and grouping!\n");
         if (!level->isLit(spawnX, spawnY, spawnZ) || this->level->random->nextInt(5) == 0) {
             for (int attempt = 0; attempt < 3; ++attempt) {
                 int mx = spawnX;
@@ -66,6 +79,13 @@ void MobSpawner::spawn(int area, Entity* player, LevelLoaderListener* listener) 
                             if (dx*dx + dy*dy + dz*dz < 256.0f) {
                                 continue;
                             }
+                        } else {
+                            dx = fx - level->xSpawn;
+                            dy = fy - level->ySpawn;
+                            dz = fz - level->zSpawn;
+                            if (dx*dx + dy*dy + dz*dz < 256.0f) {
+                                continue;
+                            }
                         }
 
                         Entity* mob = nullptr;
@@ -74,7 +94,7 @@ void MobSpawner::spawn(int area, Entity* player, LevelLoaderListener* listener) 
                             case 1: mob = new Skeleton(level, fx, fy, fz); break;
                             case 2: mob = new AnimalMob(level, fx, fy, fz); break;
                             case 3: mob = new Creeper(level, fx, fy, fz); break;
-                            // case 4: mob = new HumanMob(level, fx, fy, fz); break;
+                            case 4: mob = new Spider(level, fx, fy, fz); break;
                         }
 
                         if (mob) {

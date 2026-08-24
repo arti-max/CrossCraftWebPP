@@ -28,7 +28,7 @@ private:
     void addFlowersAndMushrooms(const std::vector<int>& map);
     void addTrees(Level* level, const std::vector<int>& map);
     void growSurface(const std::vector<int>& map);
-    void spawnMobs(Level* level);
+    // void spawnMobs(Level* level);
     
     void addSurfaceFlowers(const std::vector<int>& map);
     void addUndergroundMushrooms(const std::vector<int>& map);

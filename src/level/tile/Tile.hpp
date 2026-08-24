@@ -68,6 +68,10 @@ public:
     static const Tile* slab;
     static const Tile* doubleSlab;
     static const Tile* tnt;
+    static const Tile* bricks;
+    static const Tile* mossStone;
+    static const Tile* bookshelf;
+    static const Tile* cobweb;
 
     int textureId = 0;
     int id = 0;

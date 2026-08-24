@@ -121,147 +121,146 @@ bool Entity::isFree(float xa, float ya, float za) {
 }
 
 void Entity::move(float xa, float ya, float za) {
-    // if (this->noPhysics) {
-    //     this->bb.move(xa, ya, za);
-    //     this->x = (this->bb.x0 + this->bb.x1) / 2.0f;
-    //     this->y = (this->bb.y0 + this->heightOffset - this->ySlideOffset);
-    //     this->z = (this->bb.z0 + this->bb.z1) / 2.0f;
-    // } else{
-    float xxo = this->x;
-    float zzo = this->z;
-    float xaOrg = xa;
-    float yaOrg = ya;
-    float zaOrg = za;
-    AABB bbOrg = this->bb;
-    
-    aabbs.clear();
-    level->getCubes(bb.expand(xa, ya, za), &aabbs);
-
-    // if (aabbs.size() <= 0 && this->getEntityType() == EntityType::Player) {
-    //     Logger::logf(PREFIX_ERROR, "WHAT?!?! AABBS IS ZERO!!\n");
-    // }
-
-    for (size_t i = 0; i < aabbs.size(); ++i) {
-        ya = aabbs[i].clipYCollide(bb, ya);
-    }
-
-    bb.move(0.0f, ya, 0.0f);
-    if (!this->slide && yaOrg != ya) {
-        za = 0.0f;
-        ya = 0.0f;
-        xa = 0.0f;
-    }
-
-    for (size_t i = 0; i < aabbs.size(); ++i) {
-        xa = aabbs[i].clipXCollide(bb, xa);
-    }
-
-    bb.move(xa, 0.0f, 0.0f);
-    if (!this->slide && xaOrg != xa) {
-        za = 0.0f;
-        ya = 0.0f;
-        xa = 0.0f;
-    }
-
-    for (size_t i = 0; i < aabbs.size(); ++i) {
-        za = aabbs[i].clipZCollide(bb, za);
-    }
-
-    bb.move(0.0f, 0.0f, za);
-    if (!this->slide && zaOrg != za) {
-        za = 0.0f;
-        ya = 0.0f;
-        xa = 0.0f;
-    }
-
-    // логика авто-шага на полублочную поверхность
-    // Просто проходимся ещё раз таким-же алгоритмом, но с ya = шаг энтити.
-    // TODO: пофиксить забирание на полный блок, хд
-    if (this->footSize > 0.0f && (this->onGround && (xaOrg != xa || zaOrg != za))) {
-        float oldXA = xa;
-        float oldYA = ya;
-        float oldZA = za;
-        AABB oldbb = this->bb;
-
-        this->bb = bbOrg;
-        xa = xaOrg;
-        ya = this->footSize; 
-        za = zaOrg;
-
+    if (this->noPhysics) {
+        this->bb.move(xa, ya, za);
+        this->x = (this->bb.x0 + this->bb.x1) / 2.0f;
+        this->y = (this->bb.y0 + this->heightOffset - this->ySlideOffset);
+        this->z = (this->bb.z0 + this->bb.z1) / 2.0f;
+    } else{
+        float xxo = this->x;
+        float zzo = this->z;
+        float xaOrg = xa;
+        float yaOrg = ya;
+        float zaOrg = za;
+        AABB bbOrg = this->bb;
+        
         aabbs.clear();
         level->getCubes(bb.expand(xa, ya, za), &aabbs);
+
+        // if (aabbs.size() <= 0 && this->getEntityType() == EntityType::Player) {
+        //     Logger::logf(PREFIX_ERROR, "WHAT?!?! AABBS IS ZERO!!\n");
+        // }
 
         for (size_t i = 0; i < aabbs.size(); ++i) {
             ya = aabbs[i].clipYCollide(bb, ya);
         }
+
         bb.move(0.0f, ya, 0.0f);
+        if (!this->slide && yaOrg != ya) {
+            za = 0.0f;
+            ya = 0.0f;
+            xa = 0.0f;
+        }
 
         for (size_t i = 0; i < aabbs.size(); ++i) {
             xa = aabbs[i].clipXCollide(bb, xa);
         }
-        this->bb.move(xa, 0.0f, 0.0f);
+
+        bb.move(xa, 0.0f, 0.0f);
+        if (!this->slide && xaOrg != xa) {
+            za = 0.0f;
+            ya = 0.0f;
+            xa = 0.0f;
+        }
 
         for (size_t i = 0; i < aabbs.size(); ++i) {
             za = aabbs[i].clipZCollide(bb, za);
         }
+
         bb.move(0.0f, 0.0f, za);
-
-        ya = -this->footSize;
-        for (size_t i = 0; i < aabbs.size(); ++i) {
-            ya = aabbs[i].clipYCollide(bb, ya);
+        if (!this->slide && zaOrg != za) {
+            za = 0.0f;
+            ya = 0.0f;
+            xa = 0.0f;
         }
-        bb.move(0.0f, ya, 0.0f);
 
-        // Если оригинальнаый шаг (длина всех oldZA + oldXA) равен или больше, чем просимулированный на footSize, то откатываем назад 
-        if (oldXA * oldXA + oldZA * oldZA >= xa * xa + za * za) {
-            this->bb = oldbb;
-            xa = oldXA;
-            ya = oldYA;
-            za = oldZA; 
+        // логика авто-шага на полублочную поверхность
+        // Просто проходимся ещё раз таким-же алгоритмом, но с ya = шаг энтити.
+        if (this->footSize > 0.0f && (this->onGround && (xaOrg != xa || zaOrg != za))) {
+            float oldXA = xa;
+            float oldYA = ya;
+            float oldZA = za;
+            AABB oldbb = this->bb;
+
+            this->bb = bbOrg;
+            xa = xaOrg;
+            ya = this->footSize; 
+            za = zaOrg;
+
+            aabbs.clear();
+            level->getCubes(bb.expand(xa, ya, za), &aabbs);
+
+            for (size_t i = 0; i < aabbs.size(); ++i) {
+                ya = aabbs[i].clipYCollide(bb, ya);
+            }
+            bb.move(0.0f, ya, 0.0f);
+
+            for (size_t i = 0; i < aabbs.size(); ++i) {
+                xa = aabbs[i].clipXCollide(bb, xa);
+            }
+            this->bb.move(xa, 0.0f, 0.0f);
+
+            for (size_t i = 0; i < aabbs.size(); ++i) {
+                za = aabbs[i].clipZCollide(bb, za);
+            }
+            bb.move(0.0f, 0.0f, za);
+
+            ya = -this->footSize;
+            for (size_t i = 0; i < aabbs.size(); ++i) {
+                ya = aabbs[i].clipYCollide(bb, ya);
+            }
+            bb.move(0.0f, ya, 0.0f);
+
+            // Если оригинальнаый шаг (длина всех oldZA + oldXA) равен или больше, чем просимулированный на footSize, то откатываем назад 
+            if (oldXA * oldXA + oldZA * oldZA >= xa * xa + za * za) {
+                this->bb = oldbb;
+                xa = oldXA;
+                ya = oldYA;
+                za = oldZA; 
+            }
         }
-    }
 
-    this->horizontalCollision = xaOrg != xa || zaOrg != za;
-    this->onGround = (yaOrg != ya && yaOrg < 0.0f);
-    this->collision = this->horizontalCollision || yaOrg != ya;
-    if (this->onGround) {
-        if (this->fallDistance > 0.0f) {
-            this->causeFallDamage(this->fallDistance);
-            this->fallDistance = 0.0f;
+        this->horizontalCollision = xaOrg != xa || zaOrg != za;
+        this->onGround = (yaOrg != ya && yaOrg < 0.0f);
+        this->collision = this->horizontalCollision || yaOrg != ya;
+        if (this->onGround) {
+            if (this->fallDistance > 0.0f) {
+                this->causeFallDamage(this->fallDistance);
+                this->fallDistance = 0.0f;
+            }
+        } else if (ya < 0.0f) {
+            this->fallDistance -= ya;
         }
-    } else if (ya < 0.0f) {
-        this->fallDistance -= ya;
-    }
 
-    if (xaOrg != xa) {
-        this->xd = 0.0f;
-    }
-    if (yaOrg != ya) {
-        this->yd = 0.0f;
-    }
-    if (zaOrg != za) {
-        this->zd = 0.0f;
-    }
+        if (xaOrg != xa) {
+            this->xd = 0.0f;
+        }
+        if (yaOrg != ya) {
+            this->yd = 0.0f;
+        }
+        if (zaOrg != za) {
+            this->zd = 0.0f;
+        }
 
 
-    this->x = (this->bb.x0 + this->bb.x1) / 2.0f;
-    this->y = this->bb.y0 + this->heightOffset;
-    this->z = (this->bb.z0 + this->bb.z1) / 2.0f;
-    float zz = this->x - xxo;
-    xa = this->z - zzo;
-    this->walkDist = (float)((float)this->walkDist+std::sqrt((float)(zz*zz+xa*xa))*0.6f);
-    if (this->makeStepSound) {
-        int tileid = this->level->getTile((int)this->x, (int)(this->y - 0.2f - this->heightOffset), (int)this->z);
-        const SoundType* st = Tile::tiles[tileid]->st;
-        if (this->walkDist > (float)this->nextStep && tileid > 0) {
-            ++this->nextStep;
-            // Logger::logf(PREFIX_DEBUG, "STEP! tile: %d, sound: %s\n", tileid, st->name.c_str());
-            if (st != &SoundType::none) {
-                this->playSound("step." + st->name, st->getVolume()*0.75f, st->getPitch());
+        this->x = (this->bb.x0 + this->bb.x1) / 2.0f;
+        this->y = this->bb.y0 + this->heightOffset;
+        this->z = (this->bb.z0 + this->bb.z1) / 2.0f;
+        float zz = this->x - xxo;
+        xa = this->z - zzo;
+        this->walkDist = (float)((float)this->walkDist+std::sqrt((float)(zz*zz+xa*xa))*0.6f);
+        if (this->makeStepSound) {
+            int tileid = this->level->getTile((int)this->x, (int)(this->y - 0.2f - this->heightOffset), (int)this->z);
+            const SoundType* st = Tile::tiles[tileid]->st;
+            if (this->walkDist > (float)this->nextStep && tileid > 0) {
+                ++this->nextStep;
+                // Logger::logf(PREFIX_DEBUG, "STEP! tile: %d, sound: %s\n", tileid, st->name.c_str());
+                if (st != &SoundType::none) {
+                    this->playSound("step." + st->name, st->getVolume()*0.75f, st->getPitch());
+                }
             }
         }
     }
-    // }
 }
 
 bool Entity::isInWater() {

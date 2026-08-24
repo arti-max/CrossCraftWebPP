@@ -3,6 +3,7 @@
 #include "item/Arrow.hpp"
 #include "util/Random.hpp"
 #include "mob/ai/SkeletonAI.hpp"
+#include "level/Level.hpp"
 
 class Level;
 

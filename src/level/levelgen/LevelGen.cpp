@@ -54,8 +54,9 @@ void LevelGen::generateLevel(Level* level, const char* username, int w, int h, i
     listener->levelLoadUpdate("Growing trees..");
     addTrees(level, heightmap);
 
-    listener->levelLoadUpdate("Spawning..");
-    spawnMobs(level);
+    // listener->levelLoadUpdate("Spawning..");
+    // spawnMobs(level);
+
     listener->levelLoadUpdate("Done");
     listener->levelLoadProgress(100);
 }
@@ -444,68 +445,4 @@ void LevelGen::addTrees(Level* level, const std::vector<int>& map) {
         }
     }
     listener->levelLoadProgress(100);
-}
-
-void LevelGen::spawnMobs(Level* level) {
-    int mobsToSpawn = width * height * depth / 800;
-    int spawned = 0;
-    for (int i = 0; i < mobsToSpawn; ++i) {
-        if (mobsToSpawn > 1)
-            listener->levelLoadProgress(i * 100 / (mobsToSpawn - 1));
-
-        int type = random.nextInt(4);
-        int x = random.nextInt(width);
-        int y = (int)(std::min(random.nextFloat(), random.nextFloat()) * depth);
-        int z = random.nextInt(height);
-
-        if (x < 0 || x >= width || y < 0 || y >= depth || z < 0 || z >= height)
-            continue;
-
-        if (level->isSolidTile(x, y, z))
-            continue;
-
-        int tileId = level->getTile(x, y, z);
-        Tile* tile = Tile::tiles[tileId];
-        if (tile && tile->getLiquidType() != LiquidType::NOT_LIQUID)
-            continue;
-
-        if (!level->isLit(x, y, z) || random.nextInt(5) == 0) {
-            for (int attempt = 0; attempt < 3; ++attempt) {
-                int mx = x, my = y, mz = z;
-                for (int step = 0; step < 3; ++step) {
-                    mx += random.nextInt(6) - random.nextInt(6);
-                    my += random.nextInt(1) - random.nextInt(1);
-                    mz += random.nextInt(6) - random.nextInt(6);
-
-                    if (mx < 0 || mx >= width || my < 0 || my >= depth - 2 || mz < 0 || mz >= height)
-                        continue;
-
-                    if (level->isSolidTile(mx, my - 1, mz) && !level->isSolidTile(mx, my, mz) && !level->isSolidTile(mx, my + 1, mz)) {
-                        float fx = mx + 0.5f;
-                        float fy = my + 1.0f;
-                        float fz = mz + 0.5f;
-
-                        Entity* mob = nullptr;
-                        switch (type) {
-                            case 0: mob = new Zombie(level, fx, fy, fz); break;
-                            case 1: mob = new Skeleton(level, fx, fy, fz); break;
-                            case 2: mob = new AnimalMob(level, fx, fy, fz); break;
-                            case 3: mob = new Creeper(level, fx, fy, fz); break;
-                        }
-
-                        if (mob) {
-                            AABB bb = ((Mob*)mob)->bb;
-                            if (level->isFree(bb)) {
-                                ++spawned;
-                                level->addEntity(mob);
-                            } else {
-                                delete mob;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    std::cout << spawned << " mobs spawned" << std::endl;
 }

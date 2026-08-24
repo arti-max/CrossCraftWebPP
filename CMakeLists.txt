@@ -84,7 +84,7 @@ if(EMSCRIPTEN)
             -s LEGACY_GL_EMULATION=0 \
             -s GL_FFP_ONLY=0 \
             -s EXPORTED_FUNCTIONS=['_main','_setAppletParams','_startApplet','_testAsyncify','_setServerParams','_showCrashScreen'] \
-            -s EXPORTED_RUNTIME_METHODS=['ccall','cwrap','allocate','intArrayFromString','UTF8ToString'] \
+            -s EXPORTED_RUNTIME_METHODS=['ccall','cwrap','intArrayFromString','UTF8ToString'] \
             -s ERROR_ON_UNDEFINED_SYMBOLS=0 \
             -s STACK_SIZE=134217728 \
             -s INITIAL_MEMORY=536870912 \
@@ -92,8 +92,8 @@ if(EMSCRIPTEN)
             -l openal \
             -lidbfs.js \
             --allow-multiple-definition \
-            --shell-file ${SHELL_FILE} \
-            --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/resources@/ \
+            --shell-file \"${SHELL_FILE}\" \
+            --preload-file \"${CMAKE_CURRENT_SOURCE_DIR}/resources@/\" \
             ${OPTIM_FLAGS} \
         "
     )
@@ -117,6 +117,7 @@ if(EMSCRIPTEN)
         mob/pig.png
         rain.png
         particles.png
+        mob/spider.png
     )
     
     add_custom_command(TARGET CrossCraftWebPP POST_BUILD

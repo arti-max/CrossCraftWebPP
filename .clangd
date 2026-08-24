@@ -1,0 +1,22 @@
+CompileFlags:
+  CompilationDatabase: "build"
+  Add:
+    - "--target=wasm32-unknown-emscripten"
+    - "-nostdinc++"
+    - "-I/home/poly9a/.cache/emscripten/sysroot/include/c++/v1"
+    - "-I/home/poly9a/.cache/emscripten/sysroot/include/compat"
+    - "-I/home/poly9a/.cache/emscripten/sysroot/include"
+    - "-DEMSCRIPTEN=1"
+    - "-D__EMSCRIPTEN__=1"
+    - "-D__wasi__=1"
+  Remove:
+    - "-s*"
+    - "-sUSE_ZLIB=1"
+    - "--shell-file*"
+    - "--preload-file*"
+    - "-I/usr/include/**"
+    - "-I/usr/lib/emscripten/system/include/**"
+
+Diagnostics:
+  Suppress:
+    - "drv_unknown_argument"

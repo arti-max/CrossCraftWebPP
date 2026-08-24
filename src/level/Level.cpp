@@ -1,4 +1,5 @@
 #include "level/Level.hpp"
+#include "level/fx/Smolder.hpp"
 #include "level/tile/Tile.hpp"
 #include "level/liquid/LiquidType.hpp"
 #include "util/Utils.hpp"
@@ -801,9 +802,12 @@ void Level::explode(Entity* e, float x, float y, float z, float radius) {
                             Tile* tile = Tile::tiles[tileid];
                             // *20.0f - т.к. в Tile.cpp hardness умножается на 20, чтобы нормально блоки ломались
                             if (tile->getLiquidType() == LiquidType::NOT_LIQUID && tile->hardness < (1.0f*20.0f)) { 
+                                this->addEntity((Entity*)(new Smolder(this, bx, by, bz)));
                                 Tile::tiles[tileid]->onDestroy(this, bx, by, bz);
                                 this->setTile(bx, by, bz, 0);
                             }
+                        } else {
+                            this->addEntity((Entity*)(new Smolder(this, bx, by, bz)));
                         }
                     }
                 }

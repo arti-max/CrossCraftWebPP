@@ -3,3 +3,4 @@ backups/
 old/
 test_spam.py
 build.bat
+compile_commands.json

@@ -1,6 +1,7 @@
-#include "LevelIO.hpp"
+#include "level/LevelIO.hpp"
 #include "CrossCraft.hpp"
 #include "Entity.hpp"
+#include "mob/Spider.hpp"
 #include "player/Player.hpp"
 #include <emscripten.h>
 #include <emscripten/fetch.h>
@@ -18,9 +19,6 @@
 #include "item/Arrow.hpp"
 #include "item/Sign.hpp"
 
-const int ITEM_ENTITY = 32356;
-
-static int SPAWNED_MOBS = 0;
 
 LevelIO::LevelIO(CrossCraft* cc) : cc(cc) {}
 
@@ -285,8 +283,13 @@ bool LevelIO::load(Level* level, const uint8_t* data, size_t length) {
         
         int8_t version = readInt8(decompressed.data(), offset);
         if (version > 3) {
-            std::cerr << "Unsupported format version: " << (int)version << std::endl;
-            return false;
+            bool loadByLoader = this->loadApi->loadByVersion(version, level, data, length);
+            if (!loadByLoader) {
+                std::cerr << "Unsupported format version: " << (int)version << std::endl;
+                return false;
+            } else {
+                return loadByLoader;
+            }
         }
 
         Logger::logf(PREFIX_DEBUG, "Before name!\n");
@@ -545,8 +548,8 @@ std::vector<uint8_t> LevelIO::serializeLevelToByteArray(Level* level) {
             writeFloat(buffer, entity->y);
             writeFloat(buffer, entity->z);
         }
-        if (dynamic_cast<HumanMob*>(entity)) {
-            writeInt32(buffer, 5); // 5 = Human Mob
+        if (dynamic_cast<Spider*>(entity)) {
+            writeInt32(buffer, 5); // 5 = Spider
             writeFloat(buffer, entity->x);
             writeFloat(buffer, entity->y);
             writeFloat(buffer, entity->z);

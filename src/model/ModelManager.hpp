@@ -6,6 +6,7 @@
 #include "model/SkeletonModel.hpp"
 #include "model/PigModel.hpp"
 #include "model/CreeperModel.hpp"
+#include "model/SpiderModel.hpp"
 
 class ModelManager {
 private:
@@ -15,6 +16,7 @@ private:
     SkeletonModel* skeleton = new SkeletonModel();
     CreeperModel* creeper = new CreeperModel();
     PigModel* pig = new PigModel(6, 0.0f);
+    SpiderModel* spider = new SpiderModel();
 public:
 
     Model* getModel(std::string name) {
@@ -35,6 +37,9 @@ public:
         }
         if (name == "creeper") {
             return (Model*)this->creeper;
+        }
+        if (name == "spider") {
+            return (Model*)this->spider;
         }
 
         return (Model*)this->human;

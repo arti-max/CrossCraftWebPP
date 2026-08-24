@@ -4,11 +4,7 @@
         {
             "label": "Build WASM",
             "type": "shell",
-            "command": "cmd",
-            "args": [
-                "/c",
-                "C:\\dev\\emsdk\\emsdk_env.bat && emcmake cmake -B build -DCMAKE_BUILD_TYPE=Debug -G Ninja"
-            ],
+            "command": "emcmake cmake -B build -DCMAKE_BUILD_TYPE=Debug -G Ninja",
             "group": "build",
             "presentation": {
                 "echo": true,
@@ -21,11 +17,7 @@
         {
             "label": "Compile",
             "type": "shell",
-            "command": "cmd",
-            "args": [
-                "/c", 
-                "C:\\dev\\emsdk\\emsdk_env.bat && cmake --build build"
-            ],
+            "command": "cmake --build build",
             "group": {
                 "kind": "build",
                 "isDefault": true

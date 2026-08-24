@@ -14,6 +14,7 @@
 #include "level/tile/TNTTile.hpp"
 
 #include "particle/TileParticle.hpp"
+#include "sound/SoundType.hpp"
 
 std::array<Tile*, 256> Tile::tiles = {nullptr};
 const Tile* Tile::empty = nullptr;
@@ -63,6 +64,10 @@ static Tile ironBlockTile(42, 23);
 static SlabTile slabTile(43, false);
 static SlabTile doubleSlabTile(44, true);
 static TNTTile tntTile(45);
+static Tile bricksTile(46, 7); 
+static Tile bookshelfTile(47, 35); 
+static Tile mossStoneTile(48, 36); 
+static Bush cobwebTile(49, 11);
 
 
 const Tile* Tile::rock = (rockTile.setData(SoundType::stone, 1.0f, 1.0f)->setDrop(cobbleTile.id));
@@ -110,6 +115,11 @@ const Tile* Tile::ironBlock = ironBlockTile.setData(SoundType::metal, 1.0f, 5.0f
 const Tile* Tile::slab = slabTile.setData(SoundType::stone, 1.0f, 1.1f);
 const Tile* Tile::doubleSlab = doubleSlabTile.setData(SoundType::stone, 1.0f, 1.4f);
 const Tile* Tile::tnt = tntTile.setData(SoundType::grass, 1.0f, 0.0f);
+const Tile* Tile::bricks = bricksTile.setData(SoundType::stone, 1.0f, 1.0f);
+const Tile* Tile::mossStone = mossStoneTile.setData(SoundType::stone, 1.0f, 1.0f);
+const Tile* Tile::bookshelf = bookshelfTile.setData(SoundType::wood, 1.0f, 1.6f);
+const Tile* Tile::cobweb = cobwebTile.setData(SoundType::cloth, 0.4f, 0.5f);
+
 
 Tile::Tile(int id) {
     tiles[id] = this;

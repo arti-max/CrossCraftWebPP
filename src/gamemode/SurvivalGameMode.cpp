@@ -1,5 +1,8 @@
 #include "gamemode/SurvivalGameMode.hpp"
 #include "CrossCraft.hpp"
+#include "Logger.hpp"
+#include "MobSpawner.hpp"
+#include "gamemode/GameMode.hpp"
 #include "level/Level.hpp"
 #include "player/Player.hpp"
 
@@ -79,6 +82,12 @@ void SurvivalGameMode::preparePlayer(Player* player) {
     player->inventory->count[0] = 999;
     player->inventory->slots[1] = Tile::tnt->id;
     player->inventory->count[1] = 999;
+    player->inventory->slots[2] = Tile::bricks->id;
+    player->inventory->count[2] = 999;
+    player->inventory->slots[3] = Tile::bookshelf->id;
+    player->inventory->count[3] = 999;
+    player->inventory->slots[4] = Tile::mossStone->id;
+    player->inventory->count[4] = 999;
     // player->inventory->slots[0] = Tile::brownMushroom->id;
     // player->inventory->count[0] = 10;
     // player->inventory->slots[1] = Tile::redMushroom->id;
@@ -103,6 +112,9 @@ bool SurvivalGameMode::useItem(Player* player, int id) {
 }
 void SurvivalGameMode::prepareLevel(Level* level) {
     GameMode::prepareLevel(level);
+    this->cc->levelLoadUpdate("Spawning..");
+    int area = level->width * level->height * level->depth / 800;
+    this->spawner->spawn(area, nullptr, this->cc);
 }
 
 void SurvivalGameMode::spawnMob() {

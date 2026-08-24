@@ -4,13 +4,16 @@
 #include <string>
 #include <vector>
 #include <cstdint>
+#include "level/io/LoadLevel.hpp"
 
 class CrossCraft;
 
 class LevelIO {
 private:
     std::vector<uint8_t> serializeLevelToByteArray(Level* level);
-    
+    LoadLevelAPI* loadApi = new LoadLevelAPI(this);
+
+public:
     void writeInt32(std::vector<uint8_t>& buffer, int32_t value);
     void writeInt16(std::vector<uint8_t>& buffer, int16_t value);
     void writeByte(std::vector<uint8_t>& buffer, uint8_t value);
@@ -27,7 +30,6 @@ private:
     std::string readUTF(const uint8_t* data, size_t& offset);
     float readFloat(const uint8_t* data, size_t& offset);
 
-public:
     CrossCraft* cc;
     
     LevelIO(CrossCraft* cc);

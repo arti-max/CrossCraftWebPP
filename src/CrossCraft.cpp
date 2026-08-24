@@ -5,6 +5,7 @@
 #include <GL/glu.h>
 #include <cmath>
 #include <gc.h>
+#include "mob/Spider.hpp"
 #include "model/Vec3D.hpp"
 #include "model/ModelPart.hpp"
 #include "mob/AnimalMob.hpp"
@@ -128,6 +129,8 @@ void CrossCraft::init() {
     this->levelRenderer = new LevelRenderer(this->level, this->textures);
     this->gamemode->preparePlayer(this->player);
     this->player->resetPos();
+    this->gamemode->apply(this->level);
+    this->gamemode->prepareLevel(this->level);
     // this->level->player = this->player;
 
     // if (this->level != nullptr) {
@@ -156,7 +159,6 @@ void CrossCraft::init() {
     this->hotbarIndex = 0;
     this->selectedTile = this->hotbarSlots[this->hotbarIndex];
 
-    this->gamemode->apply(this->level);
     this->checkGlError("Post startup");
     
 }
@@ -513,7 +515,7 @@ void CrossCraft::tick() {
                     // this->setScreen((Screen*)(new InventoryScreen()));
                     // this->releaseMouse();
                     // break;
-                    this->level->addEntity(new Sign(this, this->player->x, this->player->y, this->player->z, this->player->yRot));
+                    this->level->addEntity(new Spider(this->level, this->player->x, this->player->y, this->player->z));
                 }
 
                 if (Keyboard::getEventKey() == this->settings->key_save->keyCode) {
@@ -711,7 +713,7 @@ update_world:
             if (py <= y + 4 && py >= y - 4) {
                 float mx = this->level->random->nextFloat();
                 float mz = this->level->random->nextFloat();
-                this->particleEngine->add(new RainPatricle(this->level, px + mx, py + 0.1f, pz + mz));
+                this->particleEngine->add(new WaterDropPatricle(this->level, px + mx, py + 0.1f, pz + mz));
             }
         }
     }
@@ -1324,8 +1326,8 @@ void CrossCraft::generateNewLevel(int width, int height, int depth) {
 
     this->player->resetPos();
     this->gamemode->preparePlayer(this->player);
-    this->gamemode->prepareLevel(this->level);
     this->gamemode->apply(this->level);
+    this->gamemode->prepareLevel(this->level);
     // if (this->level != nullptr) {
     //     this->level->player = this->player;
     //     this->level->addEntity(this->player);

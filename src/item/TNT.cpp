@@ -1,6 +1,9 @@
 #include "item/TNT.hpp"
+#include "CrossCraft.hpp"
 #include "level/tile/Tile.hpp"
 #include "item/Item.hpp"
+#include "particle/SmokeParticle.hpp"
+#include "particle/TileParticle.hpp"
 #include <GL/gl.h>
 
 TNT::TNT(Level* level, float x, float y, float z) : Entity(level) {
@@ -28,8 +31,26 @@ void TNT::tick() {
         this->zd *= 0.7f;
     }
     this->ticks++;
-    if (this->ticks >= 60) {
-        this->level->explode(this, this->x, this->y, this->z, 4.0f);
+    if (this->ticks < 40) {
+        SmokeParticle* smoke = new SmokeParticle(this->level, this->x, this->y + 0.6f, this->z);
+        CrossCraft::instance->particleEngine->add(smoke);
+    }
+    if (this->ticks >= 40) {
+        float radius = 4.0f;
+        this->level->explode(this, this->x, this->y, this->z, radius);
+        for (int i = 0; i < 500; ++i) {
+            float offsetX = (float)this->level->random->nextGaussian() * radius / 4.0f;
+            float offsetY = (float)this->level->random->nextGaussian() * radius / 4.0f;
+            float offsetZ = (float)this->level->random->nextGaussian() * radius / 4.0f;
+
+            float distance = (float) std::sqrt((float)(offsetX*offsetX+offsetY*offsetY+offsetZ*offsetZ));
+
+            float motionX = offsetX / distance / distance;
+            float motionY = offsetY / distance / distance;
+            float motionZ = offsetZ / distance / distance;
+
+            this->level->cc->particleEngine->add(new TileParticle(this->level, this->x + offsetX, this->y + offsetY, this->z + offsetZ, motionX, motionY, motionZ, (Tile*)Tile::tnt));
+        }
         this->remove();
     }
 }
@@ -56,12 +77,17 @@ void TNT::render(float partialTicks, Textures* textures) {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE); 
     
     glDepthMask(GL_FALSE);
-    glColor4f(1.0f, 1.0f, 1.0f, br * 0.4f);
-    if (br >= 0.7f) {
-        glPushMatrix();
-        this->model->generateList();
-        glPopMatrix();
+    glColor4f(1.0f, 1.0f, 1.0f, ((40-this->ticks + 1) % 2) * 0.4f);
+    if (40 - this->ticks <= 16) {
+        glColor4f(1.0f, 1.0f, 1.0f, ((40-this->ticks + 1) % 2) * 0.6f);
     }
+    if (40 - this->ticks <= 4) {
+        glColor4f(1.0f, 1.0f, 1.0f, 0.9f);
+    }
+    
+    glPushMatrix();
+    this->model->generateList();
+    glPopMatrix();
     glDepthMask(GL_TRUE);
     glEnable(GL_ALPHA_TEST);
     glEnable(GL_ALPHA_TEST);
@@ -74,8 +100,8 @@ void TNT::render(float partialTicks, Textures* textures) {
 
 void TNT::hurt(Entity* e, int dmg) {
     if (e->getEntityType() == EntityType::Player && dmg >= 4) {
-        this->remove();
-        this->level->addEntity(new Item(this->level, this->x, this->y, this->z, Tile::tnt->id));
+        // this->remove();
+        // this->level->addEntity(new Item(this->level, this->x, this->y, this->z, Tile::tnt->id));
     }
 }
 

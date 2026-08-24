@@ -2,9 +2,9 @@
 #include "particle/Particle.hpp"
 #include "util/Random.hpp"
 
-class RainPatricle : public Particle {
+class WaterDropPatricle : public Particle {
 public:
-    RainPatricle(Level* level, double x, double y, double z) : Particle(level, x, y, z, 0.0f, 0.0f, 0.0f) {
+    WaterDropPatricle(Level* level, double x, double y, double z) : Particle(level, x, y, z, 0.0f, 0.0f, 0.0f) {
         this->xd *= 0.3f;
         this->yd = Random::random() * 0.2f + 0.1f;
         this->zd *= 0.3f;

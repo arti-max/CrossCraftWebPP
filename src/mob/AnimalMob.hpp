@@ -2,6 +2,9 @@
 #include "mob/Mob.hpp"
 #include "item/Item.hpp"
 
+#include "level/Level.hpp"
+#include "level/tile/Tile.hpp"
+
 class AnimalMob : public Mob {
 public:
     AnimalMob(Level* level, float x, float y, float z) : Mob(level) {
