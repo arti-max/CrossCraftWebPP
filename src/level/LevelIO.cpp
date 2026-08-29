@@ -584,83 +584,18 @@ std::vector<uint8_t> LevelIO::serializeLevelToByteArray(Level* level) {
     return compressGzip(buffer);
 }
 
-struct SaveContext {
-    LevelIO* levelIO;
-    std::string levelName;
-    std::vector<uint8_t> body;
-};
-
-static void saveSuccessCallback(emscripten_fetch_t* fetch) {
-    SaveContext* ctx = static_cast<SaveContext*>(fetch->userData);
-    
-    std::cout << "Save response status: " << fetch->status << std::endl;
-    std::cout << "Save response size: " << fetch->numBytes << std::endl;
-    
-    if (fetch->status != 200) {
-        std::string response(fetch->data, fetch->numBytes);
-        std::cout << "Server error response: " << response << std::endl;
-        
-        ctx->levelIO->cc->levelLoadUpdate(("Failed! Status " + std::to_string(fetch->status)).c_str());
-        ctx->levelIO->cc->levelLoadProgress(100);
-        emscripten_sleep(1000);
-        emscripten_fetch_close(fetch);
-        delete ctx;
-        return;
-    }
-    
-    std::string response(fetch->data, fetch->numBytes);
-    std::cout << "Server response: '" << response << "'" << std::endl;
-    
-    response.erase(0, response.find_first_not_of(" \n\r\t"));
-    response.erase(response.find_last_not_of(" \n\r\t") + 1);
-    
-    if (response != "ok" && response != "OK") {
-        ctx->levelIO->cc->levelLoadUpdate(("Failed: " + response).c_str());
-        ctx->levelIO->cc->levelLoadProgress(-1);
-        emscripten_sleep(1000);
-    } else {
-        ctx->levelIO->cc->levelLoadUpdate("Level successfully saved!");
-        ctx->levelIO->cc->levelLoadProgress(100);
-        emscripten_sleep(1000);
-    }
-    
-    emscripten_fetch_close(fetch);
-    delete ctx;
-}
-
-static void saveErrorCallback(emscripten_fetch_t* fetch) {
-    SaveContext* ctx = static_cast<SaveContext*>(fetch->userData);
-    
-    std::cerr << "Save HTTP error! Status: " << fetch->status << std::endl;
-    ctx->levelIO->cc->levelLoadUpdate("Save failed!");
-    emscripten_sleep(1000);
-    
-    emscripten_fetch_close(fetch);
-    delete ctx;
-}
-
 bool LevelIO::saveOnline(Level* level, const std::string& serverUrl, const std::string& username, const std::string& sessionId, const std::string& levelName, int levelId) {
     
     cc->beginLevelLoading("Saving level");
-    emscripten_sleep(1);
-    
     cc->levelLoadUpdate("Compressing...");
     cc->levelLoadProgress(30);
-    std::vector<uint8_t> compressedData = serializeLevelToByteArray(level);
     
-    std::cout << "DEBUG: Compressed data size: " << compressedData.size() << std::endl;
+    std::vector<uint8_t> compressedData = serializeLevelToByteArray(level);
     
     cc->levelLoadUpdate("Connecting...");
     cc->levelLoadProgress(60);
-    emscripten_sleep(100);
     
     std::vector<uint8_t> body;
-    
-    std::cout << "DEBUG: username length: " << username.length() << ", value: " << username << std::endl;
-    std::cout << "DEBUG: sessionId length: " << sessionId.length() << ", value: " << sessionId << std::endl;
-    std::cout << "DEBUG: levelName length: " << levelName.length() << ", value: " << levelName << std::endl;
-    std::cout << "DEBUG: levelId: " << levelId << std::endl;
-    
     writeUTF(body, username);
     writeUTF(body, sessionId.empty() ? "" : sessionId);
     writeUTF(body, levelName);
@@ -669,34 +604,49 @@ bool LevelIO::saveOnline(Level* level, const std::string& serverUrl, const std::
     writeInt32(body, levelId);
     body.insert(body.end(), compressedData.begin(), compressedData.end());
     
-    std::cout << "DEBUG: Total body size: " << body.size() << std::endl;
-    std::cout << "DEBUG: First 20 bytes of body: ";
-    for (int i = 0; i < std::min(20, (int)body.size()); i++) {
-        printf("%02X ", body[i]);
-    }
-    std::cout << std::endl;
-    
-    SaveContext* ctx = new SaveContext{this, levelName, std::move(body)};
+    SyncFetchState state;
     
     emscripten_fetch_attr_t attr;
     emscripten_fetch_attr_init(&attr);
     strcpy(attr.requestMethod, "POST");
-    
     attr.attributes = EMSCRIPTEN_FETCH_LOAD_TO_MEMORY;
-    attr.onsuccess = saveSuccessCallback;
-    attr.onerror = saveErrorCallback;
-    attr.userData = ctx;
+    attr.onsuccess = onSyncSuccess;
+    attr.onerror = onSyncError;
+    attr.userData = &state;
     
     const char* headers[] = {"Content-Type", "application/octet-stream", nullptr};
     attr.requestHeaders = headers;
-    
-    attr.requestData = reinterpret_cast<const char*>(ctx->body.data());
-    attr.requestDataSize = ctx->body.size();
+    attr.requestData = reinterpret_cast<const char*>(body.data());
+    attr.requestDataSize = body.size();
     
     std::string url = "https://" + serverUrl + "/level/save.html";
-    std::cout << "Saving level to: " << url << " (size: " << ctx->body.size() << " bytes)" << std::endl;
-    
     emscripten_fetch(&attr, url.c_str());
+    
+    while (!state.done) {
+        emscripten_sleep(10);
+    }
+    
+    if (!state.success || state.status != 200) {
+        cc->levelLoadUpdate(("Save failed! Status: " + std::to_string(state.status)).c_str());
+        cc->levelLoadProgress(-1);
+        emscripten_sleep(1000);
+        return false;
+    }
+    
+    std::string response(reinterpret_cast<char*>(state.data.data()), state.data.size());
+    response.erase(0, response.find_first_not_of(" \n\r\t"));
+    response.erase(response.find_last_not_of(" \n\r\t") + 1);
+    
+    if (response != "ok" && response != "OK") {
+        cc->levelLoadUpdate(("Failed: " + response).c_str());
+        cc->levelLoadProgress(-1);
+        emscripten_sleep(1000);
+        return false;
+    }
+    
+    cc->levelLoadUpdate("Level successfully saved!");
+    cc->levelLoadProgress(100);
+    emscripten_sleep(1000);
     
     return true;
 }

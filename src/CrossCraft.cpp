@@ -822,8 +822,10 @@ void CrossCraft::render(float partialTicks) {
     glEnable(GL_FOG);
     this->levelRenderer->render(this->player, 0);
     Vec3D rvec = this->getPlayerVectorO(partialTicks);
-    // render multiplayer entities (Legacy)
+    // Render Entities: (with normal3f lighting)
     this->setLighting(true);
+    this->level->emesh->render(rvec, frustum, this->textures, partialTicks);
+    // render multiplayer entities (Legacy)
     for (auto const& [id, net_player] : this->level->networkPlayers) {
         if (net_player != nullptr) {
             net_player->render(this->textures, partialTicks, this->font, this->player);
@@ -907,10 +909,6 @@ void CrossCraft::render(float partialTicks) {
     glDisable(GL_LIGHTING);
     glDisable(GL_TEXTURE_2D);
     glDisable(GL_FOG);
-    // Render Entities: (with normal3f lighting)
-    this->setLighting(true);
-    this->level->emesh->render(rvec, frustum, this->textures, partialTicks);
-    this->setLighting(false);
     
     // render rain
     if (this->raining) {

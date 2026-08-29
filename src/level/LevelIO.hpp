@@ -40,6 +40,5 @@ public:
     
     bool loadOnline(Level* level, const std::string& serverUrl, const std::string& user, int levelId);
     bool load(Level* level, const uint8_t* data, size_t length);
-    bool saveOnline(Level* level, const std::string& serverUrl, const std::string& username, 
-                   const std::string& sessionId, const std::string& levelName, int levelId);
+    bool saveOnline(Level* level, const std::string& serverUrl, const std::string& username, const std::string& sessionId, const std::string& levelName, int levelId);
 };
