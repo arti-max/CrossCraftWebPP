@@ -17,25 +17,25 @@ MobSpawner::MobSpawner(Level* level) : level(level) {}
 
 void MobSpawner::spawn(int area, Entity* player, LevelLoaderListener* listener) {
     int spawned = 0;
-    Logger::logf(PREFIX_DEBUG, "Before area cycle!\n");
+    // Logger::logf(PREFIX_DEBUG, "Before area cycle!\n");
     for (int i = 0; i < area; i++) {
         if (area > 1 && listener != nullptr) {
-            Logger::logf(PREFIX_DEBUG, "Before load progress!\n");
+            // Logger::logf(PREFIX_DEBUG, "Before load progress!\n");
             listener->levelLoadProgress(i * 100 / (area - 1));
-            Logger::logf(PREFIX_DEBUG, "After load progress!\n");
+            // Logger::logf(PREFIX_DEBUG, "After load progress!\n");
         }
         
         if (this->level->random != nullptr) {
-            Logger::logf(PREFIX_DEBUG, "random is nullptr...!\n");
+            // Logger::logf(PREFIX_DEBUG, "random is nullptr...!\n");
         }
         int type = this->level->random->nextInt(5);
-        Logger::logf(PREFIX_DEBUG, "After type randomed!\n");
+        // Logger::logf(PREFIX_DEBUG, "After type randomed!\n");
         int spawnX = this->level->random->nextInt(this->level->width);
         int spawnY = std::min(this->level->random->nextFloat(), this->level->random->nextFloat()) * this->level->depth;
-        Logger::logf(PREFIX_DEBUG, "After y coord!\n");
+        // Logger::logf(PREFIX_DEBUG, "After y coord!\n");
         int spawnZ = this->level->random->nextInt(this->level->height);
         
-        Logger::logf(PREFIX_DEBUG, "Before borders check!\n");
+        // Logger::logf(PREFIX_DEBUG, "Before borders check!\n");
         if (spawnX < 0 || spawnY < 0 ||spawnZ < 0 || spawnX >= this->level->width || spawnY >= this->level->depth || spawnZ >= this->level->height) {
             continue;
         }
@@ -50,7 +50,7 @@ void MobSpawner::spawn(int area, Entity* player, LevelLoaderListener* listener) 
             continue;
         }
 
-        Logger::logf(PREFIX_DEBUG, "Before check lit and grouping!\n");
+        // Logger::logf(PREFIX_DEBUG, "Before check lit and grouping!\n");
         if (!level->isLit(spawnX, spawnY, spawnZ) || this->level->random->nextInt(5) == 0) {
             for (int attempt = 0; attempt < 3; ++attempt) {
                 int mx = spawnX;

@@ -36,7 +36,17 @@ void Inventory::addBlockToSlot(int slot, int id) {
 }
 
 int Inventory::getCurrentBlock() {
-    return this->slots[this->selectedSlot];
+    if (this->selectedSlot > 8 || this->selectedSlot < 0) {
+        return -1;
+    }
+    if (!this->slots.empty()) {
+        if (this->slots[this->selectedSlot]) {
+            return this->slots[this->selectedSlot];
+        } else {
+            return -1;
+        }
+    }
+    return -1;
 }
 
 int Inventory::getInSlot(int slot) {

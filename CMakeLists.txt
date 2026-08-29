@@ -62,7 +62,13 @@ if(EMSCRIPTEN)
     if(DEBUG_MODE EQUAL 1)
         set(OPTIM_FLAGS "-O0 -g")
     elseif(DEBUG_MODE EQUAL 2)
-        set(OPTIM_FLAGS "-O0 -g -s SAFE_HEAP=1")
+        set(OPTIM_FLAGS "\
+            -O2 \
+            -flto \
+            -gline-tables-only \
+            -sASSERTIONS=1 \
+            -sSTACK_OVERFLOW_CHECK=1 \
+        ")
     else()
         set(OPTIM_FLAGS "-O3 -flto")
     endif()
@@ -75,10 +81,9 @@ if(EMSCRIPTEN)
             -s FULL_ES2=1 \
             -s ALLOW_MEMORY_GROWTH=1 \
             -s MAXIMUM_MEMORY=4GB \
-            -s ASYNCIFY \
-            -s ASYNCIFY_ADD=['_levelLoadProgress','_beginLevelLoading','_updateProgressStatus','_updateProgressState','_startProgressBar'] \
+            -s ASYNCIFY=1 \
+            -s ASYNCIFY_IGNORE_INDIRECT=0 \
             -s ASYNCIFY_STACK_SIZE=2097152 \
-            -s ASYNCIFY_IMPORTS=[emscripten_sleep,emscripten_wget_data] \
             -s USE_ZLIB=1 \
             -s FETCH=1 \
             -s LEGACY_GL_EMULATION=0 \
@@ -86,7 +91,7 @@ if(EMSCRIPTEN)
             -s EXPORTED_FUNCTIONS=['_main','_setAppletParams','_startApplet','_testAsyncify','_setServerParams','_showCrashScreen'] \
             -s EXPORTED_RUNTIME_METHODS=['ccall','cwrap','intArrayFromString','UTF8ToString'] \
             -s ERROR_ON_UNDEFINED_SYMBOLS=0 \
-            -s STACK_SIZE=134217728 \
+            -s STACK_SIZE=8388608 \
             -s INITIAL_MEMORY=536870912 \
             -s NO_EXIT_RUNTIME=1 \
             -l openal \

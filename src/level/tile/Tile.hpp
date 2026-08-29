@@ -15,7 +15,6 @@ class Tile {
 private:
 
 protected:
-    virtual void setShape(float x0, float y0, float z0, float x1, float y1, float z1);
     virtual bool shouldRenderFace(Level* level, int x, int y, int z, int layer, int face);
 public:
     Tile(int id);
@@ -111,4 +110,5 @@ public:
     virtual void spawnHitParticles(Level* level, int x, int y, int z, int face, ParticleEngine* engine);
     virtual HitResult* clip(int x, int y, int z, Vec3D& start, Vec3D& end);
     virtual void renderPreview(Tessellator& t);
+    virtual void setShape(float x0, float y0, float z0, float x1, float y1, float z1);
 };

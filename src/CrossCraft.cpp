@@ -5,6 +5,8 @@
 #include <GL/glu.h>
 #include <cmath>
 #include <gc.h>
+#include "emscripten/emscripten.h"
+#include "gc/gc.h"
 #include "mob/Spider.hpp"
 #include "model/Vec3D.hpp"
 #include "model/ModelPart.hpp"
@@ -210,7 +212,6 @@ void CrossCraft::releaseMouse() {
  
 void CrossCraft::stop() {
     this->running = false;
-    emscripten_cancel_main_loop();
 }
 
 void CrossCraft::run() {
@@ -235,7 +236,16 @@ void CrossCraft::run() {
 
     this->running = true;
     this->lastFpsTime = emscripten_get_now();
-    emscripten_set_main_loop_arg(emscriptenMainLoop, this, 0, 1);
+
+    while (this->running) {
+        this->mainLoop();
+
+#ifdef __EMSCRIPTEN__
+        emscripten_sleep(0);
+#endif
+    }
+
+    this->destroy();
 }
 
 void CrossCraft::mainLoop() {
@@ -272,10 +282,6 @@ void CrossCraft::mainLoop() {
         this->frames = 0;
         this->lastFpsTime += 1000.0;
     }
-}
-
-void CrossCraft::emscriptenMainLoop(void* arg) {
-    static_cast<CrossCraft*>(arg)->mainLoop();
 }
 
 bool CrossCraft::isFree(const AABB &aabb) {
@@ -515,7 +521,7 @@ void CrossCraft::tick() {
                     // this->setScreen((Screen*)(new InventoryScreen()));
                     // this->releaseMouse();
                     // break;
-                    this->level->addEntity(new Spider(this->level, this->player->x, this->player->y, this->player->z));
+                    // this->level->addEntity(new Spider(this->level, this->player->x, this->player->y, this->player->z));
                 }
 
                 if (Keyboard::getEventKey() == this->settings->key_save->keyCode) {
@@ -785,6 +791,7 @@ void CrossCraft::raycast() {
 }
 
 void CrossCraft::render(float partialTicks) {
+    // rotate player camera by mouse
     if (this->mouseGrabbed) {
         glViewport(0, 0, this->width, this->height);
         float xo = Mouse::getDX();
@@ -794,45 +801,45 @@ void CrossCraft::render(float partialTicks) {
         this->player->turn(xo, yo * static_cast<float>(iy));
     }
 
-    this->checkGlError("Set viewport");
-    this->checkGlError("Rasycasted");
     this->gamemode->applyCracks(partialTicks);
+    // clear screen
     glClearColor(this->bgR, this->bgG, this->bgB, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     this->fogDistance = (float)(512 >> (this->levelRenderer->drawDistance << 1));
+    // setup fov projection
     this->setupCamera(partialTicks);
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glEnable(GL_CULL_FACE);
+    // cull chunks around player view & update
     Frustum& frustum = Frustum::getFrustum();
     this->levelRenderer->cull(frustum);
     this->levelRenderer->updateDirtyChunks(this->player);
-    this->checkGlError("Update chunks");
     this->setupFog(0);
+    // render level (layer = 0)
     glEnable(GL_FOG);
     this->levelRenderer->render(this->player, 0);
-    this->checkGlError("Rendered level");
     Vec3D rvec = this->getPlayerVectorO(partialTicks);
+    // render multiplayer entities (Legacy)
     this->setLighting(true);
-    this->level->emesh->render(rvec, frustum, this->textures, partialTicks);
     for (auto const& [id, net_player] : this->level->networkPlayers) {
         if (net_player != nullptr) {
             net_player->render(this->textures, partialTicks, this->font, this->player);
         }
     }
     this->setLighting(false);
-    this->checkGlError("Rendered entities");
-    this->particleEngine->render(this->player, partialTicks, 0, this->textures);
-    this->checkGlError("Rendered particles (0)");
+    // render particles
+    this->particleEngine->render(this->player, partialTicks, this->textures);
+    // render surrounding ground
     this->levelRenderer->renderSurroundingGround();
-    this->checkGlError("Render surrounding Ground");
+    // render clouds
     glDisable(GL_LIGHTING);
     this->setupFog(-1);
     this->levelRenderer->renderClouds(partialTicks);
-    this->checkGlError("Rendered clouds");
     this->setupFog(1);
+    // render hits on tiles
     glEnable(GL_LIGHTING);
     if (this->hitResult != nullptr) {
         glDisable(GL_LIGHTING);
@@ -880,12 +887,11 @@ void CrossCraft::render(float partialTicks) {
         glEnable(GL_LIGHTING);
     }
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    if (this->raining) {
-        this->renderRain(partialTicks);
-    }
     this->setupFog(0);
+    // Render Surrounfing Water
     this->levelRenderer->renderSurroundingWater();
     this->checkGlError("Render surrounding Water");
+    // Render level water (layer = 1)
     glEnable(GL_BLEND);
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_FOG);
@@ -901,7 +907,17 @@ void CrossCraft::render(float partialTicks) {
     glDisable(GL_LIGHTING);
     glDisable(GL_TEXTURE_2D);
     glDisable(GL_FOG);
+    // Render Entities: (with normal3f lighting)
+    this->setLighting(true);
+    this->level->emesh->render(rvec, frustum, this->textures, partialTicks);
+    this->setLighting(false);
+    
+    // render rain
+    if (this->raining) {
+        this->renderRain(partialTicks);
+    }
 
+    // render outline 
     if (this->hitResult != nullptr) {
         glDepthFunc(GL_LESS);
         glDisable(GL_ALPHA_TEST);
@@ -910,6 +926,7 @@ void CrossCraft::render(float partialTicks) {
         glEnable(GL_ALPHA_TEST);
         glDepthFunc(GL_LEQUAL);
     }
+    // reset mvp matrix
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
@@ -919,6 +936,7 @@ void CrossCraft::render(float partialTicks) {
     glDisable(GL_FOG);
     glClear(GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
+    // render hurt effect
     this->hurtEffect(partialTicks);
     if (this->settings->viewBobbing) {
         this->applyBobbing(partialTicks);
@@ -926,8 +944,8 @@ void CrossCraft::render(float partialTicks) {
     glEnable(GL_TEXTURE_2D);
     this->renderHeldBlock(partialTicks);
     glDisable(GL_TEXTURE_2D);
+    // render gui
     this->drawGui(partialTicks);
-    this->checkGlError("Rendered gui");
     glfwSwapBuffers(window);
 }
 
@@ -945,6 +963,7 @@ void CrossCraft::drawGui(float partialTicks) {
     glTranslatef(0.0f, 0.0f, -200.0f);
     Tessellator& t = Tessellator::getInstance();
     this->checkGlError("GUI: Init");
+    // render hud
     glPushMatrix();
     if (this->hud != nullptr) {
         this->hud->render(this->player, this->level, partialTicks);
@@ -982,6 +1001,7 @@ void CrossCraft::drawGui(float partialTicks) {
     int wc = screenWidth / 2;
     int hc = screenHeight / 2;
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    // TODO: сделать рендер в виде одного прямоугольника с текстурой, должно уменьшить затраты на рендер
     t.begin();
     t.vertex((float)(wc + 1), (float)(hc - 4), 0.0F);
     t.vertex((float)(wc - 0), (float)(hc - 4), 0.0F);
@@ -994,10 +1014,12 @@ void CrossCraft::drawGui(float partialTicks) {
     t.end();
     this->checkGlError("GUI: Draw crosshair");
     this->chatGui->render(this->font, screenWidth, screenHeight);
+    // render player list (Creative & multiplayer)
     if (this->mpMode && Keyboard::isKeyDown(GLFW_KEY_TAB)) {
         playerListScreen->init(this, this->width * 240 / this->height, this->height * 240 / this->height);
         playerListScreen->render(xMouse, yMouse);
     }
+    // render current screen
     if (this->screen != nullptr) {
         this->screen->render(xMouse, yMouse);
     }
@@ -1321,8 +1343,9 @@ void CrossCraft::generateNewLevel(int width, int height, int depth) {
     const char* username = (this->userData != nullptr) ? this->userData->username.c_str() : "noname";
     this->levelGen->generateLevel(this->level, username, width, height, depth);
     this->level->player = nullptr;
-    delete this->player;
+    // delete this->player;
     this->player = new Player(this->level, this->settings);
+    this->level->player = this->player;
 
     this->player->resetPos();
     this->gamemode->preparePlayer(this->player);
@@ -1332,6 +1355,7 @@ void CrossCraft::generateNewLevel(int width, int height, int depth) {
     //     this->level->player = this->player;
     //     this->level->addEntity(this->player);
     // }
+    GC_gcollect(); // да, сборщик мусора в c++, и чё?
 }
 
 Vec3D* CrossCraft::getPlayerVector(float partialTicks) {

@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-Скрипт для вывода дерева файлов проекта с подсчётом строк кода
-Использование: python tree_project.py [путь] [--exclude dir1,dir2]
+Скрипт для вывода дерева файлов папки src/ с подсчётом строк кода
+Использование: python tree_project.py [путь_к_проекту_или_src] [--exclude dir1,dir2]
 """
 
 import os
 import sys
 from pathlib import Path
 
-# Файлы и папки которые нужно игнорировать
+# Файлы и папки, которые нужно игнорировать
 DEFAULT_IGNORE = {
     '.git', '.vscode', '.idea', 'node_modules', 'build', 'dist',
     '__pycache__', '.cache', '.DS_Store', 'CMakeFiles',
@@ -57,7 +57,7 @@ def count_lines(file_path):
         total = len(lines)
         empty = sum(1 for line in lines if line.strip() == '')
         
-        # Простой подсчёт комментариев (не идеален, но достаточно)
+        # Простой подсчёт комментариев
         comments = sum(1 for line in lines 
                       if line.strip().startswith('//') or 
                          line.strip().startswith('#') or
@@ -85,14 +85,6 @@ def format_size(size):
 def get_tree(path, prefix="", ignore_patterns=None, max_depth=None, current_depth=0, stats=None):
     """
     Рекурсивно строит дерево файлов с подсчётом строк
-    
-    Args:
-        path: путь к директории
-        prefix: префикс для отступов
-        ignore_patterns: набор паттернов для игнорирования
-        max_depth: максимальная глубина
-        current_depth: текущая глубина
-        stats: словарь для накопления статистики
     """
     if ignore_patterns is None:
         ignore_patterns = DEFAULT_IGNORE
@@ -115,20 +107,17 @@ def get_tree(path, prefix="", ignore_patterns=None, max_depth=None, current_dept
     path = Path(path)
     
     try:
-        # Получаем список файлов и папок
         items = sorted(path.iterdir(), key=lambda x: (not x.is_dir(), x.name.lower()))
         items = [item for item in items if not should_ignore(item, ignore_patterns)]
         
         for i, item in enumerate(items):
             is_last = (i == len(items) - 1)
             
-            # Символы дерева
             connector = "└── " if is_last else "├── "
             extension = "    " if is_last else "│   "
             
             if item.is_dir():
                 lines.append(f"{prefix}{connector}{item.name}/")
-                # Рекурсивно обходим папку
                 sublines, stats = get_tree(
                     item, 
                     prefix + extension, 
@@ -144,7 +133,6 @@ def get_tree(path, prefix="", ignore_patterns=None, max_depth=None, current_dept
                 stats['total_size'] += size
                 size_str = format_size(size)
                 
-                # Если это файл с кодом, подсчитываем строки
                 if is_code_file(item):
                     stats['code_files'] += 1
                     total, code, empty, comments = count_lines(item)
@@ -162,26 +150,33 @@ def get_tree(path, prefix="", ignore_patterns=None, max_depth=None, current_dept
     
     return lines, stats
 
-def print_tree(path, ignore=None, max_depth=None, show_stats=True):
+def print_tree(target_path, ignore=None, max_depth=None, show_stats=True):
     """
-    Выводит дерево файлов с подсчётом строк
+    Выводит дерево файлов папки src/ с подсчётом строк
     """
-    path = Path(path)
+    base_path = Path(target_path)
     
-    if not path.exists():
-        print(f"Ошибка: путь {path} не существует")
+    if not base_path.exists():
+        print(f"Ошибка: путь '{base_path}' не существует")
         return
     
-    # Объединяем паттерны игнорирования
+    # Определяем путь к src/
+    if base_path.name == 'src' and base_path.is_dir():
+        src_path = base_path
+    else:
+        src_path = base_path / 'src'
+    
+    if not src_path.exists() or not src_path.is_dir():
+        print(f"Ошибка: директория '{src_path}' не найдена")
+        return
+    
     ignore_patterns = DEFAULT_IGNORE.copy()
     if ignore:
         ignore_patterns.update(ignore)
     
-    # Выводим корневую директорию
-    print(f"\n📁 {path.absolute()}")
+    print(f"\n📁 {src_path.absolute()}")
     print("─" * 80)
     
-    # Строим дерево
     stats = {
         'total_files': 0,
         'code_files': 0,
@@ -192,21 +187,19 @@ def print_tree(path, ignore=None, max_depth=None, show_stats=True):
         'total_size': 0
     }
     
-    tree_lines, stats = get_tree(path, "", ignore_patterns, max_depth, 0, stats)
+    tree_lines, stats = get_tree(src_path, "", ignore_patterns, max_depth, 0, stats)
     
-    # Выводим дерево
     for line in tree_lines:
         print(line)
     
-    # Выводим статистику
     if show_stats:
         print("─" * 80)
-        print(f"📊 Статистика проекта:")
+        print("📊 Статистика папки src/:")
         print(f"   • Всего файлов: {stats['total_files']}")
         print(f"   • Файлов с кодом: {stats['code_files']}")
         print(f"   • Общий размер: {format_size(stats['total_size'])}")
         print()
-        print(f"📝 Подсчёт строк кода:")
+        print("📝 Подсчёт строк кода:")
         print(f"   • Всего строк: {stats['total_lines']:,}")
         print(f"   • Строк кода: {stats['code_lines']:,}")
         print(f"   • Пустых строк: {stats['empty_lines']:,}")
@@ -217,7 +210,7 @@ def print_tree(path, ignore=None, max_depth=None, show_stats=True):
             empty_percent = (stats['empty_lines'] / stats['total_lines']) * 100
             comment_percent = (stats['comment_lines'] / stats['total_lines']) * 100
             print()
-            print(f"📈 Процентное соотношение:")
+            print("📈 Процентное соотношение:")
             print(f"   • Код: {code_percent:.1f}%")
             print(f"   • Пустые строки: {empty_percent:.1f}%")
             print(f"   • Комментарии: {comment_percent:.1f}%")
@@ -227,16 +220,16 @@ def main():
     import argparse
     
     parser = argparse.ArgumentParser(
-        description='Выводит дерево файлов проекта с подсчётом строк кода',
+        description='Выводит дерево файлов папки src/ с подсчётом строк кода',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Примеры использования:
-  python tree_project.py                    # Текущая директория
-  python tree_project.py /path/to/project   # Указанная директория
+  python tree_project.py                    # Ищет ./src в текущей папке
+  python tree_project.py /path/to/project   # Ищет /path/to/project/src
+  python tree_project.py ./src              # Работает напрямую с src
   python tree_project.py --depth 2          # Максимум 2 уровня вложенности
-  python tree_project.py --exclude "test,tmp"  # Игнорировать test и tmp
-  python tree_project.py --no-stats         # Без статистики
-  python tree_project.py -o tree.txt        # Сохранить в файл
+  python tree_project.py --exclude "test"   # Игнорировать папку/файл test
+  python tree_project.py -o src_tree.txt    # Сохранить в файл
         """
     )
     
@@ -244,7 +237,7 @@ def main():
         'path',
         nargs='?',
         default='.',
-        help='Путь к директории (по умолчанию текущая)'
+        help='Путь к проекту или сразу к папке src (по умолчанию текущая директория)'
     )
     
     parser.add_argument(
@@ -258,7 +251,7 @@ def main():
         '--exclude', '-e',
         type=str,
         default='',
-        help='Дополнительные папки для игнорирования (через запятую)'
+        help='Дополнительные папки/файлы для игнорирования (через запятую)'
     )
     
     parser.add_argument(
@@ -271,17 +264,15 @@ def main():
         '--output', '-o',
         type=str,
         default=None,
-        help='Сохранить в файл'
+        help='Сохранить вывод в файл'
     )
     
     args = parser.parse_args()
     
-    # Парсим дополнительные исключения
     extra_ignore = set()
     if args.exclude:
         extra_ignore = set(args.exclude.split(','))
     
-    # Перенаправляем вывод в файл если нужно
     if args.output:
         original_stdout = sys.stdout
         sys.stdout = open(args.output, 'w', encoding='utf-8')
@@ -297,7 +288,7 @@ def main():
         if args.output:
             sys.stdout.close()
             sys.stdout = original_stdout
-            print(f"✅ Дерево файлов сохранено в {args.output}")
+            print(f"✅ Дерево папки src/ сохранено в {args.output}")
 
 if __name__ == '__main__':
     main()

@@ -1,4 +1,5 @@
 #include "level/Chunk.hpp"
+#include "GL/gl.h"
 
 int Chunk::rebuiltThisFrame = 0;
 int Chunk::updates = 0;
@@ -25,6 +26,12 @@ Chunk::Chunk(Level* level, int x0, int y0, int z0, int x1, int y1, int z1) :
     this->boundingSphereRadius = std::sqrt(dx*dx + dy*dy + dz*dz);
 
     this->lists = glGenLists(2);
+}
+
+Chunk::~Chunk() {
+    if (this->lists > 0) {
+        glDeleteLists(this->lists, 2);
+    }
 }
 
 void Chunk::rebuild(int layer) {

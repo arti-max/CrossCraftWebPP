@@ -88,7 +88,10 @@ void CrossCraftApplet::start() {
         }
         
         std::cout << "Calling game->run()..." << std::endl;
-        game->run();
+        emscripten_async_call([](void* arg) {
+            CrossCraft* g = static_cast<CrossCraft*>(arg);
+            g->run();
+        }, game, 0);
         
     } catch (const std::exception& e) {
         std::cout << "ERROR in CrossCraftApplet::start(): " << e.what() << std::endl;

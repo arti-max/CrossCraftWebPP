@@ -208,7 +208,7 @@ void Level::calcLightDepths(int x0, int z0, int x1, int z1) {
                 --depth;
             }
             
-            lightDepths[x + z * width] = depth + 1;
+            lightDepths[x + z * width] = depth;
             
             if (oldDepth != depth) {
                 int yl0 = oldDepth < depth ? oldDepth : depth;

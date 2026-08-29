@@ -34,7 +34,7 @@ public:
      * @param layer        Shadow layer (0 or 1)
      * @param textures     Texture manager
      */
-    void render(Player* player, float partialTicks, int layer, Textures* textures);
+    void render(Player* player, float partialTicks, Textures* textures);
 
 private:
     /**

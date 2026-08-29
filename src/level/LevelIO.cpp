@@ -488,7 +488,7 @@ std::vector<uint8_t> LevelIO::serializeLevelToByteArray(Level* level) {
     Player* player = (Player*)level->player;
     
     writeInt32(buffer, 656127880);
-    writeByte(buffer, 3); // level format
+    writeByte(buffer, 4); // level format
     writeUTF(buffer, level->name);
     writeUTF(buffer, level->creator);
     writeInt64(buffer, level->creationTime);

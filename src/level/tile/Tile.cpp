@@ -12,6 +12,10 @@
 #include "level/liquid/LiquidType.hpp"
 #include "level/tile/SlabTile.hpp"
 #include "level/tile/TNTTile.hpp"
+#include "level/tile/BookshelfTile.hpp"
+#include "level/tile/OreTile.hpp"
+#include "level/tile/FlowerTile.hpp"
+#include "level/tile/MushroomTile.hpp"
 
 #include "particle/TileParticle.hpp"
 #include "sound/SoundType.hpp"
@@ -34,9 +38,9 @@ static FallingTile gravelTile(12, 19);
 static FallingTile sandTile(13, 18);
 static LogTile logTile(14);
 static TransparentTile leavesTile(15, 22);
-static Tile goldOreTile(16, 32);
-static Tile ironOreTile(17, 33);
-static Tile coalOreTile(18, 34);
+static OreTile goldOreTile(16, 32);
+static OreTile ironOreTile(17, 33);
+static OreTile coalOreTile(18, 34);
 static SpongeTile spongeTile(19);
 static GlassTile glassTile(20);
 static Tile woolTile1(21, 64);
@@ -55,17 +59,17 @@ static Tile woolTile13(33, 76);
 static Tile woolTile14(34, 77);
 static Tile woolTile15(35, 78);
 static Tile woolTile16(36, 79);
-static Bush redFlowerTile(37, 12);
-static Bush yellowFlowerTile(38, 13);
-static Bush redMushroomTile(39, 28);
-static Bush brownMushroomTile(40, 29);
+static FlowerTile redFlowerTile(37, 12);
+static FlowerTile yellowFlowerTile(38, 13);
+static MushroomTile redMushroomTile(39, 28);
+static MushroomTile brownMushroomTile(40, 29);
 static Tile goldBlockTile(41, 24);
 static Tile ironBlockTile(42, 23);
 static SlabTile slabTile(43, false);
 static SlabTile doubleSlabTile(44, true);
 static TNTTile tntTile(45);
 static Tile bricksTile(46, 7); 
-static Tile bookshelfTile(47, 35); 
+static BookshelfTile bookshelfTile(47); 
 static Tile mossStoneTile(48, 36); 
 static Bush cobwebTile(49, 11);
 
@@ -85,8 +89,8 @@ const Tile* Tile::gravel = gravelTile.setData(SoundType::gravel, 1.0f, 0.6f);
 const Tile* Tile::sand = sandTile.setData(SoundType::gravel, 1.0f, 0.5f);
 const Tile* Tile::log = logTile.setData(SoundType::wood, 1.0f, 2.5f);
 const Tile* Tile::leaves = leavesTile.setData(SoundType::leaves, 0.4f, 0.2f);
-const Tile* Tile::goldOre = (goldOreTile.setData(SoundType::stone, 1.0f, 3.0f)->setDrop(goldBlockTile.id));
-const Tile* Tile::ironOre = (ironOreTile.setData(SoundType::stone, 1.0f, 3.0f)->setDrop(ironBlockTile.id));
+const Tile* Tile::goldOre = goldOreTile.setData(SoundType::stone, 1.0f, 3.0f);
+const Tile* Tile::ironOre = ironOreTile.setData(SoundType::stone, 1.0f, 3.0f);
 const Tile* Tile::coalOre = coalOreTile.setData(SoundType::stone, 1.0f, 3.0f);
 const Tile* Tile::sponge = spongeTile.setData(SoundType::cloth, 0.9f, 0.6f);
 const Tile* Tile::glass = glassTile.setData(SoundType::metal, 1.0f, 0.3f);
@@ -126,6 +130,10 @@ Tile::Tile(int id) {
     this->id = id;
     this->setShape(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
     this->textureId = 0;
+}
+
+Tile::~Tile() {
+    // Nothing
 }
 
 Tile::Tile(int id, int texture) : Tile(id) {

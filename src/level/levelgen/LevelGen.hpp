@@ -2,11 +2,9 @@
 
 #include "level/LevelLoaderListener.hpp"
 #include "level/Level.hpp"
-#include "level/levelgen/synth/Noise.hpp"
 #include "util/Random.hpp"
 #include <vector>
 #include <cstdint>
-#include <memory>
 
 class LevelGen {
 private:

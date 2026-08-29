@@ -4,12 +4,9 @@
 #include "level/tile/Tile.hpp"
 #include "mob/Zombie.hpp"
 #include "mob/Skeleton.hpp"
-#include "mob/AnimalMob.hpp"
-#include "mob/Creeper.hpp"
 #include <cmath>
 #include <iostream>
 #include <algorithm>
-#include "CrossCraft.hpp"
 
 LevelGen::LevelGen(LevelLoaderListener* listener) : listener(listener), random() {}
 LevelGen::~LevelGen() = default;

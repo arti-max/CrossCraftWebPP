@@ -35,6 +35,9 @@ void Progressbar::updateProgressState(int progress) {
     if (progress == this->lastProgress) {
         return;
     }
+    if (std::abs(progress - this->lastProgress) < 2 && progress != 100 && progress != 0) {
+        return;
+    }
     this->lastProgress = progress;
     int screenWidth = this->width * 240 / this->height;
     int screenHeight = this->height * 240 / this->height;
@@ -84,6 +87,8 @@ void Progressbar::updateProgressState(int progress) {
     this->font->drawShadow(this->status, (screenWidth - this->font->width(this->status)) / 2, screenHeight / 2 - 4 + 8, 0xFFFFFF);
     
     glfwSwapBuffers(CrossCraft::instance->window);
-    
-    emscripten_sleep(1); 
+
+#ifdef __EMSCRIPTEN__
+    emscripten_sleep(1);
+#endif 
 }

@@ -42,7 +42,7 @@ void ParticleEngine::tick() {
     }
 }
 
-void ParticleEngine::render(Player* player, float partialTicks, int layer, Textures* textures) {
+void ParticleEngine::render(Player* player, float partialTicks, Textures* textures) {
     if (particles.empty()) {
         return;
     }

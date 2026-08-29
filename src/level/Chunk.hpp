@@ -35,6 +35,7 @@ public:
     bool visible = false;
 
     Chunk(Level* level, int x0, int y0, int z0, int x1, int y1, int z1);
+    ~Chunk();
     void rebuild(int layer);
     void rebuild();
     void render(int layer);

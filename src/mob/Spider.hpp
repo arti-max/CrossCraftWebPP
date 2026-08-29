@@ -20,10 +20,10 @@ public:
         if (e != nullptr) {
             e->awardKillScore(this, 10);
         }
-        int cnt = this->level->random->nextInt(2)+1;
-        for (int i = 0; i < cnt; i++) {
-            this->level->addEntity((Entity*)new Item(this->level, this->x, this->y, this->z, Tile::cobweb->id));
-        }
+        // int cnt = this->level->random->nextInt(2)+1;
+        // for (int i = 0; i < cnt; i++) {
+        //     this->level->addEntity((Entity*)new Item(this->level, this->x, this->y, this->z, Tile::cobweb->id));
+        // }
 
         Mob::die(e);
     }

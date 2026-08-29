@@ -9,13 +9,13 @@ int GrassTile::getTexture(int face) {
 }
 
 void GrassTile::tick(Level* level, int x, int y, int z, Random* random) {
-    if (level->isLit(x, y+1, z)) {
+    if (level->isLit(x, y, z)) {
         for (int i = 0; i < 4; ++i) {
             int targetX = x + random->nextInt(3) - 1;
             int targetY = y + random->nextInt(5) - 3;
             int targetZ = z + random->nextInt(3) - 1;
 
-            if (level->getTile(targetX, targetY, targetZ) == Tile::dirt->id && level->isLit(targetX, targetY+1, targetZ)) {
+            if (level->getTile(targetX, targetY, targetZ) == Tile::dirt->id && level->isLit(targetX, targetY, targetZ)) {
                 level->setTile(targetX, targetY, targetZ, Tile::grass->id);
             }
         }

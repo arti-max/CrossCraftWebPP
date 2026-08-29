@@ -1,6 +1,8 @@
 #pragma once
+#ifdef __EMSCRIPTEN__
 #include <emscripten/html5.h>
 #include <emscripten.h>
+#endif
 #include <GLFW/glfw3.h>
 #include <string>
 #include <array>
@@ -54,7 +56,7 @@
 
 class CrossCraft : public LevelLoaderListener {
 public:
-    const std::string VERSION_STRING = "0.15_03  SURVIVAL TEST";
+    const std::string VERSION_STRING = "0.16  SURVIVAL TEST";
     std::string fpsString = "";
 private:
     int lastFpsTime = 0;
@@ -135,8 +137,6 @@ private:
     void drawGui(float partialTicks);
 
     void mainLoop();
-    static void emscriptenMainLoop(void* arg);
-    void asyncSleep(int ms);
 
 public:
     static CrossCraft* instance;

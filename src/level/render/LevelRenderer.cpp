@@ -1,4 +1,5 @@
 #include "level/render/LevelRenderer.hpp"
+#include "GL/gl.h"
 #include "render/Tessellator.hpp"
 #include <iostream>
 #include <cmath>
@@ -48,6 +49,11 @@ LevelRenderer::~LevelRenderer() {
     }
     
     glDeleteLists(surroundLists, 2);
+    glDeleteLists(skyLists, 2);
+
+    if (this->level != nullptr) {
+        this->level->removeListener(this);
+    }
 }
 
 void LevelRenderer::allChanged() {
@@ -62,7 +68,8 @@ void LevelRenderer::allChanged() {
     for (Chunk* chunk : chunks) {
         delete chunk;
     }
-    
+
+    this->skyCompiled = false;
     chunks.clear();
     sortedChunks.clear();
     int totalChunks = xChunks * yChunks * zChunks;
@@ -367,37 +374,37 @@ void LevelRenderer::renderHitOutline(HitResult* h, Player* player, int mode, int
         Tile* tile = Tile::tiles[tileId];
         if (tile == nullptr) return;
 
-        x += tile->minX;
-        y += tile->minY;
-        z += tile->minZ;
+        float minX = tile->minX;
+        float minY = tile->minY;
+        float minZ = tile->minZ;
 
         float maxX = tile->maxX;
         float maxY = tile->maxY;
         float maxZ = tile->maxZ;
 
         glBegin(GL_LINE_STRIP);
-        glVertex3f(x, y, z);
-        glVertex3f(x + maxX, y, z);
-        glVertex3f(x + maxX, y, z + maxZ);
-        glVertex3f(x, y, z + maxZ);
-        glVertex3f(x, y, z);
+        glVertex3f(x + minX, y + minY, z + minZ);
+        glVertex3f(x + maxX, y + minY, z + minZ);
+        glVertex3f(x + maxX, y + minY, z + maxZ);
+        glVertex3f(x+ minX, y + minY, z + maxZ);
+        glVertex3f(x+ minX, y + minY, z + minZ);
         glEnd();
         glBegin(3);
-        glVertex3f(x, y + maxY, z);
-        glVertex3f(x + maxX, y + maxY, z);
+        glVertex3f(x+ minX, y + maxY, z + minZ);
+        glVertex3f(x + maxX, y + maxY, z + minZ);
         glVertex3f(x + maxX, y + maxY, z + maxZ);
-        glVertex3f(x, y + maxY, z + maxZ);
-        glVertex3f(x, y + maxY, z);
+        glVertex3f(x+ minX, y + maxY, z + maxZ);
+        glVertex3f(x+ minX, y + maxY, z + minZ);
         glEnd();
         glBegin(1);
-        glVertex3f(x, y, z);
-        glVertex3f(x, y + maxY, z);
-        glVertex3f(x + maxX, y, z);
-        glVertex3f(x + maxX, y + maxY, z);
-        glVertex3f(x + maxX, y, z + maxZ);
+        glVertex3f(x+ minX, y + minY, z + minZ);
+        glVertex3f(x+ minX, y + maxY, z + minZ);
+        glVertex3f(x + maxX, y + minY, z + minZ);
+        glVertex3f(x + maxX, y + maxY, z + minZ);
+        glVertex3f(x + maxX, y + minY, z + maxZ);
         glVertex3f(x + maxX, y + maxY, z + maxZ);
-        glVertex3f(x, y, z + maxZ);
-        glVertex3f(x, y + maxY, z + maxZ);
+        glVertex3f(x + minX, y + minY, z + maxZ);
+        glVertex3f(x + minX, y + maxY, z + maxZ);
         glEnd();
         glDisable(GL_BLEND);
     }

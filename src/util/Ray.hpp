@@ -9,6 +9,7 @@
 #include <vector>
 #include <limits>
 #include <cfloat>
+#include <algorithm>
 
 class Ray {
 public:
@@ -31,28 +32,24 @@ public:
         return Ray(player->x, startY, player->z, dx, dy, dz);
     }
     
-    // Основной метод raycast с проверкой энтити
     HitResult* trace(Level* level, Player* player, float maxDistance = 5.0f) {
-        // Сначала проверяем энтити (они в приоритете)
         float length = std::sqrt(dx * dx + dy * dy + dz * dz);
         if (length < 0.0001f) return nullptr;
         float ndx = dx / length;
         float ndy = dy / length;
         float ndz = dz / length;
 
-        // --- Поиск пересечений с сущностями (как в Java) ---
+        // --- Поиск пересечений с сущностями ---
         HitResult* entityHit = nullptr;
         float entityDist = maxDistance;
 
         if (player && level->emesh) {
-            // Расширенный AABB игрока вдоль луча
             AABB playerBB = player->bb.expand(ndx * maxDistance, ndy * maxDistance, ndz * maxDistance);
             std::vector<Entity*> entities = level->emesh->getEntities(player, playerBB);
 
             for (Entity* ent : entities) {
                 if (!ent->isPickable()) continue;
 
-                // AABB сущности немного расширяем для надёжного касания
                 AABB hitbox = ent->bb.grow(0.1f, 0.1f, 0.1f);
                 float t = rayAABBIntersection(hitbox);
                 if (t >= 0.0f && t < entityDist) {
@@ -63,18 +60,16 @@ public:
             }
         }
 
-        // --- Поиск пересечений с блоками (DDA) ---
+        // --- Поиск пересечений с блоками ---
         HitResult* blockHit = traceBlocks(level, maxDistance, ndx, ndy, ndz);
         float blockDist = maxDistance;
         if (blockHit) {
-            // расстояние до точки пересечения с блоком
-            float dx = blockHit->vec.x - x;
-            float dy = blockHit->vec.y - y;
-            float dz = blockHit->vec.z - z;
-            blockDist = std::sqrt(dx * dx + dy * dy + dz * dz);
+            float bdx = blockHit->vec.x - x;
+            float bdy = blockHit->vec.y - y;
+            float bdz = blockHit->vec.z - z;
+            blockDist = std::sqrt(bdx * bdx + bdy * bdy + bdz * bdz);
         }
 
-        // Возвращаем ближайшее
         if (!blockHit) return entityHit;
         if (!entityHit) return blockHit;
 
@@ -88,7 +83,67 @@ public:
     }
     
 private:
-    // DDA алгоритм для точного обхода воксельной сетки
+    // Точный тест пересечения луча с AABB блока с определением нормали/грани
+    bool intersectBox(const AABB& box, float ndx, float ndy, float ndz, float& outT, int& outFace) const {
+        float tmin = -std::numeric_limits<float>::max();
+        float tmax =  std::numeric_limits<float>::max();
+        int face = -1;
+
+        // X slab (грани 4 = -X / West, 5 = +X / East)
+        if (std::abs(ndx) > 1e-7f) {
+            float t1 = (box.x0 - x) / ndx;
+            float t2 = (box.x1 - x) / ndx;
+            int signFace = (ndx > 0.0f) ? 4 : 5;
+            if (t1 > t2) std::swap(t1, t2);
+
+            if (t1 > tmin) {
+                tmin = t1;
+                face = signFace;
+            }
+            tmax = std::min(tmax, t2);
+        } else if (x < box.x0 || x > box.x1) {
+            return false;
+        }
+
+        // Y slab (грани 0 = -Y / Bottom, 1 = +Y / Top)
+        if (std::abs(ndy) > 1e-7f) {
+            float t1 = (box.y0 - y) / ndy;
+            float t2 = (box.y1 - y) / ndy;
+            int signFace = (ndy > 0.0f) ? 0 : 1;
+            if (t1 > t2) std::swap(t1, t2);
+
+            if (t1 > tmin) {
+                tmin = t1;
+                face = signFace;
+            }
+            tmax = std::min(tmax, t2);
+        } else if (y < box.y0 || y > box.y1) {
+            return false;
+        }
+
+        // Z slab (грани 2 = -Z / North, 3 = +Z / South)
+        if (std::abs(ndz) > 1e-7f) {
+            float t1 = (box.z0 - z) / ndz;
+            float t2 = (box.z1 - z) / ndz;
+            int signFace = (ndz > 0.0f) ? 2 : 3;
+            if (t1 > t2) std::swap(t1, t2);
+
+            if (t1 > tmin) {
+                tmin = t1;
+                face = signFace;
+            }
+            tmax = std::min(tmax, t2);
+        } else if (z < box.z0 || z > box.z1) {
+            return false;
+        }
+
+        if (tmin > tmax || tmax < 0.0f) return false;
+
+        outT = (tmin >= 0.0f) ? tmin : 0.0f;
+        outFace = face;
+        return true;
+    }
+
     HitResult* traceBlocks(Level* level, float maxDistance,
                            float ndx, float ndy, float ndz) {
         int bx = (int)std::floor(x);
@@ -117,64 +172,67 @@ private:
         else tMaxZ = FLT_MAX;
 
         float t = 0.0f;
-        int lastFace = -1;
 
-        while (t < maxDistance) {
-            if (bx < 0 || bx >= level->width ||
-                by < 0 || by >= level->depth ||
-                bz < 0 || bz >= level->height)
-                break;
+        while (t <= maxDistance) {
+            if (bx >= 0 && bx < level->width &&
+                by >= 0 && by < level->depth &&
+                bz >= 0 && bz < level->height) {
 
-            int tileId = level->getTile(bx, by, bz);
-            if (tileId != 0) {
-                Tile* tile = Tile::tiles[tileId];
-                if (tile && tile->mayPick()) {
-                    // Вычисляем точку пересечения луча с гранью
-                    Vec3D hitPoint(
-                        x + ndx * t,
-                        y + ndy * t,
-                        z + ndz * t
-                    );
-                    return new HitResult(0, bx, by, bz, lastFace, hitPoint);
+                int tileId = level->getTile(bx, by, bz);
+                if (tileId != 0) {
+                    Tile* tile = Tile::tiles[tileId];
+                    if (tile && tile->mayPick()) {
+                        // Формируем мировой AABB для текущего блока с учётом его формы
+                        AABB box(
+                            (float)bx + tile->minX,
+                            (float)by + tile->minY,
+                            (float)bz + tile->minZ,
+                            (float)bx + tile->maxX,
+                            (float)by + tile->maxY,
+                            (float)bz + tile->maxZ
+                        );
+
+                        float hitT = 0.0f;
+                        int hitFace = -1;
+                        if (intersectBox(box, ndx, ndy, ndz, hitT, hitFace) && hitT <= maxDistance) {
+                            Vec3D hitPoint(x + ndx * hitT, y + ndy * hitT, z + ndz * hitT);
+                            return new HitResult(0, bx, by, bz, hitFace, hitPoint);
+                        }
+                    }
                 }
             }
 
-            // Шаг DDA
+            // Шаг DDA к следующему вокселю
             if (tMaxX < tMaxY) {
                 if (tMaxX < tMaxZ) {
                     t = tMaxX;
                     tMaxX += tDeltaX;
                     bx += stepX;
-                    lastFace = (stepX > 0) ? 4 : 5;
                 } else {
                     t = tMaxZ;
                     tMaxZ += tDeltaZ;
                     bz += stepZ;
-                    lastFace = (stepZ > 0) ? 2 : 3;
                 }
             } else {
                 if (tMaxY < tMaxZ) {
                     t = tMaxY;
                     tMaxY += tDeltaY;
                     by += stepY;
-                    lastFace = (stepY > 0) ? 0 : 1;
                 } else {
                     t = tMaxZ;
                     tMaxZ += tDeltaZ;
                     bz += stepZ;
-                    lastFace = (stepZ > 0) ? 2 : 3;
                 }
             }
         }
         return nullptr;
     }
     
-    // Ray-AABB intersection test
+    // Ray-AABB intersection test для сущностей
     float rayAABBIntersection(const AABB& box) {
         float tmin = -std::numeric_limits<float>::max();
         float tmax =  std::numeric_limits<float>::max();
 
-        // X slab
         if (std::abs(dx) > 1e-6f) {
             float t1 = (box.x0 - x) / dx;
             float t2 = (box.x1 - x) / dx;
@@ -183,7 +241,6 @@ private:
             tmax = std::min(tmax, t2);
         } else if (x < box.x0 || x > box.x1) return -1.0f;
 
-        // Y slab
         if (std::abs(dy) > 1e-6f) {
             float t1 = (box.y0 - y) / dy;
             float t2 = (box.y1 - y) / dy;
@@ -192,7 +249,6 @@ private:
             tmax = std::min(tmax, t2);
         } else if (y < box.y0 || y > box.y1) return -1.0f;
 
-        // Z slab
         if (std::abs(dz) > 1e-6f) {
             float t1 = (box.z0 - z) / dz;
             float t2 = (box.z1 - z) / dz;
@@ -202,6 +258,6 @@ private:
         } else if (z < box.z0 || z > box.z1) return -1.0f;
 
         if (tmin > tmax || tmax < 0.0f) return -1.0f;
-        return tmin >= 0.0f ? tmin : 0.0f; // если начало внутри AABB, считаем 0
+        return tmin >= 0.0f ? tmin : 0.0f;
     }
 };
