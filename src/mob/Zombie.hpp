@@ -18,13 +18,7 @@ public:
         attackAi->defaultLookAngle = 30;
         attackAi->runSpeed = 1.0f;
         this->ai = attackAi;
-    }
-
-    void die(Entity* e) override {
-        if (e != nullptr) {
-            e->awardKillScore(this, 100);
-        }
-        HumanMob::die(e);
+        this->deathScore = 80;
     }
 
     EntityType getEntityType() const override { return EntityType::Zombie; }

@@ -464,6 +464,21 @@
             },
 
             onRuntimeInitialized: async function() {
+                try {
+                    const targetSleep = typeof _emscripten_sleep !== 'undefined' ? _emscripten_sleep : (Module['_emscripten_sleep'] || null);
+                    if (targetSleep) {
+                        const originalSleep = targetSleep;
+                        const hook = function(ms) {
+                            console.warn(`[ASYNCIFY SLEEP: ${ms}ms]`, new Error().stack);
+                            return originalSleep(ms);
+                        };
+                        if (typeof _emscripten_sleep !== 'undefined') _emscripten_sleep = hook;
+                        Module['_emscripten_sleep'] = hook;
+                    }
+                } catch(e) {
+                    console.error("Failed to hook emscripten_sleep:", e);
+                }
+                
                 const loadingScreen = document.getElementById('loading-screen');
                 if (loadingScreen) {
                     loadingScreen.style.display = 'none';

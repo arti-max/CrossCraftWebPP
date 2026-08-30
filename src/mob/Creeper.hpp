@@ -14,18 +14,11 @@ public:
         this->ai = new CreeperAI(this);
         this->ai->defaultLookAngle = 45;
         this->setPos(x, y, z);
+        this->deathScore = 200;
     }
 
     float getBrightness(float partialTicks) override {
         float healthFactor = (float)(20 - this->health) / 20.0f;
         return ((std::sin((float)(this->tickCount + partialTicks)) * 0.5f + 0.5f) * healthFactor * 0.5f + 0.25f + healthFactor * 0.25f) * Mob::getBrightness(partialTicks);
-    }
-
-    void die(Entity* e) override {
-        if (e != nullptr) {
-            e->awardKillScore(this, 250);
-        }
-
-        Mob::die(e);
     }
 };

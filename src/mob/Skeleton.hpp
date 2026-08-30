@@ -18,6 +18,7 @@ public:
         SkeletonAI* ai = new SkeletonAI(this);
         ai->runSpeed = 0.3f;
         this->ai = ai;
+        this->deathScore = 120;
     }
 
     EntityType getEntityType() const override { return EntityType::Skeleton; }

@@ -374,6 +374,9 @@ void Mob::knockback(Entity* e, int dmg, float dx, float dz) {
 
 void Mob::die(Entity* e) {
     this->dead = true;
+    if (e != nullptr) {
+        e->awardKillScore(this, this->deathScore);
+    }
 }
 
 bool Mob::isShootable() {

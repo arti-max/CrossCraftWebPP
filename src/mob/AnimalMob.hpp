@@ -13,12 +13,10 @@ public:
         this->modelName = "pig";
         this->heightOffset = 1.72f;
         this->textureName = "/mob/pig.png";
+        this->deathScore = 10;
     }
 
     void die(Entity* e) override {
-        if (e != nullptr) {
-            e->awardKillScore(this, 10);
-        }
         int cnt = this->level->random->nextInt(2)+1;
         for (int i = 0; i < cnt; i++) {
             this->level->addEntity((Entity*)new Item(this->level, this->x, this->y, this->z, Tile::brownMushroom->id));

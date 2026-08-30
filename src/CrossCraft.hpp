@@ -53,10 +53,11 @@
 #include "item/Arrow.hpp"
 #include "Progressbar.hpp"
 #include "particle/WaterDropPatricle.hpp"
+#include "net/NetworkData.hpp"
 
 class CrossCraft : public LevelLoaderListener {
 public:
-    const std::string VERSION_STRING = "0.16_01  SURVIVAL TEST";
+    const std::string VERSION_STRING = "0.17  SURVIVAL TEST";
     std::string fpsString = "";
 private:
     int lastFpsTime = 0;
@@ -69,7 +70,6 @@ private:
     std::string errorReason = "";
     std::vector<std::string> connectionUrls;
     int currentUrlIndex = 0;
-    int playerId = -1;
     
     std::array<float, 4> fogColor0;
     std::array<float, 4> fogColor1;
@@ -79,7 +79,6 @@ private:
     bool fullscreen;
     bool running = false;
     bool paused = false;
-    bool canRender = true;
     std::string parent;
     int editMode = 0;
     int selectedTile = Tile::rock->id;
@@ -90,13 +89,11 @@ private:
     bool isDrop = false;
     bool raining = false;
 
-
     float lastSentX = 0, lastSentY = 0, lastSentZ = 0;
     float lastSentYaw = 0, lastSentPitch = 0;
 
     HitResult* hitResult;
     LevelGen* levelGen = new LevelGen(this);
-    LevelIO* levelIO = new LevelIO(this);
     Hud* hud;
     BlockSelectScreen* blockSelectScreen;
     
@@ -144,6 +141,7 @@ public:
     GLFWwindow* window;
 
     Timer* timer = new Timer(20.0f);
+    LevelIO* levelIO = new LevelIO(this);
     Level* level = nullptr;
     Screen* screen = nullptr;
     ParticleEngine* particleEngine = nullptr;
@@ -159,17 +157,20 @@ public:
     GameMode* gamemode = new SurvivalGameMode(this);
     HeldBlock* heldBlock = new HeldBlock(this);
     Progressbar* progressbar = nullptr;
+    NetworkData* netData = new NetworkData(this);
 
     CrossCraft(const char* parent, int width, int height, bool fullscreen);
     ~CrossCraft();
 
     bool appletMode = false;
+    bool canRender = true;
     bool mpMode = false;
     bool waitingForFocus = false;
     Entity* hitEntity = nullptr;
     int lastClick = 0;
     int ticks = 0;
 
+    int playerId = -1;
     int serverPort;
     std::string serverAddress;
 

@@ -32,7 +32,7 @@ public:
     float rotOffs = 0.0f;
     std::string modelName = "";
     float bobStrength = 1.0f;
-    int deathScore = 0.0f;
+    int deathScore = 0;
     float renderOffset = 0.0f;
     int health = 20;
     int lastHealth = 0;

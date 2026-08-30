@@ -20,7 +20,6 @@ std::string getWebSocketCloseReason(int code) {
     }
 }
 
-
 Client::Client() {}
 
 Client::~Client() {
@@ -62,6 +61,11 @@ void Client::disconnect() {
         socket = 0;
     }
     connected = false;
+
+    while (!incomingPackets.empty()) {
+        delete incomingPackets.front();
+        incomingPackets.pop();
+    }
 }
 
 void Client::sendPacket(Packet* packet) {
@@ -84,9 +88,7 @@ void Client::sendPacket(Packet* packet) {
     delete packet;
 }
 
-void Client::tick() {
-    
-}
+void Client::tick() {}
 
 EM_BOOL Client::onOpen(int eventType, const EmscriptenWebSocketOpenEvent* event, void* userData) {
     Client* client = static_cast<Client*>(userData);
@@ -139,12 +141,9 @@ EM_BOOL Client::onMessage(int eventType, const EmscriptenWebSocketMessageEvent* 
     }
     
     Packet* packet = Packet::fromBytes(event->data, event->numBytes);
-    
-    if (packet && client->onPacketCallback) {
-        client->onPacketCallback(packet);
+    if (packet != nullptr) {
+        client->incomingPackets.push(packet);
     }
-    
-    delete packet;
     
     return EM_TRUE;
 }

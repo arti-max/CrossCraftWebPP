@@ -41,6 +41,7 @@ public:
     ~Client();
 
     bool loggedIn = false;
+    std::queue<Packet*> incomingPackets;
 
     bool connect(const std::string& url);
     void disconnect();
