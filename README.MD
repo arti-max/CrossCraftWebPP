@@ -6,7 +6,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/license-MIT-yellow.svg?style=flat-square" alt="License"/>
-  <img src="https://img.shields.io/badge/version-0.16_01-blue.svg?style=flat-square" alt="Version"/>
+  <img src="https://img.shields.io/badge/version-0.17-blue.svg?style=flat-square" alt="Version"/>
   <img src="https://img.shields.io/badge/platform-Web%20Browser-654FF0.svg?style=flat-square" alt="Platform"/>
   <img src="https://img.shields.io/badge/multiplayer-Supported-2ea44f.svg?style=flat-square" alt="Multiplayer"/>
 </p>
