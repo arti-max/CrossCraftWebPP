@@ -17,7 +17,7 @@
 
 <p align="center">
   <a href="https://crosscraftweb.ddns.net/">Website</a> • 
-  <a href="https://github.com/arti-max/CrossCraftWebPP/issues">Issue Tracker</a> • 
+  <a href="https://github.com/arti-max/ReCraft-Online/issues">Issue Tracker</a> • 
   <a href="LICENSE">License</a>
 </p>
 
