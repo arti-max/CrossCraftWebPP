@@ -435,7 +435,9 @@ void LevelRenderer::cull(Frustum& frustum) {
 
 void LevelRenderer::renderClouds(float partialTicks) {
     glEnable(GL_FOG);
+    glCullFace(GL_BACK);
     this->renderSky();
+    glCullFace(GL_FRONT);
 
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, textures->loadTexture("clouds", GL_NEAREST));

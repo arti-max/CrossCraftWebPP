@@ -370,7 +370,7 @@ void CrossCraft::handleMouseClick(int mode) {
                     this->heldBlock->pos = 0.0f;
 
                     if (this->mpMode) {
-                        BlockChangePacket* packet = new BlockChangePacket(x, y, z, selected, true);
+                        BlockChangePacket* packet = new BlockChangePacket(x, y, z, selected);
                         this->client->sendPacket(packet);
                     }
                 }
@@ -842,12 +842,8 @@ void CrossCraft::render(float partialTicks) {
     // Render Entities: (with normal3f lighting)
     this->setLighting(true);
     this->level->emesh->render(rvec, frustum, this->textures, partialTicks);
-    // render multiplayer entities (Legacy)
-    for (auto const& [id, net_player] : this->level->networkPlayers) {
-        if (net_player != nullptr) {
-            net_player->render(this->textures, partialTicks, this->font, this->player);
-        }
-    }
+    // render multiplayer entities
+    this->netData->render(partialTicks);
     this->setLighting(false);
     // render particles
     this->particleEngine->render(this->player, partialTicks, this->textures);
@@ -861,6 +857,7 @@ void CrossCraft::render(float partialTicks) {
     // render hits on tiles
     glEnable(GL_LIGHTING);
     if (this->hitResult != nullptr) {
+        glCullFace(GL_BACK);
         glDisable(GL_LIGHTING);
         glDisable(GL_ALPHA_TEST);
         glEnable(GL_BLEND);
@@ -908,6 +905,7 @@ void CrossCraft::render(float partialTicks) {
         this->levelRenderer->renderHitOutline(this->hitResult, this->player, this->editMode, this->player->inventory->getCurrentBlock());
         glEnable(GL_ALPHA_TEST);
         glEnable(GL_LIGHTING);
+        glCullFace(GL_FRONT);
     }
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     this->setupFog(0);

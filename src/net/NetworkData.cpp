@@ -12,19 +12,13 @@ NetworkData::NetworkData(CrossCraft* cc) {
     this->handler->cc = cc;
 }
 
-void NetworkData::removePlayer(int id) {
-    auto it = this->players.find(id);
-    if (it != this->players.end()) {
-        delete it->second;
-        this->players.erase(it);
-    }
-}
 
 void NetworkData::addEntity(Entity* e, int id) {
     auto it = this->entities.find(id);
     if (it != this->entities.end()) {
         this->removeEntity(id);
     }
+    e->setNetwork(true);
     this->entities[id] = e;
     this->cc->level->addEntity(e);
 }
@@ -40,11 +34,21 @@ void NetworkData::removeEntity(int id) {
 
 void NetworkData::addplayer(NetworkPlayer* player, int id) {
     auto it = this->players.find(id);
+    player->setNetwork(true);
     if (it == this->players.end()) {
         this->players[id] = player;
+        this->cc->level->addEntity(player);
     } else {
         delete it->second;
         it->second = player;
+    }
+}
+
+void NetworkData::removePlayer(int id) {
+    auto it = this->players.find(id);
+    if (it != this->players.end()) {
+        this->cc->level->removeEntity(it->second);
+        this->players.erase(it);
     }
 }
 
@@ -52,6 +56,14 @@ void NetworkData::tick() {
     for (auto const& [id, net_player] : this->players) {
         if (net_player != nullptr) {
             net_player->tick();
+        }
+    }
+}
+
+void NetworkData::render(float partialTicks) {
+    for (auto const& [id, net_player] : this->players) {
+        if (net_player != nullptr) {
+            net_player->render(this->cc->textures, partialTicks, this->cc->font, this->cc->player);
         }
     }
 }
@@ -79,5 +91,12 @@ void NetworkData::stopHit(int hitId) {
             delete it->second.hit;
         }
         this->hits.erase(it);
+    }
+}
+
+void NetworkData::setPlayerPosition(float x, float y, float z, float yaw, float pitch, int id) {
+    auto it = this->players.find(id);
+    if (it != this->players.end()) {
+        it->second->queue(x, y, z, yaw, pitch);
     }
 }

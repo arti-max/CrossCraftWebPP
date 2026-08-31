@@ -1,5 +1,6 @@
 #pragma once
 #include "Entity.hpp"
+#include "mob/Mob.hpp"
 #include "model/HumanModel.hpp"
 #include "render/Textures.hpp"
 #include "gui/Font.hpp"
@@ -16,23 +17,23 @@ struct NetworkPosition {
         : x(x), y(y), z(z), yaw(yaw), pitch(pitch) {}
 };
 
-class NetworkPlayer : public Entity {
+class NetworkPlayer : public Mob {
 private:
     static const long long serialVersionUID = 77479605454997290;
-    HumanModel* model = new HumanModel(0.0f);
+    // HumanModel* model = new HumanModel(0.0f);
     std::deque<NetworkPosition> moveQueue;
 
     int ticks = 0;
-    int playerId;
+    int playerId = -1;
 
-    float animStep;
-    float animStepO;
+    // float animStep;
+    // float animStepO;
     
-    float yBodyRot;
-    float yBodyRotO;
+    // float yBodyRot;
+    // float yBodyRotO;
     
-    float run;
-    float oRun;
+    // float run;
+    // float oRun;
 
     float targetX = 0, targetY = 0, targetZ = 0;
     float targetYaw = 0, targetPitch = 0;
@@ -48,8 +49,11 @@ public:
     std::string displayName;
 
     void tick() override;
+    void aiStep() override;
+    
     void render(Textures* tex, float partialTicks, Font* font, Player* localPlayer);
-
+    void bindTexture(Textures* textures) override;
+    
     void setServerPosition(float x, float y, float z, float yaw, float pitch);
 
     void queue(float x, float y, float z, float yaw, float pitch);

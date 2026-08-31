@@ -50,7 +50,7 @@ void EntityMesh::addEntity(Entity* e) {
         slot.add(e);
         // Logger::logf(PREFIX_DEBUG, "New Entity spawned at %.1f,%.1f,%.1f!", e->x, e->y, e->z);
     } else {
-        Logger::logf(PREFIX_WARNING, "Entity at %.1f,%.1f,%.1f outside mesh grid\n", e->x, e->y, e->z);
+        Logger::logf(PREFIX_WARNING, "Entity at %.1f,%.1f,%.1f outside mesh grid (%i, %i, %i)\n", e->x, e->y, e->z, this->width, this->depth, this->height);
     }
     e->xo = e->x;
     e->yo = e->y;
@@ -63,6 +63,7 @@ void EntityMesh::removeEntity(Entity* e) {
     if (removed) {
         utils::remove_all(this->all, e);
     }
+    delete e;
 }
 
 std::vector<Entity*> EntityMesh::getEntities(Entity* ignore, float x0, float y0, float z0, float x1, float y1, float z1, std::vector<Entity*>& result) {
@@ -132,36 +133,38 @@ void EntityMesh::tickAll() {
     for (int i = 0; i < this->all.size(); ++i) {
         if (this->all[i]) {
             Entity* e = this->all[i]; 
-            e->tick();
+            if (!e->network) {
+                e->tick();
 
-            if (e->removed) {
-                this->slotStart->init(e->xo, e->yo, e->zo).remove(e);
-                utils::remove_at(this->all, i);
-                i--;
+                if (e->removed) {
+                    this->slotStart->init(e->xo, e->yo, e->zo).remove(e);
+                    utils::remove_at(this->all, i);
+                    i--;
 
-                if (!e->removeExternally) {
-                    delete e;
-                }
-            } else {
-                int oldX = (int)(e->xo / 16.0f);
-                int oldY = (int)(e->yo / 16.0f);
-                int oldZ = (int)(e->zo / 16.0f);
-                int X = (int)(e->x / 16.0f);
-                int Y = (int)(e->y / 16.0f);
-                int Z = (int)(e->z / 16.0f);
-                if (oldX != X || oldY != Y || oldZ != Z) {
-                    EntityMeshSlot& s1 = this->slotStart->init(e->xo, e->yo, e->zo);
-                    EntityMeshSlot& s2 = this->slotEnd->init(e->x, e->y, e->z);
-                    if (s1 != s2) {
-                        s1.remove(e);
-                        s2.add(e);
-                        e->xo = e->x;
-                        e->yo = e->y;
-                        e->zo = e->z;
+                    if (!e->removeExternally) {
+                        delete e;
+                    }
+                } else {
+                    int oldX = (int)(e->xo / 16.0f);
+                    int oldY = (int)(e->yo / 16.0f);
+                    int oldZ = (int)(e->zo / 16.0f);
+                    int X = (int)(e->x / 16.0f);
+                    int Y = (int)(e->y / 16.0f);
+                    int Z = (int)(e->z / 16.0f);
+                    if (oldX != X || oldY != Y || oldZ != Z) {
+                        EntityMeshSlot& s1 = this->slotStart->init(e->xo, e->yo, e->zo);
+                        EntityMeshSlot& s2 = this->slotEnd->init(e->x, e->y, e->z);
+                        if (s1 != s2) {
+                            s1.remove(e);
+                            s2.add(e);
+                            e->xo = e->x;
+                            e->yo = e->y;
+                            e->zo = e->z;
+                        }
+
                     }
 
                 }
-
             }
         }
     }

@@ -39,7 +39,7 @@ void PlayerListScreen::render(int xMouse, int yMouse) {
     if (this->cc->level != nullptr) {
         std::vector<std::string> usernames;
         usernames.push_back(this->cc->userData->username);
-        for (auto const& [id, netPlayer] : this->cc->level->networkPlayers) {
+        for (auto const& [id, netPlayer] : this->cc->netData->players) {
             if (netPlayer != nullptr) {
                 usernames.push_back(netPlayer->username);
             }

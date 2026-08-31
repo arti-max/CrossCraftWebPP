@@ -1,4 +1,6 @@
 #include "net/NetworkPlayer.hpp"
+#include "GL/gl.h"
+#include "Logger.hpp"
 #include <random>
 
 float normalizeAngle(float angle) {
@@ -7,10 +9,18 @@ float normalizeAngle(float angle) {
     return angle;
 }
 
-NetworkPlayer::NetworkPlayer(Level* level, int playerId, std::string &username, float x, float y, float z, float yRot, float xRot) : Entity::Entity(level) {
+NetworkPlayer::NetworkPlayer(Level* level, int playerId, std::string &username, float x, float y, float z, float yRot, float xRot) : Mob(level) {
     this->playerId = playerId;
     this->username = username;
     this->displayName = username;
+
+
+    this->modelName = "human"; 
+    
+    if (this->ai != nullptr) {
+        delete this->ai;
+        this->ai = nullptr;
+    }
     
     this->setPos(x, y, z);
     this->xRot = xRot;
@@ -27,10 +37,20 @@ NetworkPlayer::NetworkPlayer(Level* level, int playerId, std::string &username, 
 }
 
 NetworkPlayer::~NetworkPlayer() {
-    delete model;
+    // delete model;
 }   
 
+void NetworkPlayer::bindTexture(Textures* textures) {
+    // Загрузка скина по нику
+    glBindTexture(GL_TEXTURE_2D, textures->loadTextureFromUrl("http://recraft-online.fun/skins/" + this->username + ".png", GL_NEAREST));
+}
+
 void NetworkPlayer::tick() {
+    this->oTilt = this->tilt;
+    if (this->attackTime > 0) --this->attackTime;
+    if (this->hurtTime > 0) --this->hurtTime;
+    if (this->invulnerableTime > 0) --this->invulnerableTime;
+    
     Entity::tick(); 
     
     this->animStepO = this->animStep;
@@ -44,7 +64,7 @@ void NetworkPlayer::tick() {
     } else {
         int i = 5;
         do {
-            if (this->moveQueue.size() > 0) {
+            if (!this->moveQueue.empty()) {
                 NetworkPosition pos = this->moveQueue.front();
                 this->moveQueue.pop_front();
                 this->setPos(pos.x, pos.y, pos.z);
@@ -66,10 +86,10 @@ void NetworkPlayer::tick() {
     this->oRun = this->run;
     float runSpeed = 0.0f;
 
-    if (dist != 0.0f) {
+    if (dist > 0.05f) {
         runSpeed = 1.0f;
         speed = dist * 3.0f;
-        targetBodyRot = -((float)std::atan2(dz, dx) * 180.0f / 3.1415927f + 90.0f);
+        targetBodyRot = std::atan2(dz, dx) * 180.0f / M_PI - 90.0f;
     }
 
     this->run += (runSpeed - this->run) * 0.3f;
@@ -77,13 +97,11 @@ void NetworkPlayer::tick() {
     float rotDiff = targetBodyRot - this->yBodyRot;
     while (rotDiff < -180.0f) rotDiff += 360.0f;
     while (rotDiff >= 180.0f) rotDiff -= 360.0f;
-    
     this->yBodyRot += rotDiff * 0.1f;
 
     float headDiff = this->yRot - this->yBodyRot;
     while (headDiff < -180.0f) headDiff += 360.0f;
     while (headDiff >= 180.0f) headDiff -= 360.0f;
-    
     this->yBodyRot += headDiff * 0.1f;
     
     headDiff = this->yRot - this->yBodyRot;
@@ -91,22 +109,18 @@ void NetworkPlayer::tick() {
     while (headDiff >= 180.0f) headDiff -= 360.0f;
     
     bool isMovingBackwards = headDiff < -90.0f || headDiff >= 90.0f;
-    
     if (headDiff < -75.0f) headDiff = -75.0f;
     if (headDiff >= 75.0f) headDiff = 75.0f;
     
     this->yBodyRot = this->yRot - headDiff;
-    
     if (isMovingBackwards) {
         speed = -speed;
     }
 
     while (this->yRot - this->yRotO < -180.0f) this->yRotO -= 360.0f;
     while (this->yRot - this->yRotO >= 180.0f) this->yRotO += 360.0f;
-    
     while (this->yBodyRot - this->yBodyRotO < -180.0f) this->yBodyRotO -= 360.0f;
     while (this->yBodyRot - this->yBodyRotO >= 180.0f) this->yBodyRotO += 360.0f;
-    
     while (this->xRot - this->xRotO < -180.0f) this->xRotO -= 360.0f;
     while (this->xRot - this->xRotO >= 180.0f) this->xRotO += 360.0f;
 
@@ -114,45 +128,19 @@ void NetworkPlayer::tick() {
 }
 
 void NetworkPlayer::render(Textures* textures, float partialTicks, Font* font, Player* localPlayer) {
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, textures->loadTextureFromUrl("http://crosscraftweb.ddns.net/skins/" + this->username + ".png", GL_NEAREST));
+    Mob::render(partialTicks, textures);
 
     float interpX = this->xo + (this->x - this->xo) * partialTicks;
     float interpY = this->yo + (this->y - this->yo) * partialTicks;
     float interpZ = this->zo + (this->z - this->zo) * partialTicks;
-    
-    float interpYBodyRot = this->yBodyRotO + (this->yBodyRot - this->yBodyRotO) * partialTicks;
-    float interpYHeadRot = this->yRotO + (this->yRot - this->yRotO) * partialTicks;
-    float interpXRot = this->xRotO + (this->xRot - this->xRotO) * partialTicks;
-    
-    float interpRun = this->oRun + (this->run - this->oRun) * partialTicks;
-    float interpAnimStep = this->animStepO + (this->animStep - this->animStepO) * partialTicks;
-    float modelHeadRot = interpYHeadRot - interpYBodyRot;
-
-    glPushMatrix();
-    float brightness = this->getBrightness(partialTicks);
-    glColor3f(brightness, brightness, brightness);
-    float bob = -std::abs(std::sin(interpAnimStep * 0.6662f)) * 5.0f * interpRun - 23.0f;
-    
-    float scale = 0.0625f;
-
-    glTranslatef(interpX, interpY - this->heightOffset, interpZ);
-    glScalef(1.0f, -1.0f, 1.0f);
-    
-    glTranslatef(0.0f, bob * scale, 0.0f);
-    glRotatef(-interpYBodyRot, 0.0f, 1.0f, 0.0f);
-    this->model->render(interpAnimStep, interpRun, (float)this->ticks + partialTicks, -modelHeadRot, interpXRot, scale); 
-
-    glPopMatrix();
 
     float dx = interpX - localPlayer->x;
     float dy = interpY - localPlayer->y;
     float dz = interpZ - localPlayer->z;
-    float distanceSq = dx*dx + dy*dy + dz*dz;
+    float distanceSq = dx * dx + dy * dy + dz * dz;
 
     if (distanceSq < 4096.0f) {
         glPushMatrix();
-        
         glTranslatef(interpX, interpY + 0.8f, interpZ);
 
         glRotatef(-localPlayer->yRot, 0.0f, 1.0f, 0.0f);
@@ -173,9 +161,8 @@ void NetworkPlayer::render(Textures* textures, float partialTicks, Font* font, P
         glDisable(GL_FOG);
         
         int color = 0xFFFFFF;
-
         if (this->username == "arti") {
-            color = 16776960;
+            color = 0xFFFF00;
         }
         
         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
@@ -193,9 +180,7 @@ void NetworkPlayer::render(Textures* textures, float partialTicks, Font* font, P
 
         glPopMatrix();
     }
-    glDisable(GL_TEXTURE_2D);
 }
-
 void NetworkPlayer::queue(float x, float y, float z, float yaw, float pitch) {
     this->moveQueue.push_back(NetworkPosition(x, y, z, yaw, pitch));
 }
@@ -207,11 +192,3 @@ void NetworkPlayer::queue(float x, float y, float z) {
 void NetworkPlayer::queue(float yaw, float pitch) {
     this->moveQueue.push_back(NetworkPosition(this->x, this->y, this->z, yaw, pitch));
 }
-
-// void NetworkPlayer::setServerPosition(float x, float y, float z, float yaw, float pitch) {
-//     this->serverX = x;
-//     this->serverY = y;
-//     this->serverZ = z;
-//     this->serverYaw = yaw;
-//     this->serverPitch = pitch;
-// }

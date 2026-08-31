@@ -424,6 +424,7 @@ void Entity::hurt(Entity* e, int dmg) {
 void Entity::awardKillScore(Entity* e, int score) {
     
 }
+
 bool Entity::shouldRender(Vec3D vec) {
     float dx = this->x - vec.x;
     float dy = this->y - vec.y;
@@ -435,4 +436,8 @@ bool Entity::shouldRender(Vec3D vec) {
 bool Entity::shouldRenderAtSqrDistance(float dist) {
     float maxDist = this->bb.getSize() * 64.0f;
     return dist < maxDist*maxDist;
+}
+
+void Entity::setNetwork(bool net) {
+    this->network = net;
 }

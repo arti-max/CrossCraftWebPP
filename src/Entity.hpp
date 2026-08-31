@@ -47,6 +47,7 @@ public:
     float xOld = 0.0f;
     float yOld = 0.0f;
     float zOld = 0.0f;
+    bool network = false;
 
     AABB bb;
     EntityMesh* emesh = nullptr;
@@ -105,6 +106,7 @@ public:
     virtual EntityType getEntityType() const { return EntityType::Entity; }
     virtual bool shouldRender(Vec3D vec);
     virtual bool shouldRenderAtSqrDistance(float dist);
+    virtual void setNetwork(bool network);
 
 private:
     float randomFloat();

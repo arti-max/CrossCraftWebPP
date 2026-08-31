@@ -1,5 +1,6 @@
 #include "net/PacketHandler.hpp"
 #include "net/packet/Packet.hpp"
+#include "net/packet/RequestSpawnPlayersPacket.hpp"
 #include "util/Logger.hpp"
 #include "CrossCraft.hpp"
 
@@ -55,9 +56,11 @@ void PacketHandler::handleNetworkPacket(Packet* packet) {
             this->cc->levelLoadProgress(100);
             this->cc->canRender = true;
         
-            Logger::logf(PREFIX_NETWORK, "Level data received and processed.\n");
+            Logger::logf(PREFIX_NETWORK, "Level data received and processed. %i, %i, %i\n", p->width, p->depth, p->height);
             RequestSpawnPositionPacket* requestPacket = new RequestSpawnPositionPacket();
             this->client->sendPacket(requestPacket);
+            RequestSpawnplayersPacket* spawnPlayers = new RequestSpawnplayersPacket();
+            this->client->sendPacket(spawnPlayers);
             break;
         }
             
@@ -74,7 +77,7 @@ void PacketHandler::handleNetworkPacket(Packet* packet) {
             
             NetworkPlayer* new_player = new NetworkPlayer(this->cc->level, p->playerId, p->username, p->x, p->y, p->z, p->yaw, p->pitch);
             Logger::logf(PREFIX_NETWORK, "Username in player: %s", new_player->username.c_str());
-            this->cc->level->networkPlayers[p->playerId] = new_player;
+            this->cc->netData->addplayer(new_player, p->playerId);
             break;
         }
 
@@ -88,10 +91,7 @@ void PacketHandler::handleNetworkPacket(Packet* packet) {
                 Logger::logf(PREFIX_NETWORK, "Teleported by server to %f, %f, %f\n", p->x, p->y, p->z);
             } 
             else {
-                auto it = this->cc->level->networkPlayers.find(p->playerId);
-                if (it != this->cc->level->networkPlayers.end()) {
-                    it->second->queue(p->x, p->y, p->z, p->yaw, p->pitch);
-                }
+                this->cc->netData->setPlayerPosition(p->x, p->y, p->z, p->yaw, p->pitch, p->playerId);
             }
             break;
         }
@@ -101,8 +101,6 @@ void PacketHandler::handleNetworkPacket(Packet* packet) {
             Logger::logf(PREFIX_NETWORK, "Despawning player (ID: %d)\n", p->playerId);
 
             this->cc->netData->removePlayer(p->playerId);
-
-            
             break;
         }
 

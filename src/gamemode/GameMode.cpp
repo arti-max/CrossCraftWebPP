@@ -2,6 +2,7 @@
 #include "level/Level.hpp"
 #include "level/tile/Tile.hpp"
 #include "CrossCraft.hpp"
+#include "net/packet/BlockChangePacket.hpp"
 #include "player/Player.hpp"
 
 GameMode::GameMode(CrossCraft* cc) {
@@ -37,8 +38,12 @@ void GameMode::breakTile(int x, int y, int z) {
         }
 
 
+        if (this->cc->mpMode) {
+            BlockChangePacket* packet = new BlockChangePacket(x, y, z, 0);
+            this->cc->client->sendPacket(packet);
+        }
+        
         tile->spawnDestroyParticles(level, x, y, z, cc->particleEngine);
-        // tile->onDestroy(level, x, y, z, cc->particleEngine, true);
     }
 }
 

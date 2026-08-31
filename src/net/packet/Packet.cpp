@@ -1,9 +1,11 @@
 #include "net/packet/Packet.hpp"
 #include "net/packet/LoginPacket.hpp"
+#include "net/packet/PacketType.hpp"
 #include "net/packet/PositionPacket.hpp"
 #include "net/packet/BlockChangePacket.hpp"
 #include "net/packet/LevelLoadPacket.hpp"
 #include "net/packet/BlockUpdatePacket.hpp"
+#include "net/packet/RequestSpawnPlayersPacket.hpp"
 #include "net/packet/ServerIdent.hpp"
 #include "net/packet/SpawnPlayerPacket.hpp"
 #include "net/packet/DespawnPlayerPacket.hpp"
@@ -175,6 +177,11 @@ Packet* Packet::fromBytes(const uint8_t* bytes, size_t length) {
 
         case PacketType::REQUEST_LEVEL_DATA:
             packet = new RequestLevelDataPacket();
+            break;
+
+        case PacketType::REQUEST_PLAYERS:
+            packet = new RequestSpawnplayersPacket();
+            break;
 
         default:
             return nullptr;
